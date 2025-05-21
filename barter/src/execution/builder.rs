@@ -1,6 +1,6 @@
 use crate::{
     engine::{clock::EngineClock, execution_tx::MultiExchangeTxMap},
-    error::BarterError,
+    error::JackbotError,
     execution::{
         AccountStreamEvent, Execution, error::ExecutionError, manager::ExecutionManager,
         request::ExecutionRequest,
@@ -89,7 +89,7 @@ impl<'a> ExecutionBuilder<'a> {
         mut self,
         config: MockExecutionConfig,
         clock: Clock,
-    ) -> Result<Self, BarterError>
+    ) -> Result<Self, JackbotError>
     where
         Clock: EngineClock + Clone + Send + Sync + 'static,
     {
@@ -133,7 +133,7 @@ impl<'a> ExecutionBuilder<'a> {
         self,
         config: Client::Config,
         request_timeout: Duration,
-    ) -> Result<Self, BarterError>
+    ) -> Result<Self, JackbotError>
     where
         Client: ExecutionClient + Send + Sync + 'static,
         Client::AccountStream: Send,
@@ -147,7 +147,7 @@ impl<'a> ExecutionBuilder<'a> {
         exchange: ExchangeId,
         config: Client::Config,
         request_timeout: Duration,
-    ) -> Result<Self, BarterError>
+    ) -> Result<Self, JackbotError>
     where
         Client: ExecutionClient + Send + Sync + 'static,
         Client::AccountStream: Send,
@@ -162,7 +162,7 @@ impl<'a> ExecutionBuilder<'a> {
             .insert(exchange, (instrument_map.exchange.key, execution_tx))
             .is_some()
         {
-            return Err(BarterError::ExecutionBuilder(format!(
+            return Err(JackbotError::ExecutionBuilder(format!(
                 "ExecutionBuilder does not support duplicate mocked ExecutionManagers: {exchange}"
             )));
         }
@@ -252,7 +252,7 @@ impl ExecutionBuild {
     /// - Spawns [`MockExchange`] runners tokio tasks.
     /// - Initialises all [`ExecutionManager`]s and their AccountStreams.
     /// - Returns the `MultiExchangeTxMap` and multi-exchange AccountStream.
-    pub async fn init(self) -> Result<Execution, BarterError> {
+    pub async fn init(self) -> Result<Execution, JackbotError> {
         self.init_internal(tokio::runtime::Handle::current()).await
     }
 
@@ -268,14 +268,14 @@ impl ExecutionBuild {
     pub async fn init_with_runtime(
         self,
         runtime: tokio::runtime::Handle,
-    ) -> Result<Execution, BarterError> {
+    ) -> Result<Execution, JackbotError> {
         self.init_internal(runtime).await
     }
 
     async fn init_internal(
         self,
         runtime: tokio::runtime::Handle,
-    ) -> Result<Execution, BarterError> {
+    ) -> Result<Execution, JackbotError> {
         let handles = self.futures.init_with_runtime(runtime).await?;
 
         Ok(Execution {
@@ -299,7 +299,7 @@ impl ExecutionBuildFutures {
     /// - Spawns [`MockExchange`] runner tokio tasks.
     /// - Initialises all [`ExecutionManager`]s and their AccountStreams.
     /// - Spawns tokio tasks to forward AccountStreams to multi-exchange AccountStream
-    pub async fn init(self) -> Result<ExecutionHandles, BarterError> {
+    pub async fn init(self) -> Result<ExecutionHandles, JackbotError> {
         self.init_internal(tokio::runtime::Handle::current()).await
     }
 
@@ -315,14 +315,14 @@ impl ExecutionBuildFutures {
     pub async fn init_with_runtime(
         self,
         runtime: tokio::runtime::Handle,
-    ) -> Result<ExecutionHandles, BarterError> {
+    ) -> Result<ExecutionHandles, JackbotError> {
         self.init_internal(runtime).await
     }
 
     async fn init_internal(
         self,
         runtime: tokio::runtime::Handle,
-    ) -> Result<ExecutionHandles, BarterError> {
+    ) -> Result<ExecutionHandles, JackbotError> {
         let mock_exchanges = self
             .mock_exchange_run_futures
             .into_iter()

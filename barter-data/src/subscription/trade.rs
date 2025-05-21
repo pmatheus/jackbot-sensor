@@ -3,7 +3,7 @@ use barter_instrument::Side;
 use barter_macro::{DeSubKind, SerSubKind};
 use serde::{Deserialize, Serialize};
 
-/// Barter [`Subscription`](super::Subscription) [`SubscriptionKind`] that yields [`PublicTrade`]
+/// Jackbot [`Subscription`](super::Subscription) [`SubscriptionKind`] that yields [`PublicTrade`]
 /// [`MarketEvent<T>`](crate::event::MarketEvent) events.
 #[derive(
     Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default, DeSubKind, SerSubKind,
@@ -24,7 +24,7 @@ impl std::fmt::Display for PublicTrades {
     }
 }
 
-/// Normalised Barter [`PublicTrade`] model.
+/// Normalised Jackbot [`PublicTrade`] model.
 #[derive(Clone, PartialEq, PartialOrd, Debug, Deserialize, Serialize)]
 pub struct PublicTrade {
     pub id: String,

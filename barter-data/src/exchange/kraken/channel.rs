@@ -5,7 +5,7 @@ use crate::{
 };
 use serde::Serialize;
 
-/// Type that defines how to translate a Barter [`Subscription`] into a
+/// Type that defines how to translate a Jackbot [`Subscription`] into a
 /// [`Kraken`] channel to be subscribed to.
 ///
 /// See docs: <https://docs.kraken.com/websockets/#message-subscribe>
