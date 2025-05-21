@@ -105,7 +105,7 @@ where
         .map(|market| ExchangeSub::from((BinanceChannel::TRADES, market)).id())
 }
 
-/// Deserialize a [`BinanceTrade`] "buyer_is_maker" boolean field to a Barter [`Side`].
+/// Deserialize a [`BinanceTrade`] "buyer_is_maker" boolean field to a Jackbot [`Side`].
 ///
 /// Variants:
 /// buyer_is_maker => Side::Sell

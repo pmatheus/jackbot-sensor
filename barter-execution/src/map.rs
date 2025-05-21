@@ -9,7 +9,7 @@ use barter_instrument::{
 use barter_integration::collection::{FnvIndexMap, FnvIndexSet};
 use fnv::FnvHashMap;
 
-/// Indexed instrument map used to associate the internal Barter representation of instruments and
+/// Indexed instrument map used to associate the internal Jackbot representation of instruments and
 /// assets with the [`ExecutionClient`](super::client::ExecutionClient) representation.
 ///
 /// Similarly, when the execution manager received an [`AccountEvent`](super::AccountEvent)

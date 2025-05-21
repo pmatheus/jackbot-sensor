@@ -17,11 +17,11 @@ use derive_more::Display;
 use serde_json::json;
 use url::Url;
 
-/// Defines the type that translates a Barter [`Subscription`](crate::subscription::Subscription)
+/// Defines the type that translates a Jackbot [`Subscription`](crate::subscription::Subscription)
 /// into an execution [`Connector`] specific channel used for generating [`Connector::requests`].
 pub mod channel;
 
-/// Defines the type that translates a Barter [`Subscription`](crate::subscription::Subscription)
+/// Defines the type that translates a Jackbot [`Subscription`](crate::subscription::Subscription)
 /// into an execution [`Connector`] specific market used for generating [`Connector::requests`].
 pub mod market;
 
