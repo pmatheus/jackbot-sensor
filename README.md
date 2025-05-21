@@ -36,14 +36,14 @@ and back-testing systems. It is made up of several easy-to-use, extensible crate
 - Turn on/off algorithmic trading from an external process (eg/ UI, Telegram, etc.) whilst still processing market/account data. 
 - Issue Engine Commands from an external process (eg/ UI, Telegram, etc.) to initiate actions (CloseAllPositions, OpenOrders, CancelOrders, etc.).
 - EngineState replica manager that processes the Engine AuditStream to facilitate non-hot path monitoring components (eg/ UI, Telegram, etc.).
-- S3 data harvesting using parquet + iceberg for preserving data for later utilziation to build even better algos.
-- Jackpot orderbook representation. Composed of a special kind of order sent from (UI, Telegram, etc.) that is not placeble in the current exchange orderbook because it is too out of money.
+- S3 data harvesting using parquet + iceberg for preserving data for later utilization to build even better algos.
+- Jackpot orderbook representation. Composed of a special kind of order sent from (UI, Telegram, etc.) that is not placeable in the current exchange orderbook because it is too out of money.
 
 ## Getting Help
 Reach out via mail@jackbot.app
 
 ## Jackbot Sensor is Open Source 
-Jackbot Terminal sensors are opensource to build trust with users. Here they can atest the code executing their order on the cloud.
+Jackbot Terminal sensors are opensource to build trust with users. Here they can attest the code executing their order on the cloud.
 
 ## Contributing
 If you use Jackbot Terminal and is a coder and want more exchange support or a new exchange that want exposure in the terminal send out a pull request and we are happy to integrate you into the project.
@@ -53,7 +53,7 @@ This project is licensed under the MIT license.
 
 ### Contribution License Agreement
 
-Any contribution you intentionally submit for inclusion in Jackbot Tterminal shall be:
+Any contribution you intentionally submit for inclusion in Jackbot Terminal shall be:
 1. Licensed under MIT
 2. Subject to all disclaimers and limitations of liability stated below
 3. Provided without any additional terms or conditions
