@@ -34,6 +34,7 @@ use barter::{
         on_trading_disabled::OnTradingDisabled,
     },
     test_utils::time_plus_days,
+    statistic::time::Daily,
 };
 use barter_data::{
     event::{DataKind, MarketEvent},
@@ -646,7 +647,17 @@ fn test_engine_process_engine_event_with_audit() {
     let eth_btc_tear = summary.instruments.get_index(1).unwrap().1;
     assert_eq!(eth_btc_tear.pnl_returns.pnl_raw, dec!(-0.065));
 
-    // Todo: Additional assertions + TradingSummary assertions once generated (to test TimeInterval)
+    // Generate final TradingSummary and verify key metrics
+    let trading_summary = summary.generate(Daily);
+
+    assert_eq!(trading_summary.instruments.len(), 2);
+    assert_eq!(trading_summary.assets.len(), 3);
+
+    let total_pnl: Decimal = trading_summary
+        .instruments
+        .values()
+        .fold(Decimal::ZERO, |acc, ts| acc + ts.pnl);
+    assert_eq!(total_pnl, dec!(6999.935));
 }
 
 struct TestBuyAndHoldStrategy {
