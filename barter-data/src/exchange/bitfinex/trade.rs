@@ -112,3 +112,35 @@ impl<'de> serde::Deserialize<'de> for BitfinexTrade {
         deserializer.deserialize_seq(SeqVisitor)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_trade_into_market_event() {
+        let trade = BitfinexTrade {
+            id: 1,
+            time: Utc::now(),
+            side: Side::Buy,
+            price: 100.0,
+            amount: 0.1,
+        };
+
+        let events: MarketIter<&str, PublicTrade> =
+            (ExchangeId::Bitfinex, "btc_usd", trade).into();
+
+        assert_eq!(events.0.len(), 1);
+        let event = events.0.into_iter().next().unwrap().unwrap();
+        assert_eq!(event.exchange, ExchangeId::Bitfinex);
+        assert_eq!(event.instrument, "btc_usd");
+        assert_eq!(event.kind, PublicTrade {
+            id: "1".to_owned(),
+            price: 100.0,
+            amount: 0.1,
+            side: Side::Buy,
+        });
+        assert_eq!(event.time_exchange, trade.time);
+        assert!(event.time_received >= trade.time);
+    }
+}
