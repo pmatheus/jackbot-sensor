@@ -16,7 +16,7 @@ use std::marker::PhantomData;
 use tokio::sync::mpsc;
 
 /// Standard generic stateless [`ExchangeTransformer`] to translate execution specific types into
-/// normalised Barter types. Often used with
+/// normalised Jackbot types. Often used with
 /// [`PublicTrades`](crate::subscription::trade::PublicTrades) or
 /// [`OrderBooksL1`](crate::subscription::book::OrderBooksL1) streams.
 #[derive(Clone, Eq, PartialEq, Debug)]

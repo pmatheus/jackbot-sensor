@@ -5,7 +5,7 @@ use std::fmt::{Display, Formatter};
 
 pub mod kind;
 
-/// Barter representation of an `MarketDataInstrument`. Used to uniquely identify a `base_quote`
+/// Jackbot representation of an `MarketDataInstrument`. Used to uniquely identify a `base_quote`
 /// pair, and it's associated instrument type.
 ///
 /// eg/ MarketDataInstrument { base: "btc", quote: "usdt", kind: Spot }

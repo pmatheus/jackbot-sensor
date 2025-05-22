@@ -13,7 +13,7 @@ pub mod manager;
 /// Provides an abstract collection of cheaply cloneable shared-state [`OrderBook`].
 pub mod map;
 
-/// Normalised Barter [`OrderBook`] snapshot.
+/// Normalised Jackbot [`OrderBook`] snapshot.
 #[derive(Clone, PartialEq, Eq, Debug, Default, Deserialize, Serialize)]
 pub struct OrderBook {
     pub sequence: u64,
@@ -118,7 +118,7 @@ impl OrderBook {
     }
 }
 
-/// Normalised Barter [`Level`]s for one `Side` ( of the [`OrderBook`].
+/// Normalised Jackbot [`Level`]s for one `Side` ( of the [`OrderBook`].
 #[derive(Clone, PartialEq, Eq, Debug, Deserialize, Serialize)]
 pub struct OrderBookSide<Side> {
     #[serde(skip_serializing)]
@@ -265,7 +265,7 @@ impl Default for OrderBookSide<Asks> {
     }
 }
 
-/// Normalised Barter OrderBook [`Level`].
+/// Normalised Jackbot OrderBook [`Level`].
 #[derive(Debug, Copy, Clone, PartialEq, Ord, PartialOrd, Hash, Default, Deserialize, Serialize)]
 pub struct Level {
     pub price: Decimal,

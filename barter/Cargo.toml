@@ -24,7 +24,7 @@ tokio = { workspace = true, features = ["fs"]}
 criterion = { workspace = true }
 
 [dependencies]
-# Barter Ecosystem
+# Jackbot Ecosystem
 barter-integration = { workspace = true }
 barter-instrument = { workspace = true }
 barter-data = { workspace = true }

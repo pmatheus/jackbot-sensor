@@ -10,7 +10,7 @@ use crate::{
 };
 use serde::Serialize;
 
-/// Type that defines how to translate a Barter [`Subscription`] into a [`Binance`]
+/// Type that defines how to translate a Jackbot [`Subscription`] into a [`Binance`]
 /// channel to be subscribed to.
 ///
 /// See docs: <https://binance-docs.github.io/apidocs/spot/en/#websocket-market-streams>
