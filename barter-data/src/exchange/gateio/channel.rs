@@ -32,6 +32,9 @@ impl GateioChannel {
     ///
     /// See docs: <https://www.gate.io/docs/developers/options/ws/en/#public-contract-trades-channel>
     pub const OPTION_TRADES: Self = Self("options.trades");
+
+    /// Gateio futures OrderBook Level2 channel.
+    pub const FUTURE_ORDER_BOOK_L2: Self = Self("futures.order_book");
 }
 
 impl<GateioExchange, Instrument> Identifier<GateioChannel>
@@ -50,12 +53,13 @@ where
     }
 }
 
-impl<GateioExchange, Instrument> Identifier<GateioChannel>
-    for Subscription<GateioExchange, Instrument, OrderBooksL2>
+impl<Instrument> Identifier<GateioChannel>
+    for Subscription<super::future::GateioFuturesBtc, Instrument, OrderBooksL2>
 where
     Instrument: InstrumentData,
 {
     fn id(&self) -> GateioChannel {
+        GateioChannel::FUTURE_ORDER_BOOK_L2
         GateioChannel::SPOT_ORDER_BOOK_L2
     }
 }
