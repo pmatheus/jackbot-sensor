@@ -132,7 +132,7 @@ struct FtxBalance {
     total: f64,
 }
 
-/// See Barter-Execution for a comprehensive real-life example, as well as code you can use out of the
+/// See Jackbot-Execution for a comprehensive real-life example, as well as code you can use out of the
 /// box to execute trades on many exchanges.
 #[tokio::main]
 async fn main() {

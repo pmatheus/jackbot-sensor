@@ -13,7 +13,7 @@ use crate::{
         execution_tx::MultiExchangeTxMap,
         state::{EngineState, instrument::data::InstrumentDataState},
     },
-    error::BarterError,
+    error::JackbotError,
     risk::RiskManager,
     statistic::time::TimeInterval,
     strategy::{
@@ -90,7 +90,7 @@ pub async fn run_backtests<
         BacktestArgsConstant<MarketData, SummaryInterval, EngineState<GlobalData, InstrumentData>>,
     >,
     args_dynamic_iter: impl IntoIterator<Item = BacktestArgsDynamic<Strategy, Risk>>,
-) -> Result<MultiBacktestSummary<SummaryInterval>, BarterError>
+) -> Result<MultiBacktestSummary<SummaryInterval>, JackbotError>
 where
     MarketData: BacktestMarketData<Kind = InstrumentData::MarketEventKind>,
     SummaryInterval: TimeInterval,
@@ -153,7 +153,7 @@ pub async fn backtest<MarketData, SummaryInterval, Strategy, Risk, GlobalData, I
         BacktestArgsConstant<MarketData, SummaryInterval, EngineState<GlobalData, InstrumentData>>,
     >,
     args_dynamic: BacktestArgsDynamic<Strategy, Risk>,
-) -> Result<BacktestSummary<SummaryInterval>, BarterError>
+) -> Result<BacktestSummary<SummaryInterval>, JackbotError>
 where
     MarketData: BacktestMarketData<Kind = InstrumentData::MarketEventKind>,
     SummaryInterval: TimeInterval,

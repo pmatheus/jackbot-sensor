@@ -16,7 +16,7 @@ tracing-subscriber = { workspace = true, features = ["env-filter", "json"] }
 rust_decimal_macros = { workspace = true }
 
 [dependencies]
-# Barter Ecosystem
+# Jackbot Ecosystem
 barter-integration = { workspace = true }
 barter-instrument = { workspace = true }
 barter-macro = { workspace = true }

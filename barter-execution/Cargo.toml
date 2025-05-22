@@ -13,7 +13,7 @@ categories = ["accessibility", "simulation"]
 
 
 [dependencies]
-# Barter Ecosystem
+# Jackbot Ecosystem
 barter-integration = { workspace = true }
 barter-instrument = { workspace = true }
 

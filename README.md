@@ -1,10 +1,13 @@
 # Jackbot Sensor
+
 Jackbot is an algorithmic trading ecosystem of Rust libraries for building high-performance live-trading, paper-trading
+
 and back-testing systems.
 * **Fast**: Written in native Rust. Minimal allocations. Data-oriented state management system with direct index lookups.
 * **Robust**: Strongly typed. Thread safe. Extensive test coverage.
 * **Customisable**: Plug and play Strategy and RiskManager components that facilitates most trading strategies (MarketMaking, StatArb, HFT, etc.).
 * **Scalable**: Multithreaded architecture with modular design. Leverages Tokio for I/O. Memory efficient data structures.  
+
 
 This project expands Jackbot Terminal to support the following exchanges:
 * Binance
@@ -19,13 +22,12 @@ This project expands Jackbot Terminal to support the following exchanges:
 Jackbot Sensor is an algorithmic trading ecosystem of Rust libraries for building high-performance live-trading, paper-trading 
 and back-testing systems. It is made up of several easy-to-use, extensible crates:
 * **Jackbot**: Algorithmic trading Engine with feature rich state management system.
+
 * **Jackbot-Instrument**: Exchange, Instrument and Asset data structures and utilities.
 * **Jackbot-Data**: Stream public market data from financial venues. Easily extensible via the MarketStream interface.
 * **Jackbot-Execution**: Stream private account data and execute orders. Easily extensible via the ExecutionClient interface.
 * **Jackbot-Integration**: Low-level frameworks for flexible REST/WebSocket integrations.
 
-## Notable Features
-- Stream public market data from financial venues via the [`Jackbot-Data`] library.
 - Stream private account data, execute orders (live or mock)** via the [`Jackbot-Execution`] library.
 - Plug and play Strategy and RiskManager components that facilitate most trading strategies. 
 - Flexible Engine that facilitates trading strategies that execute on many exchanges simultaneously.
