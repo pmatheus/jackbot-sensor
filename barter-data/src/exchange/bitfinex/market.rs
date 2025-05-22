@@ -6,7 +6,7 @@ use barter_instrument::{
 use serde::{Deserialize, Serialize};
 use smol_str::{SmolStr, ToSmolStr, format_smolstr};
 
-/// Type that defines how to translate a Barter [`Subscription`] into a
+/// Type that defines how to translate a Jackbot [`Subscription`] into a
 /// [`Bitfinex`] market that can be subscribed to.
 ///
 /// See docs: <https://docs.bitfinex.com/docs/ws-public>

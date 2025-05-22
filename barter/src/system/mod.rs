@@ -23,13 +23,13 @@ use barter_integration::{
 use std::fmt::Debug;
 use tokio::task::{JoinError, JoinHandle};
 
-/// Provides a `SystemBuilder` for constructing a Barter trading system, and associated types.
+/// Provides a `SystemBuilder` for constructing a Jackbot trading system, and associated types.
 pub mod builder;
 
-/// Provides a convenient `SystemConfig` used for defining a Barter trading system.
+/// Provides a convenient `SystemConfig` used for defining a Jackbot trading system.
 pub mod config;
 
-/// Initialised and running Barter trading system.
+/// Initialised and running Jackbot trading system.
 ///
 /// Contains handles for the `Engine` and all auxillary system tasks.
 ///

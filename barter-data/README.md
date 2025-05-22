@@ -1,14 +1,14 @@
 
-# Barter-Data
+# Jackbot-Data
 A high-performance WebSocket integration library for streaming public market data from leading cryptocurrency 
 exchanges - batteries included. It is:
-* **Easy**: Barter-Data's simple StreamBuilder interface allows for easy & quick setup (see example below!).
-* **Normalised**: Barter-Data's unified interface for consuming public WebSocket data means every Exchange returns a normalised data model.
-* **Real-Time**: Barter-Data utilises real-time WebSocket integrations enabling the consumption of normalised tick-by-tick data.
-* **Extensible**: Barter-Data is highly extensible, and therefore easy to contribute to with coding new integrations!
+* **Easy**: Jackbot-Data's simple StreamBuilder interface allows for easy & quick setup (see example below!).
+* **Normalised**: Jackbot-Data's unified interface for consuming public WebSocket data means every Exchange returns a normalised data model.
+* **Real-Time**: Jackbot-Data utilises real-time WebSocket integrations enabling the consumption of normalised tick-by-tick data.
+* **Extensible**: Jackbot-Data is highly extensible, and therefore easy to contribute to with coding new integrations!
 
-**See: [`Barter`], [`Barter-Instrument`], [`Barter-Execution`] & [`Barter-Integration`] for
-comprehensive documentation of other Barter libraries.**
+**See: [`Jackbot`], [`Jackbot-Instrument`], [`Jackbot-Execution`] & [`Jackbot-Integration`] for
+comprehensive documentation of other Jackbot libraries.**
 
 [![Crates.io][crates-badge]][crates-url]
 [![MIT licensed][mit-badge]][mit-url]
@@ -26,20 +26,20 @@ comprehensive documentation of other Barter libraries.**
 [API Documentation] |
 [Chat]
 
-[`Barter`]: https://crates.io/crates/barter
-[`Barter-Instrument`]: https://crates.io/crates/barter-instrument
-[`Barter-Execution`]: https://crates.io/crates/barter-execution
-[`Barter-Integration`]: https://crates.io/crates/barter-integration
+[`Jackbot`]: https://crates.io/crates/barter
+[`Jackbot-Instrument`]: https://crates.io/crates/barter-instrument
+[`Jackbot-Execution`]: https://crates.io/crates/barter-execution
+[`Jackbot-Integration`]: https://crates.io/crates/barter-integration
 [API Documentation]: https://docs.rs/barter-data/latest/barter_data
 [Chat]: https://discord.gg/wE7RqhnQMV
 
 ## Overview
-Barter-Data is a high-performance WebSocket integration library for streaming public market data from leading cryptocurrency 
+Jackbot-Data is a high-performance WebSocket integration library for streaming public market data from leading cryptocurrency 
 exchanges. It presents an easy-to-use and extensible set of interfaces that can deliver normalised exchange data in real-time.
 
 From a user perspective, the major component is the `StreamBuilder` structures that assists in initialising an 
 arbitrary number of exchange `MarketStream`s using input `Subscription`s. Simply build your dream set of 
-`MarketStreams` and `Barter-Data` will do the rest!
+`MarketStreams` and `Jackbot-Data` will do the rest!
 
 ### Supported Exchange Subscriptions
 
@@ -154,17 +154,17 @@ async fn main() {
 Firstly, see if the answer to your question can be found in the [API Documentation]. If the answer is not there, I'd be happy to help via [Chat] <br>
 and try answer your question via Discord.
 
-## Support Barter Development
-Help us advance Barter's capabilities by becoming a sponsor (or supporting me with a tip!).
+## Support Jackbot Development
+Help us advance Jackbot's capabilities by becoming a sponsor (or supporting me with a tip!).
 
-Your contribution will allow me to dedicate more time to Barter, accelerating feature development and improvements.
+Your contribution will allow me to dedicate more time to Jackbot, accelerating feature development and improvements.
 
 **Please email *justastream.code@gmail.com* for all inquiries**
 
 Please see [here](../README.md#support-barter-development) for more information.
 
 ## Contributing
-Thanks in advance for helping to develop the Barter ecosystem! Please do get hesitate to get touch via the Discord 
+Thanks in advance for helping to develop the Jackbot ecosystem! Please do get hesitate to get touch via the Discord 
 [Chat] to discuss development, new features, and the future roadmap.
 
 ### Adding A New Exchange Connector
@@ -186,7 +186,7 @@ This project is licensed under the [MIT license].
 
 ### Contribution License Agreement
 
-Any contribution you intentionally submit for inclusion in Barter workspace crates shall be:
+Any contribution you intentionally submit for inclusion in Jackbot workspace crates shall be:
 1. Licensed under MIT
 2. Subject to all disclaimers and limitations of liability stated below
 3. Provided without any additional terms or conditions
