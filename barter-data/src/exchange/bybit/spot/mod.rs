@@ -1,6 +1,20 @@
 use super::{Bybit, ExchangeServer};
+use crate::{
+    ExchangeWsStream,
+    exchange::{
+        StreamSelector,
+        bybit::spot::l2::{
+            BybitSpotOrderBooksL2SnapshotFetcher, BybitSpotOrderBooksL2Transformer,
+        },
+    },
+    instrument::InstrumentData,
+    subscription::book::OrderBooksL2,
+};
 use barter_instrument::exchange::ExchangeId;
 use std::fmt::Display;
+
+/// Level 2 OrderBook types.
+pub mod l2;
 
 /// [`BybitSpot`] WebSocket server base url.
 ///
@@ -20,6 +34,14 @@ impl ExchangeServer for BybitServerSpot {
     fn websocket_url() -> &'static str {
         WEBSOCKET_BASE_URL_BYBIT_SPOT
     }
+}
+
+impl<Instrument> StreamSelector<Instrument, OrderBooksL2> for BybitSpot
+where
+    Instrument: InstrumentData,
+{
+    type SnapFetcher = BybitSpotOrderBooksL2SnapshotFetcher;
+    type Stream = ExchangeWsStream<BybitSpotOrderBooksL2Transformer<Instrument::Key>>;
 }
 
 impl Display for BybitSpot {
