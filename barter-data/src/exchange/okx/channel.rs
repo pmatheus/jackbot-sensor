@@ -1,7 +1,11 @@
 use super::Okx;
 use crate::{
     Identifier,
-    subscription::{Subscription, trade::PublicTrades},
+    subscription::{
+        Subscription,
+        book::OrderBooksL2,
+        trade::PublicTrades,
+    },
 };
 use serde::Serialize;
 
@@ -17,11 +21,20 @@ impl OkxChannel {
     ///
     /// See docs: <https://www.okx.com/docs-v5/en/#websocket-api-public-channel-trades-channel>
     pub const TRADES: Self = Self("trades");
+
+    /// [`Okx`] OrderBook Level2 channel.
+    pub const ORDER_BOOK_L2: Self = Self("books");
 }
 
 impl<Instrument> Identifier<OkxChannel> for Subscription<Okx, Instrument, PublicTrades> {
     fn id(&self) -> OkxChannel {
         OkxChannel::TRADES
+    }
+}
+
+impl<Instrument> Identifier<OkxChannel> for Subscription<Okx, Instrument, OrderBooksL2> {
+    fn id(&self) -> OkxChannel {
+        OkxChannel::ORDER_BOOK_L2
     }
 }
 
