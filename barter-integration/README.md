@@ -78,7 +78,6 @@ use barter_integration::{
         HttpParser,
     },
 };
-use bytes::Bytes;
 use chrono::{DateTime, Utc};
 use hmac::{Hmac, Mac};
 use reqwest::{RequestBuilder, StatusCode};
@@ -117,7 +116,7 @@ impl Signer for FtxSigner {
         })
     }
 
-    fn add_bytes_to_sign<M>(mac: &mut M, config: &Self::Config<'a>) -> Bytes
+    fn add_bytes_to_sign<M>(mac: &mut M, config: &Self::Config<'a>)
     where
         M: Mac
     {
