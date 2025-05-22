@@ -1,8 +1,8 @@
-# Barter-Integration
+# Jackbot-Integration
 
 High-performance, low-level framework for composing flexible web integrations. 
 
-Utilised by other [`Barter`] trading ecosystem crates to build robust financial exchange integrations,
+Utilised by other [`Jackbot`] trading ecosystem crates to build robust financial exchange integrations,
 primarily for public data collection & trade execution. It is:
 * **Low-Level**: Translates raw data streams communicated over the web into any desired data model using arbitrary data transformations.
 * **Flexible**: Compatible with any protocol (WebSocket, FIX, Http, etc.), any input/output model, and any user defined transformations.
@@ -14,7 +14,7 @@ Core abstractions include:
 Both core abstractions provide the robust glue you need to conveniently translate between server & client data models.
 
 
-**See: [`Barter`], [`Barter-Data`] & [`Barter-Execution`]**
+**See: [`Jackbot`], [`Jackbot-Data`] & [`Jackbot-Execution`]**
 
 [![Crates.io][crates-badge]][crates-url]
 [![MIT licensed][mit-badge]][mit-url]
@@ -35,15 +35,15 @@ Both core abstractions provide the robust glue you need to conveniently translat
 
 [API Documentation] | [Chat]
 
-[`Barter`]: https://crates.io/crates/barter
-[`Barter-Data`]: https://crates.io/crates/barter-data
-[`Barter-Execution`]: https://crates.io/crates/barter-execution
+[`Jackbot`]: https://crates.io/crates/barter
+[`Jackbot-Data`]: https://crates.io/crates/barter-data
+[`Jackbot-Execution`]: https://crates.io/crates/barter-execution
 [API Documentation]: https://docs.rs/barter-data/latest/barter_integration
 [Chat]: https://discord.gg/wE7RqhnQMV
 
 ## Overview
 
-Barter-Integration is a high-performance, low-level, configurable framework for composing flexible web 
+Jackbot-Integration is a high-performance, low-level, configurable framework for composing flexible web 
 integrations. 
 
 ### RestClient
@@ -200,7 +200,7 @@ struct FtxBalance {
     total: f64,
 }
 
-/// See Barter-Execution for a comprehensive real-life example, as well as code you can use out of the
+/// See Jackbot-Execution for a comprehensive real-life example, as well as code you can use out of the
 /// box to execute trades on many exchanges.
 #[tokio::main]
 async fn main() {
@@ -284,7 +284,7 @@ impl Transformer<VolumeSum> for StatefulTransformer {
     }
 }
 
-/// See Barter-Data for a comprehensive real-life example, as well as code you can use out of the
+/// See Jackbot-Data for a comprehensive real-life example, as well as code you can use out of the
 /// box to collect real-time public market data from many exchanges.
 #[tokio::main]
 async fn main() {
@@ -334,23 +334,23 @@ where
     data.parse::<T>().map_err(de::Error::custom)
 }
 ```
-**For a larger, "real world" example, see the [`Barter-Data`] repository.**
+**For a larger, "real world" example, see the [`Jackbot-Data`] repository.**
 
 ## Getting Help
 Firstly, see if the answer to your question can be found in the [API Documentation]. If the answer is not there, I'd be
 happy to help to [Chat] and try answer your question via Discord.
 
 ## Contributing
-Thanks for your help in improving the Barter ecosystem! Please do get in touch on the discord to discuss
+Thanks for your help in improving the Jackbot ecosystem! Please do get in touch on the discord to discuss
 development, new features, and the future roadmap.
 
 ## Related Projects
-In addition to the Barter-Integration crate, the Barter project also maintains:
-* [`Barter`]: High-performance, extensible & modular trading components with batteries-included. Contains a
+In addition to the Jackbot-Integration crate, the Jackbot project also maintains:
+* [`Jackbot`]: High-performance, extensible & modular trading components with batteries-included. Contains a
   pre-built trading Engine that can serve as a live-trading or backtesting system.
-* [`Barter-Data`]: A high-performance WebSocket integration library for streaming public data from leading 
+* [`Jackbot-Data`]: A high-performance WebSocket integration library for streaming public data from leading 
   cryptocurrency exchanges.
-* [`Barter-Execution`]: Financial exchange integrations for trade execution - yet to be released!
+* [`Jackbot-Execution`]: Financial exchange integrations for trade execution - yet to be released!
 
 ## Roadmap
 * Add new default StreamParser implementations to enable integration with other popular systems such as Kafka. 
@@ -362,5 +362,5 @@ This project is licensed under the [MIT license].
 
 ### Contribution
 Unless you explicitly state otherwise, any contribution intentionally submitted
-for inclusion in Barter-Integration by you, shall be licensed as MIT, without any additional
+for inclusion in Jackbot-Integration by you, shall be licensed as MIT, without any additional
 terms or conditions.

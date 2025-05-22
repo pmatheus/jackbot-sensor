@@ -19,7 +19,7 @@ use url::Url;
 /// [`BinanceFuturesUsd`](futures::BinanceFuturesUsd).
 pub mod book;
 
-/// Defines the type that translates a Barter [`Subscription`](crate::subscription::Subscription)
+/// Defines the type that translates a Jackbot [`Subscription`](crate::subscription::Subscription)
 /// into an execution [`Connector`] specific channel used for generating [`Connector::requests`].
 pub mod channel;
 
@@ -27,7 +27,7 @@ pub mod channel;
 /// [`BinanceFuturesUsd`](futures::BinanceFuturesUsd).
 pub mod futures;
 
-/// Defines the type that translates a Barter [`Subscription`](crate::subscription::Subscription)
+/// Defines the type that translates a Jackbot [`Subscription`](crate::subscription::Subscription)
 /// into an execution [`Connector`] specific market used for generating [`Connector::requests`].
 pub mod market;
 

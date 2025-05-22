@@ -12,15 +12,15 @@
 )]
 #![allow(clippy::type_complexity, clippy::too_many_arguments, type_alias_bounds)]
 
-//! # Barter
-//! Barter core is a Rust framework for building high-performance live-trading, paper-trading and back-testing systems.
+//! # Jackbot
+//! Jackbot core is a Rust framework for building high-performance live-trading, paper-trading and back-testing systems.
 //! * **Fast**: Written in native Rust. Minimal allocations. Data-oriented state management system with direct index lookups.
 //! * **Robust**: Strongly typed. Thread safe. Extensive test coverage.
 //! * **Customisable**: Plug and play Strategy and RiskManager components that facilitates most trading strategies (MarketMaking, StatArb, HFT, etc.).
 //! * **Scalable**: Multithreaded architecture with modular design. Leverages Tokio for I/O. Memory efficient data structures.
 //!
 //! ## Overview
-//! Barter core is a Rust framework for building professional grade live-trading, paper-trading and back-testing systems. The
+//! Jackbot core is a Rust framework for building professional grade live-trading, paper-trading and back-testing systems. The
 //! central Engine facilitates executing on many exchanges simultaneously, and offers the flexibility to run most types of
 //! trading strategies.  It allows turning algorithmic order generation on/off and can action Commands issued from external
 //! processes (eg/ CloseAllPositions, OpenOrders, CancelOrders, etc.)
@@ -58,14 +58,14 @@ use shutdown::Shutdown;
 /// eg/ `Engine`, `run`, `process_with_audit`, etc.
 pub mod engine;
 
-/// Defines all possible errors in Barter core.
+/// Defines all possible errors in Jackbot core.
 pub mod error;
 
 /// Components for initialising multi-exchange execution, routing `ExecutionRequest`s and other
 /// execution logic.
 pub mod execution;
 
-/// Provides default Barter core Tracing logging initialisers.
+/// Provides default Jackbot core Tracing logging initialisers.
 pub mod logging;
 
 /// RiskManager interface for reviewing and optionally filtering algorithmic cancel and open
@@ -179,7 +179,7 @@ impl Sequence {
     }
 }
 
-/// Barter core test utilities.
+/// Jackbot core test utilities.
 pub mod test_utils {
     use crate::{
         Timed, engine::state::asset::AssetState, statistic::summary::asset::TearSheetAssetGenerator,

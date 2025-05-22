@@ -20,11 +20,11 @@ use serde::de::{Error, Unexpected};
 use std::fmt::Debug;
 use url::Url;
 
-/// Defines the type that translates a Barter [`Subscription`](crate::subscription::Subscription)
+/// Defines the type that translates a Jackbot [`Subscription`](crate::subscription::Subscription)
 /// into an execution [`Connector`] specific channel used for generating [`Connector::requests`].
 pub mod channel;
 
-/// Defines the type that translates a Barter [`Subscription`](crate::subscription::Subscription)
+/// Defines the type that translates a Jackbot [`Subscription`](crate::subscription::Subscription)
 /// into an execution [`Connector`] specific market used for generating [`Connector::requests`].
 pub mod market;
 

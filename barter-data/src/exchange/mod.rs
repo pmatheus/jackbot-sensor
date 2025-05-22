@@ -60,7 +60,7 @@ where
     type Stream: MarketStream<Self, Instrument, Kind>;
 }
 
-/// Primary exchange abstraction. Defines how to translate Barter types into exchange specific
+/// Primary exchange abstraction. Defines how to translate Jackbot types into exchange specific
 /// types, as well as connecting, subscribing, and interacting with the exchange server.
 ///
 /// ### Notes
@@ -72,7 +72,7 @@ where
     /// Unique identifier for the exchange server being connected with.
     const ID: ExchangeId;
 
-    /// Type that defines how to translate a Barter `Subscription` into an exchange specific
+    /// Type that defines how to translate a Jackbot `Subscription` into an exchange specific
     /// channel to be subscribed to.
     ///
     /// ### Examples
@@ -80,7 +80,7 @@ where
     /// - [`KrakenChannel("trade")`](kraken::channel::KrakenChannel)
     type Channel: AsRef<str>;
 
-    /// Type that defines how to translate a Barter
+    /// Type that defines how to translate a Jackbot
     /// `Subscription` into an exchange specific market that
     /// can be subscribed to.
     ///
