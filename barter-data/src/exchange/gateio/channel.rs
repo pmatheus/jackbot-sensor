@@ -1,7 +1,7 @@
 use crate::{
     Identifier,
     instrument::InstrumentData,
-    subscription::{Subscription, trade::PublicTrades},
+    subscription::{Subscription, trade::PublicTrades, book::OrderBooksL2},
 };
 use barter_instrument::instrument::market_data::kind::MarketDataInstrumentKind;
 use serde::Serialize;
@@ -18,6 +18,9 @@ impl GateioChannel {
     ///
     /// See docs: <https://www.gate.io/docs/developers/apiv4/ws/en/#public-trades-channel>
     pub const SPOT_TRADES: Self = Self("spot.trades");
+
+    /// Gateio [`MarketDataInstrumentKind::Spot`] OrderBook L2 channel.
+    pub const SPOT_ORDER_BOOK_L2: Self = Self("spot.order_book_update");
 
     /// Gateio [`MarketDataInstrumentKind::Future`] & [`MarketDataInstrumentKind::Perpetual`] real-time trades channel.
     ///
@@ -44,6 +47,16 @@ where
             }
             MarketDataInstrumentKind::Option { .. } => GateioChannel::OPTION_TRADES,
         }
+    }
+}
+
+impl<GateioExchange, Instrument> Identifier<GateioChannel>
+    for Subscription<GateioExchange, Instrument, OrderBooksL2>
+where
+    Instrument: InstrumentData,
+{
+    fn id(&self) -> GateioChannel {
+        GateioChannel::SPOT_ORDER_BOOK_L2
     }
 }
 
