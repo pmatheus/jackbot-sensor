@@ -1,4 +1,4 @@
-use self::trade::GateioSpotTrade;
+use self::{l2::GateioSpotOrderBooksL2SnapshotFetcher, l2::GateioSpotOrderBooksL2Transformer, trade::GateioSpotTrade};
 use super::Gateio;
 use crate::{
     ExchangeWsStream, NoInitialSnapshots,
@@ -13,6 +13,7 @@ use std::fmt::Display;
 
 /// Public trades types.
 pub mod trade;
+pub mod l2;
 
 /// [`GateioSpot`] WebSocket server base url.
 ///
@@ -44,6 +45,14 @@ where
     type Stream = ExchangeWsStream<
         StatelessTransformer<Self, Instrument::Key, PublicTrades, GateioSpotTrade>,
     >;
+}
+
+impl<Instrument> StreamSelector<Instrument, OrderBooksL2> for GateioSpot
+where
+    Instrument: InstrumentData,
+{
+    type SnapFetcher = GateioSpotOrderBooksL2SnapshotFetcher;
+    type Stream = ExchangeWsStream<GateioSpotOrderBooksL2Transformer<Instrument::Key>>;
 }
 
 impl Display for GateioSpot {
