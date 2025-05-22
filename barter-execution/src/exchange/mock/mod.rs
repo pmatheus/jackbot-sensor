@@ -8,9 +8,9 @@ use crate::{
         request::{MockExchangeRequest, MockExchangeRequestKind},
     },
     order::{
-        Order, OrderKind, UnindexedOrder,
+        Order, OrderKind, TimeInForce, UnindexedOrder,
         id::OrderId,
-        request::{OrderRequestCancel, OrderRequestOpen},
+        request::{OrderRequestCancel, OrderRequestOpen, OrderResponseCancel},
         state::{Cancelled, Open},
     },
     trade::{AssetFees, Trade, TradeId},
@@ -112,7 +112,9 @@ impl MockExchange {
 
                     if let Some(notifications) = notifications {
                         self.account.ack_trade(notifications.trade.clone());
-                        self.send_notifications_with_latency(notifications);
+                        let balance = self.build_account_event(notifications.balance);
+                        let trade = self.build_account_event(notifications.trade);
+                        self.send_notifications_with_latency([balance, trade]);
                     }
                 }
             }
@@ -195,35 +197,27 @@ impl MockExchange {
         });
     }
 
-    /// Sends the provided `OpenOrderNotifications` via the `MockExchanges`
-    /// `broadcast::Sender<UnindexedAccountEvent>` after waiting for the latency
-    /// [`Duration`].
-    ///
-    /// Used to simulate network latency between the exchange and client.
-    fn send_notifications_with_latency(&self, notifications: OpenOrderNotifications) {
-        let balance = self.build_account_event(notifications.balance);
-        let trade = self.build_account_event(notifications.trade);
-
+    /// Sends the provided [`UnindexedAccountEvent`]s via the `MockExchange`
+    /// `broadcast::Sender` after waiting for the configured latency. This is
+    /// used to simulate network latency between the exchange and client.
+    fn send_notifications_with_latency<I>(&self, notifications: I)
+    where
+        I: IntoIterator<Item = UnindexedAccountEvent> + Send + 'static,
+    {
         let exchange = self.exchange;
         let latency = std::time::Duration::from_millis(self.latency_ms);
         let tx = self.event_tx.clone();
+
         tokio::spawn(async move {
             tokio::time::sleep(latency).await;
 
-            if tx.send(balance).is_err() {
-                error!(
-                    %exchange,
-                    kind = "Snapshot<AssetBalance<AssetNameExchange>",
-                    "MockExchange failed to send AccountEvent notification to client"
-                );
-            }
-
-            if tx.send(trade).is_err() {
-                error!(
-                    %exchange,
-                    kind = "Trade<QuoteAsset, InstrumentNameExchange>",
-                    "MockExchange failed to send AccountEvent notification to client"
-                );
+            for event in notifications {
+                if tx.send(event).is_err() {
+                    error!(
+                        %exchange,
+                        "MockExchange failed to send AccountEvent notification to client"
+                    );
+                }
             }
         });
     }
@@ -245,9 +239,60 @@ impl MockExchange {
 
     pub fn cancel_order(
         &mut self,
-        _: OrderRequestCancel<ExchangeId, InstrumentNameExchange>,
+        request: OrderRequestCancel<ExchangeId, InstrumentNameExchange>,
     ) -> Order<ExchangeId, InstrumentNameExchange, Result<Cancelled, UnindexedOrderError>> {
-        unimplemented!()
+        let key = request.key;
+
+        if let Some(open_order) = self.account.remove_open_order(&key.cid) {
+            let cancelled = Cancelled {
+                id: open_order.state.id.clone(),
+                time_exchange: self.time_exchange(),
+            };
+
+            let cancelled_order = Order {
+                key: open_order.key.clone(),
+                side: open_order.side,
+                price: open_order.price,
+                quantity: open_order.quantity,
+                kind: open_order.kind,
+                time_in_force: open_order.time_in_force,
+                state: cancelled.clone(),
+            };
+
+            self.account.insert_cancelled_order(cancelled_order.clone());
+
+            let event = self.build_account_event(OrderResponseCancel {
+                key: cancelled_order.key.clone(),
+                state: Ok(cancelled.clone()),
+            });
+            self.send_notifications_with_latency([event]);
+
+            Order {
+                key: cancelled_order.key,
+                side: cancelled_order.side,
+                price: cancelled_order.price,
+                quantity: cancelled_order.quantity,
+                kind: cancelled_order.kind,
+                time_in_force: cancelled_order.time_in_force,
+                state: Ok(cancelled),
+            }
+        } else {
+            let error = if self.account.contains_cancelled(&key.cid) {
+                UnindexedOrderError::Rejected(ApiError::OrderAlreadyCancelled)
+            } else {
+                UnindexedOrderError::Rejected(ApiError::OrderAlreadyFullyFilled)
+            };
+
+            Order {
+                key,
+                side: Side::Buy,
+                price: Decimal::ZERO,
+                quantity: Decimal::ZERO,
+                kind: OrderKind::Market,
+                time_in_force: TimeInForce::ImmediateOrCancel,
+                state: Err(error),
+            }
+        }
     }
 
     pub fn open_order(

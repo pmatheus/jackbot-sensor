@@ -72,6 +72,24 @@ impl AccountState {
     pub fn ack_trade(&mut self, trade: Trade<QuoteAsset, InstrumentNameExchange>) {
         self.trades.push(trade);
     }
+
+    pub fn remove_open_order(
+        &mut self,
+        cid: &ClientOrderId,
+    ) -> Option<Order<ExchangeId, InstrumentNameExchange, Open>> {
+        self.orders_open.remove(cid)
+    }
+
+    pub fn contains_cancelled(&self, cid: &ClientOrderId) -> bool {
+        self.orders_cancelled.contains_key(cid)
+    }
+
+    pub fn insert_cancelled_order(
+        &mut self,
+        order: Order<ExchangeId, InstrumentNameExchange, Cancelled>,
+    ) {
+        self.orders_cancelled.insert(order.key.cid.clone(), order);
+    }
 }
 
 impl From<UnindexedAccountSnapshot> for AccountState {
