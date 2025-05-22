@@ -1,13 +1,16 @@
 use barter_data::{
     exchange::{
         binance::{futures::BinanceFuturesUsd, spot::BinanceSpot},
+        bitfinex::Bitfinex,
         bitmex::Bitmex,
         bybit::{futures::BybitPerpetualsUsd, spot::BybitSpot},
+        coinbase::Coinbase,
         gateio::{
             option::GateioOptions,
             perpetual::{GateioPerpetualsBtc, GateioPerpetualsUsd},
             spot::GateioSpot,
         },
+        kraken::Kraken,
         okx::Okx,
     },
     streams::{Streams, reconnect::stream::ReconnectingStream},
@@ -63,6 +66,19 @@ async fn main() {
             (Okx, "btc", "usdt", MarketDataInstrumentKind::Perpetual, PublicTrades),
             (Okx, "btc", "usd", MarketDataInstrumentKind::Future(future_contract_expiry()), PublicTrades),
             (Okx, "btc", "usd", MarketDataInstrumentKind::Option(call_contract()), PublicTrades),
+        ])
+
+        .subscribe([
+            (Bitfinex, "btc", "usd", MarketDataInstrumentKind::Spot, PublicTrades),
+        ])
+
+        .subscribe([
+            (Coinbase, "btc", "usd", MarketDataInstrumentKind::Spot, PublicTrades),
+            (Coinbase, "eth", "usd", MarketDataInstrumentKind::Spot, PublicTrades),
+        ])
+
+        .subscribe([
+            (Kraken, "btc", "usd", MarketDataInstrumentKind::Spot, PublicTrades),
         ])
 
         .subscribe([
