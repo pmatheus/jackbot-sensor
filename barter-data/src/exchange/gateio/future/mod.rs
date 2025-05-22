@@ -5,11 +5,14 @@ use crate::{
         gateio::{Gateio, perpetual::trade::GateioFuturesTrades},
     },
     instrument::InstrumentData,
-    subscription::trade::PublicTrades,
+    subscription::{book::OrderBooksL2, trade::PublicTrades},
     transformer::stateless::StatelessTransformer,
 };
 use barter_instrument::exchange::ExchangeId;
 use std::fmt::Display;
+
+/// Level 2 OrderBook types.
+pub mod l2;
 
 /// [`GateioFuturesUsd`] WebSocket server base url.
 ///
@@ -39,6 +42,14 @@ where
     type Stream = ExchangeWsStream<
         StatelessTransformer<Self, Instrument::Key, PublicTrades, GateioFuturesTrades>,
     >;
+}
+
+impl<Instrument> StreamSelector<Instrument, OrderBooksL2> for GateioFuturesUsd
+where
+    Instrument: InstrumentData,
+{
+    type SnapFetcher = l2::GateioFuturesUsdOrderBooksL2SnapshotFetcher;
+    type Stream = ExchangeWsStream<l2::GateioFuturesOrderBooksL2Transformer<Instrument::Key>>;
 }
 
 impl Display for GateioFuturesUsd {
@@ -75,6 +86,14 @@ where
     type Stream = ExchangeWsStream<
         StatelessTransformer<Self, Instrument::Key, PublicTrades, GateioFuturesTrades>,
     >;
+}
+
+impl<Instrument> StreamSelector<Instrument, OrderBooksL2> for GateioFuturesBtc
+where
+    Instrument: InstrumentData,
+{
+    type SnapFetcher = l2::GateioFuturesBtcOrderBooksL2SnapshotFetcher;
+    type Stream = ExchangeWsStream<l2::GateioFuturesOrderBooksL2Transformer<Instrument::Key>>;
 }
 
 impl Display for GateioFuturesBtc {
