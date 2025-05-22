@@ -8,7 +8,7 @@ use barter_instrument::{
 use serde::{Deserialize, Serialize};
 use smol_str::{SmolStr, StrExt, format_smolstr};
 
-/// Type that defines how to translate a Barter [`Subscription`] into a [`Bitmex`]
+/// Type that defines how to translate a Jackbot [`Subscription`] into a [`Bitmex`]
 /// market that can be subscribed to.
 ///
 /// See docs: <https://www.bitmex.com/app/wsAPI>

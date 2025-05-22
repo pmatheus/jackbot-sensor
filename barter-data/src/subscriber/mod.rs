@@ -19,7 +19,7 @@ use std::fmt::Debug;
 use tracing::debug;
 
 /// [`SubscriptionMapper`] implementations defining how to map a
-/// collection of Barter [`Subscription`]s into execution specific [`SubscriptionMeta`].
+/// collection of Jackbot [`Subscription`]s into execution specific [`SubscriptionMeta`].
 pub mod mapper;
 
 /// [`SubscriptionValidator`] implementations defining how to

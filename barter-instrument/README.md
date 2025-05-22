@@ -1,8 +1,8 @@
-# Barter-Instrument
-Barter-Instrument contains core Exchange, Instrument and Asset data structures and associated utilities.
+# Jackbot-Instrument
+Jackbot-Instrument contains core Exchange, Instrument and Asset data structures and associated utilities.
 
-**See: [`Barter`], [`Barter-Data`], [`Barter-Execution`] & [`Barter-Integration`] for
-comprehensive documentation of other Barter libraries.**
+**See: [`Jackbot`], [`Jackbot-Data`], [`Jackbot-Execution`] & [`Jackbot-Integration`] for
+comprehensive documentation of other Jackbot libraries.**
 
 [![Crates.io][crates-badge]][crates-url]
 [![MIT licensed][mit-badge]][mit-url]
@@ -17,37 +17,37 @@ comprehensive documentation of other Barter libraries.**
 [discord-badge]: https://img.shields.io/discord/910237311332151317.svg?logo=discord&style=flat-square
 [discord-url]: https://discord.gg/wE7RqhnQMV
 
-[`Barter`]: https://crates.io/crates/barter
-[`Barter-Data`]: https://crates.io/crates/barter-data
-[`Barter-Execution`]: https://crates.io/crates/barter-execution
-[`Barter-Integration`]: https://crates.io/crates/barter-integration
+[`Jackbot`]: https://crates.io/crates/barter
+[`Jackbot-Data`]: https://crates.io/crates/barter-data
+[`Jackbot-Execution`]: https://crates.io/crates/barter-execution
+[`Jackbot-Integration`]: https://crates.io/crates/barter-integration
 [API Documentation]: https://docs.rs/barter/latest/barter/
 [Chat]: https://discord.gg/wE7RqhnQMV
 
 ## Overview
-Barter-Instrument contains core Exchange, Instrument and Asset data structures and associated utilities.
+Jackbot-Instrument contains core Exchange, Instrument and Asset data structures and associated utilities.
 
 [barter-examples]: https://github.com/barter-rs/barter-rs/tree/develop/barter/examples
 
 ## Examples
-* See [here][barter-examples] for example of Barter-Instrument in action.
+* See [here][barter-examples] for example of Jackbot-Instrument in action.
 * See other sub-crates for further examples of each library.
 
 ## Getting Help
 Firstly, see if the answer to your question can be found in the [API Documentation]. If the answer is not there, I'd be happy to help via [Chat]
 and try answer your question via Discord.
 
-## Support Barter Development
-Help us advance Barter's capabilities by becoming a sponsor (or supporting me with a tip!).
+## Support Jackbot Development
+Help us advance Jackbot's capabilities by becoming a sponsor (or supporting me with a tip!).
 
-Your contribution will allow me to dedicate more time to Barter, accelerating feature development and improvements.
+Your contribution will allow me to dedicate more time to Jackbot, accelerating feature development and improvements.
 
 **Please email *justastream.code@gmail.com* for all inquiries**
 
 Please see [here](../README.md#support-barter-development) for more information.
 
 ## Contributing
-Thanks in advance for helping to develop the Barter ecosystem! Please do get hesitate to get touch via the Discord [Chat] to discuss development,
+Thanks in advance for helping to develop the Jackbot ecosystem! Please do get hesitate to get touch via the Discord [Chat] to discuss development,
 new features, and the future roadmap.
 
 ### Licence
@@ -57,7 +57,7 @@ This project is licensed under the [MIT license].
 
 ### Contribution License Agreement
 
-Any contribution you intentionally submit for inclusion in Barter workspace crates shall be:
+Any contribution you intentionally submit for inclusion in Jackbot workspace crates shall be:
 1. Licensed under MIT
 2. Subject to all disclaimers and limitations of liability stated below
 3. Provided without any additional terms or conditions

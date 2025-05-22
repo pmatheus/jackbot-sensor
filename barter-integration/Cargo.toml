@@ -16,7 +16,7 @@ tokio-test = { workspace = true }
 sha2 = { workspace = true }
 
 [dependencies]
-# Barter Ecosystem
+# Jackbot Ecosystem
 barter-instrument = { workspace = true }
 
 # Logging

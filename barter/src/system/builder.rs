@@ -7,7 +7,7 @@ use crate::{
         run::{async_run, async_run_with_audit, sync_run, sync_run_with_audit},
         state::{EngineState, builder::EngineStateBuilder, trading::TradingState},
     },
-    error::BarterError,
+    error::JackbotError,
     execution::{
         AccountStreamEvent,
         builder::{ExecutionBuildFutures, ExecutionBuilder},
@@ -60,9 +60,9 @@ pub enum AuditMode {
     Disabled,
 }
 
-/// Arguments required for building a full Barter trading system.
+/// Arguments required for building a full Jackbot trading system.
 ///
-/// Contains all the required components to build and initialise a full Barter trading system,
+/// Contains all the required components to build and initialise a full Jackbot trading system,
 /// including the `Engine` and all supporting infrastructure.
 #[derive(Debug, Clone, PartialEq, PartialOrd, Constructor)]
 pub struct SystemArgs<'a, Clock, Strategy, Risk, MarketStream, GlobalData, FnInstrumentData> {
@@ -94,7 +94,7 @@ pub struct SystemArgs<'a, Clock, Strategy, Risk, MarketStream, GlobalData, FnIns
     pub instrument_data_init: FnInstrumentData,
 }
 
-/// Builder for constructing a full Barter trading system.
+/// Builder for constructing a full Jackbot trading system.
 #[derive(Debug)]
 pub struct SystemBuilder<'a, Clock, Strategy, Risk, MarketStream, GlobalData, FnInstrumentData> {
     args: SystemArgs<'a, Clock, Strategy, Risk, MarketStream, GlobalData, FnInstrumentData>,
@@ -191,7 +191,7 @@ impl<'a, Clock, Strategy, Risk, MarketStream, GlobalData, FnInstrumentData>
             Event,
             MarketStream,
         >,
-        BarterError,
+        JackbotError,
     >
     where
         Clock: EngineClock + Clone + Send + Sync + 'static,
@@ -319,7 +319,7 @@ where
     /// Initialise the system using the current tokio runtime.
     ///
     /// Spawns all necessary tasks and returns the running `System` instance.
-    pub async fn init(self) -> Result<System<Engine, Event>, BarterError> {
+    pub async fn init(self) -> Result<System<Engine, Event>, JackbotError> {
         self.init_internal(tokio::runtime::Handle::current()).await
     }
 
@@ -329,14 +329,14 @@ where
     pub async fn init_with_runtime(
         self,
         runtime: tokio::runtime::Handle,
-    ) -> Result<System<Engine, Event>, BarterError> {
+    ) -> Result<System<Engine, Event>, JackbotError> {
         self.init_internal(runtime).await
     }
 
     async fn init_internal(
         self,
         runtime: tokio::runtime::Handle,
-    ) -> Result<System<Engine, Event>, BarterError> {
+    ) -> Result<System<Engine, Event>, JackbotError> {
         let Self {
             mut engine,
             engine_feed_mode,

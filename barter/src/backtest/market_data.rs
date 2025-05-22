@@ -1,4 +1,4 @@
-use crate::error::BarterError;
+use crate::error::JackbotError;
 use barter_data::streams::consumer::MarketStreamEvent;
 use barter_instrument::instrument::InstrumentIndex;
 use chrono::{DateTime, Utc};
@@ -11,7 +11,7 @@ pub trait BacktestMarketData {
     type Kind;
 
     /// Return the `DateTime<Utc>` of the first event in the market data `Stream`.
-    fn time_first_event(&self) -> impl Future<Output = Result<DateTime<Utc>, BarterError>>;
+    fn time_first_event(&self) -> impl Future<Output = Result<DateTime<Utc>, JackbotError>>;
 
     /// Return a `Stream` of `MarketStreamEvent`s.
     fn stream(
@@ -19,7 +19,7 @@ pub trait BacktestMarketData {
     ) -> impl Future<
         Output = Result<
             impl Stream<Item = MarketStreamEvent<InstrumentIndex, Self::Kind>> + Send + 'static,
-            BarterError,
+            JackbotError,
         >,
     >;
 }
@@ -40,7 +40,7 @@ where
 {
     type Kind = Kind;
 
-    async fn time_first_event(&self) -> Result<DateTime<Utc>, BarterError> {
+    async fn time_first_event(&self) -> Result<DateTime<Utc>, JackbotError> {
         Ok(self.time_first_event)
     }
 
@@ -48,7 +48,7 @@ where
         &self,
     ) -> Result<
         impl Stream<Item = MarketStreamEvent<InstrumentIndex, Self::Kind>> + Send + 'static,
-        BarterError,
+        JackbotError,
     > {
         let events = Arc::clone(&self.events);
         let lazy_clone_iter = (0..events.len()).map(move |index| events[index].clone());

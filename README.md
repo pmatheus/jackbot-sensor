@@ -1,13 +1,13 @@
 # Jackbot Sensor
-Based on Barter is an algorithmic trading ecosystem of Rust libraries for building high-performance live-trading, paper-trading 
+Based on Jackbot is an algorithmic trading ecosystem of Rust libraries for building high-performance live-trading, paper-trading 
 and back-testing systems.
 * **Fast**: Written in native Rust. Minimal allocations. Data-oriented state management system with direct index lookups.
 * **Robust**: Strongly typed. Thread safe. Extensive test coverage.
 * **Customisable**: Plug and play Strategy and RiskManager components that facilitates most trading strategies (MarketMaking, StatArb, HFT, etc.).
 * **Scalable**: Multithreaded architecture with modular design. Leverages Tokio for I/O. Memory efficient data structures.  
 
-I expands Barter to support the exchanges of the Jackbot Terminal project:
-* Binance (Great reference implementation on Barter)
+I expands Jackbot to support the exchanges of the Jackbot Terminal project:
+* Binance (Great reference implementation on Jackbot)
 * Bitget
 * Bybit 
 * Coinbase
@@ -18,15 +18,15 @@ I expands Barter to support the exchanges of the Jackbot Terminal project:
 ## Overview
 Jackbot Sensor is an algorithmic trading ecosystem of Rust libraries for building high-performance live-trading, paper-trading 
 and back-testing systems. It is made up of several easy-to-use, extensible crates:
-* **Barter**: Algorithmic trading Engine with feature rich state management system.
-* **Barter-Instrument**: Exchange, Instrument and Asset data structures and utilities. 
-* **Barter-Data**: Stream public market data from financial venues. Easily extensible via the MarketStream interface.
-* **Barter-Execution**: Stream private account data and execute orders. Easily extensible via the ExecutionClient interface. 
-* **Barter-Integration**: Low-level frameworks for flexible REST/WebSocket integrations.
+* **Jackbot**: Algorithmic trading Engine with feature rich state management system.
+* **Jackbot-Instrument**: Exchange, Instrument and Asset data structures and utilities. 
+* **Jackbot-Data**: Stream public market data from financial venues. Easily extensible via the MarketStream interface.
+* **Jackbot-Execution**: Stream private account data and execute orders. Easily extensible via the ExecutionClient interface. 
+* **Jackbot-Integration**: Low-level frameworks for flexible REST/WebSocket integrations.
 
 ## Notable Features
-- Stream public market data from financial venues via the [`Barter-Data`] library. 
-- Stream private account data, execute orders (live or mock)** via the [`Barter-Execution`] library.
+- Stream public market data from financial venues via the [`Jackbot-Data`] library. 
+- Stream private account data, execute orders (live or mock)** via the [`Jackbot-Execution`] library.
 - Plug and play Strategy and RiskManager components that facilitate most trading strategies. 
 - Flexible Engine that facilitates trading strategies that execute on many exchanges simultaneously.
 - Use mock MarketStream or Execution components to enable back-testing on a near-identical trading system as live-trading.  

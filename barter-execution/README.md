@@ -1,14 +1,14 @@
-# Barter-Execution
+# Jackbot-Execution
 Stream private account data from financial venues, and execute (live or mock) orders. Also provides
 a feature rich MockExchange and MockExecutionClient to assist with backtesting and paper-trading.
 
 **It is:**
 * **Easy**: ExecutionClient trait provides a unified and simple language for interacting with exchanges.
 * **Normalised**: Allow your strategy to communicate with every real or MockExchange using the same interface.
-* **Extensible**: Barter-Execution is highly extensible, making it easy to contribute by adding new exchange integrations!
+* **Extensible**: Jackbot-Execution is highly extensible, making it easy to contribute by adding new exchange integrations!
 
-**See: [`Barter`], [`Barter-Data`], [`Barter-Instrument`] & [`Barter-Integration`] for
-comprehensive documentation of other Barter libraries.**
+**See: [`Jackbot`], [`Jackbot-Data`], [`Jackbot-Instrument`] & [`Jackbot-Integration`] for
+comprehensive documentation of other Jackbot libraries.**
 
 [![Crates.io][crates-badge]][crates-url]
 [![MIT licensed][mit-badge]][mit-url]
@@ -25,10 +25,10 @@ comprehensive documentation of other Barter libraries.**
 
 [API Documentation] | [Chat]
 
-[`Barter`]: https://crates.io/crates/barter
-[`Barter-Data`]: https://crates.io/crates/barter-data
-[`Barter-Instrument`]: https://crates.io/crates/barter-instrument
-[`Barter-Integration`]: https://crates.io/crates/barter-integration
+[`Jackbot`]: https://crates.io/crates/barter
+[`Jackbot-Data`]: https://crates.io/crates/barter-data
+[`Jackbot-Instrument`]: https://crates.io/crates/barter-instrument
+[`Jackbot-Integration`]: https://crates.io/crates/barter-integration
 [barter-examples]: https://github.com/barter-rs/barter-rs/tree/develop/barter/examples
 [API Documentation]: https://docs.rs/barter-execution/latest/barter_execution
 [Chat]: https://discord.gg/wE7RqhnQMV
@@ -39,24 +39,24 @@ a feature rich simulated exchange to assist with backtesting and dry-trading. Co
 initialising it's associated `ExecutionClient` instance. 
 
 ## Examples
-* See [here][barter-examples] for example of Barter-Instrument in action.
+* See [here][barter-examples] for example of Jackbot-Instrument in action.
 * See other sub-crates for further examples of each library.
 
 ## Getting Help
 Firstly, see if the answer to your question can be found in the [API Documentation]. If the answer is not there, I'd be happy to help via [Chat]
 and try answer your question via Discord.
 
-## Support Barter Development
-Help us advance Barter's capabilities by becoming a sponsor (or supporting me with a tip!).
+## Support Jackbot Development
+Help us advance Jackbot's capabilities by becoming a sponsor (or supporting me with a tip!).
 
-Your contribution will allow me to dedicate more time to Barter, accelerating feature development and improvements.
+Your contribution will allow me to dedicate more time to Jackbot, accelerating feature development and improvements.
 
 **Please email *justastream.code@gmail.com* for all inquiries**
 
 Please see [here](../README.md#support-barter-development) for more information.
 
 ## Contributing
-Thanks in advance for helping to develop the Barter ecosystem! Please do get hesitate to get touch via the Discord [Chat] to discuss development,
+Thanks in advance for helping to develop the Jackbot ecosystem! Please do get hesitate to get touch via the Discord [Chat] to discuss development,
 new features, and the future roadmap.
 
 ### Licence
@@ -66,7 +66,7 @@ This project is licensed under the [MIT license].
 
 ### Contribution License Agreement
 
-Any contribution you intentionally submit for inclusion in Barter workspace crates shall be:
+Any contribution you intentionally submit for inclusion in Jackbot workspace crates shall be:
 1. Licensed under MIT
 2. Subject to all disclaimers and limitations of liability stated below
 3. Provided without any additional terms or conditions

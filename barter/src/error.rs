@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Deserialize, Serialize, Error)]
-pub enum BarterError {
+pub enum JackbotError {
     #[error("IndexError: {0}")]
     IndexError(#[from] IndexError),
 
@@ -34,13 +34,13 @@ impl<T> From<tokio::sync::mpsc::error::SendError<T>> for RxDropped {
     }
 }
 
-impl<T> From<tokio::sync::mpsc::error::SendError<T>> for BarterError {
+impl<T> From<tokio::sync::mpsc::error::SendError<T>> for JackbotError {
     fn from(_: tokio::sync::mpsc::error::SendError<T>) -> Self {
         Self::ExecutionRxDropped(RxDropped)
     }
 }
 
-impl From<tokio::task::JoinError> for BarterError {
+impl From<tokio::task::JoinError> for JackbotError {
     fn from(value: tokio::task::JoinError) -> Self {
         Self::JoinError(format!("{value:?}"))
     }
