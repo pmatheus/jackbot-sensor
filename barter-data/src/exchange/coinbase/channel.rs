@@ -1,7 +1,11 @@
 use super::Coinbase;
 use crate::{
     Identifier,
-    subscription::{Subscription, trade::PublicTrades},
+    subscription::{
+        Subscription,
+        trade::PublicTrades,
+        book::OrderBooksL2,
+    },
 };
 use serde::Serialize;
 
@@ -17,11 +21,20 @@ impl CoinbaseChannel {
     ///
     /// See docs: <https://docs.cloud.coinbase.com/exchange/docs/websocket-channels#match>
     pub const TRADES: Self = Self("matches");
+
+    /// [`Coinbase`] OrderBook Level2 channel.
+    pub const ORDER_BOOK_L2: Self = Self("level2");
 }
 
 impl<Instrument> Identifier<CoinbaseChannel> for Subscription<Coinbase, Instrument, PublicTrades> {
     fn id(&self) -> CoinbaseChannel {
         CoinbaseChannel::TRADES
+    }
+}
+
+impl<Instrument> Identifier<CoinbaseChannel> for Subscription<Coinbase, Instrument, OrderBooksL2> {
+    fn id(&self) -> CoinbaseChannel {
+        CoinbaseChannel::ORDER_BOOK_L2
     }
 }
 
