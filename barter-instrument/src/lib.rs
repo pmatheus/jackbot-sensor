@@ -12,11 +12,11 @@
 )]
 #![allow(clippy::type_complexity, clippy::too_many_arguments, type_alias_bounds)]
 
-//! # Barter-Instrument
-//! Barter-Instrument contains core Exchange, Instrument and Asset data structures and associated utilities.
+//! # Jackbot-Instrument
+//! Jackbot-Instrument contains core Exchange, Instrument and Asset data structures and associated utilities.
 //!
 //! ## Examples
-//! For a comprehensive collection of examples, see the Barter core Engine /examples directory.
+//! For a comprehensive collection of examples, see the Jackbot core Engine /examples directory.
 
 use derive_more::Constructor;
 use serde::{Deserialize, Serialize};

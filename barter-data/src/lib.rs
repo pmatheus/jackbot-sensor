@@ -12,13 +12,13 @@
 )]
 #![allow(clippy::type_complexity, clippy::too_many_arguments, type_alias_bounds)]
 
-//! # Barter-Data
+//! # Jackbot-Data
 //! A high-performance WebSocket integration library for streaming public market data from leading cryptocurrency
 //! exchanges - batteries included. It is:
-//! * **Easy**: Barter-Data's simple [`StreamBuilder`](streams::builder::StreamBuilder) and [`DynamicStreams`](streams::builder::dynamic::DynamicStreams) interface allows for easy & quick setup (see example below and /examples!).
-//! * **Normalised**: Barter-Data's unified interface for consuming public WebSocket data means every Exchange returns a normalised data model.
-//! * **Real-Time**: Barter-Data utilises real-time WebSocket integrations enabling the consumption of normalised tick-by-tick data.
-//! * **Extensible**: Barter-Data is highly extensible, and therefore easy to contribute to with coding new integrations!
+//! * **Easy**: Jackbot-Data's simple [`StreamBuilder`](streams::builder::StreamBuilder) and [`DynamicStreams`](streams::builder::dynamic::DynamicStreams) interface allows for easy & quick setup (see example below and /examples!).
+//! * **Normalised**: Jackbot-Data's unified interface for consuming public WebSocket data means every Exchange returns a normalised data model.
+//! * **Real-Time**: Jackbot-Data utilises real-time WebSocket integrations enabling the consumption of normalised tick-by-tick data.
+//! * **Extensible**: Jackbot-Data is highly extensible, and therefore easy to contribute to with coding new integrations!
 //!
 //! ## User API
 //! - [`StreamBuilder`](streams::builder::StreamBuilder) for initialising [`MarketStream`]s of specific data kinds.
@@ -115,7 +115,7 @@ use std::{collections::VecDeque, future::Future};
 use tokio::sync::mpsc;
 use tracing::{debug, error, warn};
 
-/// All [`Error`](std::error::Error)s generated in Barter-Data.
+/// All [`Error`](std::error::Error)s generated in Jackbot-Data.
 pub mod error;
 
 /// Defines the generic [`MarketEvent<T>`](MarketEvent) used in every [`MarketStream`].
@@ -125,7 +125,7 @@ pub mod event;
 pub mod exchange;
 
 /// High-level API types used for building [`MarketStream`]s from collections
-/// of Barter [`Subscription`]s.
+/// of Jackbot [`Subscription`]s.
 pub mod streams;
 
 /// [`Subscriber`], [`SubscriptionMapper`](subscriber::mapper::SubscriptionMapper) and
@@ -136,7 +136,7 @@ pub mod streams;
 pub mod subscriber;
 
 /// Types that communicate the type of each [`MarketStream`] to initialise, and what normalised
-/// Barter output type the exchange will be transformed into.
+/// Jackbot output type the exchange will be transformed into.
 pub mod subscription;
 
 /// [`InstrumentData`] trait for instrument describing data.
@@ -147,7 +147,7 @@ pub mod instrument;
 pub mod books;
 
 /// Generic [`ExchangeTransformer`] implementations used by [`MarketStream`]s to translate exchange
-/// specific types to normalised Barter types.
+/// specific types to normalised Jackbot types.
 ///
 /// A standard [`StatelessTransformer`](transformer::stateless::StatelessTransformer) implementation
 /// that works for most `Exchange`-`SubscriptionKind` combinations is included.

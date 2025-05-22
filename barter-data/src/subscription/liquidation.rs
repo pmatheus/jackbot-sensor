@@ -3,7 +3,7 @@ use barter_instrument::Side;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-/// Barter [`Subscription`](super::Subscription) [`SubscriptionKind`] that yields [`Liquidation`]
+/// Jackbot [`Subscription`](super::Subscription) [`SubscriptionKind`] that yields [`Liquidation`]
 /// [`MarketEvent<T>`](crate::event::MarketEvent) events.
 #[derive(
     Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default, Deserialize, Serialize,
@@ -24,7 +24,7 @@ impl std::fmt::Display for Liquidations {
     }
 }
 
-/// Normalised Barter [`Liquidation`] model.
+/// Normalised Jackbot [`Liquidation`] model.
 #[derive(Clone, Copy, PartialEq, PartialOrd, Debug, Deserialize, Serialize)]
 pub struct Liquidation {
     pub side: Side,

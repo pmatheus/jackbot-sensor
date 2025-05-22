@@ -12,10 +12,10 @@
 )]
 #![allow(clippy::type_complexity, clippy::too_many_arguments, type_alias_bounds)]
 
-//! # Barter-Integration
+//! # Jackbot-Integration
 //! High-performance, low-level framework for composing flexible web integrations.
 //!
-//! Utilised by other Barter trading ecosystem crates to build robust financial execution integrations,
+//! Utilised by other Jackbot trading ecosystem crates to build robust financial execution integrations,
 //! primarily for public data collection & trade execution. It is:
 //! * **Low-Level**: Translates raw data streams communicated over the web into any desired data model using arbitrary data transformations.
 //! * **Flexible**: Compatible with any protocol (WebSocket, FIX, Http, etc.), any input/output model, and any user defined transformations.
@@ -29,7 +29,7 @@
 use crate::error::SocketError;
 use serde::{Deserialize, Serialize};
 
-/// All [`Error`](std::error::Error)s generated in Barter-Integration.
+/// All [`Error`](std::error::Error)s generated in Jackbot-Integration.
 pub mod error;
 
 /// Contains `StreamParser` implementations for transforming communication protocol specific

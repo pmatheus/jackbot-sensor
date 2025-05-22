@@ -1,13 +1,23 @@
 use self::{
-    book::l1::KrakenOrderBookL1, channel::KrakenChannel, market::KrakenMarket,
-    message::KrakenMessage, subscription::KrakenSubResponse, trade::KrakenTrades,
+    book::{
+        l1::KrakenOrderBookL1,
+        l2::{
+            KrakenOrderBookL2, KrakenOrderBooksL2SnapshotFetcher,
+            KrakenOrderBooksL2Transformer,
+        },
+    },
+    channel::KrakenChannel,
+    market::KrakenMarket,
+    message::KrakenMessage,
+    subscription::KrakenSubResponse,
+    trade::KrakenTrades,
 };
 use crate::{
     ExchangeWsStream, NoInitialSnapshots,
     exchange::{Connector, ExchangeSub, StreamSelector},
     instrument::InstrumentData,
     subscriber::{WebSocketSubscriber, validator::WebSocketSubValidator},
-    subscription::{book::OrderBooksL1, trade::PublicTrades},
+    subscription::{book::{OrderBooksL1, OrderBooksL2}, trade::PublicTrades},
     transformer::stateless::StatelessTransformer,
 };
 use barter_instrument::exchange::ExchangeId;
@@ -20,11 +30,11 @@ use url::Url;
 /// OrderBook types for [`Kraken`].
 pub mod book;
 
-/// Defines the type that translates a Barter [`Subscription`](crate::subscription::Subscription)
+/// Defines the type that translates a Jackbot [`Subscription`](crate::subscription::Subscription)
 /// into an execution [`Connector`] specific channel used for generating [`Connector::requests`].
 pub mod channel;
 
-/// Defines the type that translates a Barter [`Subscription`](crate::subscription::Subscription)
+/// Defines the type that translates a Jackbot [`Subscription`](crate::subscription::Subscription)
 /// into an execution [`Connector`]  specific market used for generating [`Connector::requests`].
 pub mod market;
 
@@ -110,4 +120,12 @@ where
     type Stream = ExchangeWsStream<
         StatelessTransformer<Self, Instrument::Key, OrderBooksL1, KrakenOrderBookL1>,
     >;
+}
+
+impl<Instrument> StreamSelector<Instrument, OrderBooksL2> for Kraken
+where
+    Instrument: InstrumentData,
+{
+    type SnapFetcher = KrakenOrderBooksL2SnapshotFetcher;
+    type Stream = ExchangeWsStream<KrakenOrderBooksL2Transformer<Instrument::Key>>;
 }

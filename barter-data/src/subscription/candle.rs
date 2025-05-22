@@ -2,7 +2,7 @@ use super::SubscriptionKind;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-/// Barter [`Subscription`](super::Subscription) [`SubscriptionKind`] that yields [`Candle`]
+/// Jackbot [`Subscription`](super::Subscription) [`SubscriptionKind`] that yields [`Candle`]
 /// [`MarketEvent<T>`](crate::event::MarketEvent) events.
 #[derive(
     Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default, Deserialize, Serialize,
@@ -23,7 +23,7 @@ impl std::fmt::Display for Candles {
     }
 }
 
-/// Normalised Barter OHLCV [`Candle`] model.
+/// Normalised Jackbot OHLCV [`Candle`] model.
 #[derive(Copy, Clone, PartialEq, PartialOrd, Debug, Deserialize, Serialize)]
 pub struct Candle {
     pub close_time: DateTime<Utc>,
