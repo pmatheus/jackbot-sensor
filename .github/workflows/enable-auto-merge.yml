@@ -1,12 +1,13 @@
 # .github/workflows/enable-auto-merge.yml
 name: Enable auto-merge on every PR
+
 on:
-  pull_request:                       # works for PRs from forks too
+  pull_request_target:                # fires for PRs from forks too
     types: [opened, reopened, ready_for_review]
 
 permissions:
   contents: write
-  pull-requests: write
+  pull-requests: write                # keep the scope tight
 
 jobs:
   enable:
@@ -16,7 +17,4 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL:  ${{ github.event.pull_request.html_url }}
-        run: |
-          # (Optional) satisfy “at least one approval” branch rule first
-          # gh pr review --approve "$PR_URL"
-          gh pr merge --auto --merge "$PR_URL"
+        run: gh pr merge --auto --merge "$PR_URL"
