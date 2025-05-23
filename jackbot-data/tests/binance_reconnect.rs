@@ -1,6 +1,7 @@
 use tokio_stream::{StreamExt as TokioStreamExt};
 use futures::StreamExt;
-use jackbot_integration::protocol::websocket::{WsMessage, WsError};
+use jackbot_integration::protocol::websocket::{WsMessage, WsError, with_heartbeat};
+use jackbot_instrument::exchange::ExchangeId;
 use std::time::Duration;
 use std::io;
 
@@ -8,12 +9,11 @@ use std::io;
 async fn test_heartbeat_timeout_results_in_error() {
     tokio::time::pause();
 
-    let stream = tokio_stream::pending::<Result<WsMessage, WsError>>()
-        .timeout(Duration::from_secs(1))
-        .map(|res| match res {
-            Ok(msg) => msg,
-            Err(_) => Err(WsError::Io(io::Error::new(io::ErrorKind::TimedOut, "heartbeat timeout"))),
-        });
+    let stream = with_heartbeat(
+        tokio_stream::pending::<Result<WsMessage, WsError>>(),
+        Duration::from_secs(1),
+        ExchangeId::BinanceSpot,
+    );
 
     tokio::pin!(stream);
 

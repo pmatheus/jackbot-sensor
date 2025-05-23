@@ -12,7 +12,11 @@ use tokio_tungstenite::{
         protocol::{CloseFrame, frame::Frame},
     },
 };
-use tracing::debug;
+use tracing::{debug, warn};
+use futures::{Stream, StreamExt};
+use std::{time::Duration, io};
+use crate::metric::{Metric, Tag, Field};
+use chrono::Utc;
 
 /// Convenient type alias for a tungstenite `WebSocketStream`.
 pub type WebSocket = tokio_tungstenite::WebSocketStream<MaybeTlsStream<TcpStream>>;
@@ -155,4 +159,37 @@ pub fn is_websocket_disconnected(error: &WsError) -> bool {
             | WsError::Io(_)
             | WsError::Protocol(ProtocolError::SendAfterClosing)
     )
+}
+
+/// Wrap a [`WsStream`] with heartbeat monitoring and metrics logging.
+///
+/// Incoming messages must arrive within the provided `interval` or an
+/// `Io` timeout error will be returned. A metric named `ws_heartbeat_timeout`
+/// is logged whenever the timeout is triggered.
+pub fn with_heartbeat<S>(
+    stream: S,
+    interval: Duration,
+    exchange: jackbot_instrument::exchange::ExchangeId,
+) -> impl Stream<Item = Result<WsMessage, WsError>>
+where
+    S: Stream<Item = Result<WsMessage, WsError>> + Unpin,
+{
+    stream
+        .timeout(interval)
+        .map(move |result| match result {
+            Ok(msg) => msg,
+            Err(_) => {
+                let metric = Metric {
+                    name: "ws_heartbeat_timeout",
+                    time: Utc::now().timestamp_millis() as u64,
+                    tags: vec![Tag::new("exchange", exchange.as_str())],
+                    fields: vec![Field::new("interval_ms", interval.as_millis() as u64)],
+                };
+                warn!(%exchange, ?metric, "WebSocket heartbeat timed out");
+                Err(WsError::Io(io::Error::new(
+                    io::ErrorKind::TimedOut,
+                    "heartbeat timeout",
+                )))
+            }
+        })
 }
