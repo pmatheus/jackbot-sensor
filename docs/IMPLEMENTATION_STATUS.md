@@ -353,8 +353,8 @@ Exchanges currently implementing the `Canonicalizer` trait:
 > **Goal:** Implement advanced smart trade features for all supported exchanges and both live/paper trading: trailing take profit, profit at predetermined price levels, trailing stop loss, and multi-level stop loss. Ensure robust abstraction, event handling, and test coverage.
 
 **General Steps:**
-- [ ] Research and document advanced order type support and limitations for all supported exchanges (spot/futures).
-- [ ] Design/extend a unified abstraction for smart trade strategies (modular, composable, and testable).
+ - [x] Research and document advanced order type support and limitations for all supported exchanges (spot/futures). See `docs/ADVANCED_ORDER_TYPE_SUPPORT.md`.
+ - [ ] Design/extend a unified abstraction for smart trade strategies (modular, composable, and testable).
 - [x] Implement trailing take profit logic (dynamic adjustment as price moves in favor).
 - [x] Implement profit at predetermined price levels (partial or full closes at set targets).
 - [x] Implement trailing stop loss logic (dynamic stop that follows price).
