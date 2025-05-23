@@ -25,6 +25,7 @@ pub mod gateio;
 pub mod mexc;
 pub mod okx;
 pub mod mock;
+pub mod kraken;
 
 pub trait ExecutionClient
 where
