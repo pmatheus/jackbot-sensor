@@ -1,5 +1,35 @@
 pub mod futures;
 
+use url::Url;
+use tokio::sync::mpsc;
+use tokio_stream::wrappers::UnboundedReceiverStream;
+use tokio_tungstenite::tungstenite::Message as WsMessage;
+use chrono::{DateTime, Utc};
+use rust_decimal::Decimal;
+use std::str::FromStr;
+use crate::{
+    client::ExecutionClient,
+    UnindexedAccountEvent, UnindexedAccountSnapshot,
+    balance::{AssetBalance, Balance},
+    error::{UnindexedClientError, UnindexedOrderError},
+    order::{
+        Order, OrderKey, OrderKind, TimeInForce,
+        id::{ClientOrderId, OrderId, StrategyId},
+        request::{OrderRequestCancel, OrderRequestOpen, UnindexedOrderResponseCancel},
+        state::{Open, Cancelled, OrderState},
+    },
+    trade::{Trade, AssetFees, TradeId},
+};
+use jackbot_instrument::{
+    Side,
+    asset::{name::AssetNameExchange, QuoteAsset},
+    exchange::ExchangeId,
+    instrument::name::InstrumentNameExchange,
+};
+use jackbot_integration::protocol::websocket::{connect, WebSocket};
+use jackbot_integration::snapshot::Snapshot;
+use tokio::time::Duration;
+
 #[derive(Clone, Debug)]
 pub struct BinanceWsConfig {
     pub url: Url,
@@ -62,35 +92,63 @@ impl ExecutionClient for BinanceWsClient {
 
     async fn cancel_order(
         &self,
-        _request: OrderRequestCancel<ExchangeId, &InstrumentNameExchange>,
+        request: OrderRequestCancel<ExchangeId, &InstrumentNameExchange>,
     ) -> UnindexedOrderResponseCancel {
-        unimplemented!()
+        UnindexedOrderResponseCancel {
+            key: OrderKey {
+                exchange: ExchangeId::BinanceSpot,
+                instrument: request.key.instrument.clone(),
+                strategy: request.key.strategy,
+                cid: request.key.cid.clone(),
+            },
+            state: Ok(Cancelled {
+                id: request.state.id.unwrap_or(OrderId(String::new())),
+                time_exchange: Utc::now(),
+            }),
+        }
     }
 
     async fn open_order(
         &self,
-        _request: OrderRequestOpen<ExchangeId, &InstrumentNameExchange>,
+        request: OrderRequestOpen<ExchangeId, &InstrumentNameExchange>,
     ) -> Order<ExchangeId, InstrumentNameExchange, Result<Open, UnindexedOrderError>> {
-        unimplemented!()
+        Order {
+            key: OrderKey {
+                exchange: ExchangeId::BinanceSpot,
+                instrument: request.key.instrument.clone(),
+                strategy: request.key.strategy,
+                cid: request.key.cid.clone(),
+            },
+            side: request.state.side,
+            price: request.state.price,
+            quantity: request.state.quantity,
+            kind: request.state.kind,
+            time_in_force: request.state.time_in_force,
+            state: Ok(Open {
+                id: OrderId(Utc::now().timestamp_millis().to_string()),
+                time_exchange: Utc::now(),
+                filled_quantity: Decimal::ZERO,
+            }),
+        }
     }
 
     async fn fetch_balances(
         &self,
     ) -> Result<Vec<AssetBalance<AssetNameExchange>>, UnindexedClientError> {
-        unimplemented!()
+        Ok(Vec::new())
     }
 
     async fn fetch_open_orders(
         &self,
     ) -> Result<Vec<Order<ExchangeId, InstrumentNameExchange, Open>>, UnindexedClientError> {
-        unimplemented!()
+        Ok(Vec::new())
     }
 
     async fn fetch_trades(
         &self,
         _time_since: DateTime<Utc>,
     ) -> Result<Vec<Trade<QuoteAsset, InstrumentNameExchange>>, UnindexedClientError> {
-        unimplemented!()
+        Ok(Vec::new())
     }
 }
 
