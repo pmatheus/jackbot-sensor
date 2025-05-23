@@ -271,9 +271,9 @@ Exchanges currently implementing the `Canonicalizer` trait:
 > **Goal:** Refactor and extend `jackbot-execution` to support both live and paper trading on all supported exchanges (spot and futures), with robust abstraction, error handling, and test coverage.
 
 **General Steps:**
-- [ ] Research and document trading (order management) APIs for all supported exchanges (spot/futures).
-- [ ] Design/extend a unified trading abstraction (trait/interface) for order placement, cancellation, modification, and status queries.
-- [ ] Implement or refactor exchange adapters for live trading (real orders via authenticated API/WebSocket).
+- [x] Research and document trading (order management) APIs for all supported exchanges (spot/futures).
+- [x] Design/extend a unified trading abstraction (trait/interface) for order placement, cancellation, modification, and status queries.
+- [x] Implement or refactor exchange adapters for live trading (real orders via authenticated API/WebSocket).
 - [ ] Implement a robust paper trading engine (simulated fills, order book emulation, event emission, etc.).
 - [ ] Add/extend integration tests for both live and paper trading (with mocks/sandboxes where possible).
 - [ ] Add/extend module-level and user-facing documentation.
@@ -282,7 +282,7 @@ Exchanges currently implementing the `Canonicalizer` trait:
 **Exchange-Specific TODOs:**
 
 - **Binance**
-  - [ ] Implement/refactor live trading adapter (spot/futures).
+  - [x] Implement/refactor live trading adapter (spot/futures).
   - [ ] Implement/refactor paper trading adapter (spot/futures).
   - [x] Add/extend tests for both.
 
