@@ -892,7 +892,7 @@ Exchanges currently implementing the `Canonicalizer` trait:
 > **Goal:** Implement a high-performance market making engine for providing liquidity across all supported exchanges and markets. Support advanced features like inventory management, skew adjustment, spread optimization, and adverse selection mitigation with robust risk controls and performance tracking.
 
 **General Steps:**
-- [ ] Design a unified market making abstraction with configurable parameters and strategies.
+ - [x] Design a unified market making abstraction with configurable parameters and strategies. See [MARKET_MAKING_ABSTRACTION.md](MARKET_MAKING_ABSTRACTION.md).
 - [x] Implement efficient two-sided quote management (bid/ask placement, monitoring, adjustment).
 - [x] Create inventory management and skew adjustment algorithms.
 - [x] Implement spread optimization based on volatility, competition, and flow toxicity.
