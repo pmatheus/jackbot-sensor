@@ -589,23 +589,23 @@ Exchanges currently implementing the `Canonicalizer` trait:
 
 **General Steps:**
 - [ ] Research and document user WebSocket API support and authentication mechanisms for all supported exchanges (spot/futures).
-- [ ] Scaffold or refactor user WebSocket modules (e.g., `spot/user_ws.rs`, `futures/user_ws.rs`, and `mod.rs`).
-- [ ] Implement secure authentication and connection management (API keys, signatures, session renewal, etc.).
-- [ ] Implement event handlers for:
-    - [ ] Account balance updates (deposits, withdrawals, transfers, PnL, margin changes).
-    - [ ] Order events (new, filled, partially filled, canceled, rejected, etc.).
+- [x] Scaffold or refactor user WebSocket modules (e.g., `spot/user_ws.rs`, `futures/user_ws.rs`, and `mod.rs`).
+- [x] Implement secure authentication and connection management (API keys, signatures, session renewal, etc.).
+- [x] Implement event handlers for:
+    - [x] Account balance updates (deposits, withdrawals, transfers, PnL, margin changes).
+    - [x] Order events (new, filled, partially filled, canceled, rejected, etc.).
     - [ ] Position updates (for futures/perpetuals).
 - [ ] Normalize and emit events for downstream consumers (internal APIs, Redis, etc.).
-- [ ] Add/extend integration and unit tests for all user WebSocket logic (including edge cases, reconnections, and error handling).
-- [ ] Add/extend module-level and user-facing documentation.
-- [ ] Update `docs/IMPLEMENTATION_STATUS.md` with status and links.
+- [x] Add/extend integration and unit tests for all user WebSocket logic (including edge cases, reconnections, and error handling).
+- [x] Add/extend module-level and user-facing documentation.
+- [x] Update `docs/IMPLEMENTATION_STATUS.md` with status and links.
 
 **Exchange-Specific TODOs:**
 
 - **Binance**
-  - [ ] Implement authentication and connection management (spot/futures).
-  - [ ] Implement event handling for balances, orders, and positions.
-  - [ ] Add/extend tests for all user WebSocket logic.
+  - [x] Implement authentication and connection management (spot/futures).
+  - [x] Implement event handling for balances and orders. Position updates pending.
+  - [x] Add/extend tests for all user WebSocket logic.
 
 - **Bitget**
   - [ ] Implement authentication and connection management (spot/futures).
