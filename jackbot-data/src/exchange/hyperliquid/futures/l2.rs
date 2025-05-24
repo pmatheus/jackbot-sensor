@@ -1,9 +1,14 @@
 //! L2 order book message types for Hyperliquid futures.
+//!
+//! This module provides order book parsing and a basic [`L2Sequencer`]
+//! implementation for Hyperliquid's futures markets.
 use crate::{
     Identifier,
-    books::{Canonicalizer, Level, OrderBook},
+    books::{Canonicalizer, Level, OrderBook, l2_sequencer::L2Sequencer},
+    error::DataError,
     event::{MarketEvent, MarketIter},
     exchange::{hyperliquid::channel::HyperliquidChannel, subscription::ExchangeSub},
+    redis_store::RedisStore,
     subscription::book::{OrderBookEvent, OrderBooksL2},
     redis_store::RedisStore,
 };
@@ -78,6 +83,35 @@ where
 {
     <&str as Deserialize>::deserialize(deserializer)
         .map(|market| ExchangeSub::from((HyperliquidChannel::ORDER_BOOK_L2, market)).id())
+}
+
+/// Sequencer implementation for Hyperliquid futures order books.
+#[derive(Debug, Clone)]
+pub struct HyperliquidFuturesOrderBookL2Sequencer {
+    pub last_update_id: u64,
+    pub updates_processed: u64,
+}
+
+impl L2Sequencer<HyperliquidFuturesOrderBookL2> for HyperliquidFuturesOrderBookL2Sequencer {
+    fn new(last_update_id: u64) -> Self {
+        Self {
+            last_update_id,
+            updates_processed: 0,
+        }
+    }
+
+    fn validate_sequence(
+        &mut self,
+        update: HyperliquidFuturesOrderBookL2,
+    ) -> Result<Option<HyperliquidFuturesOrderBookL2>, DataError> {
+        // Hyperliquid does not expose incremental sequence numbers
+        self.updates_processed += 1;
+        Ok(Some(update))
+    }
+
+    fn is_first_update(&self) -> bool {
+        self.updates_processed == 0
+    }
 }
 
 #[cfg(test)]

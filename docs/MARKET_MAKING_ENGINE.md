@@ -8,6 +8,7 @@ Jackbot's market making engine provides a set of utilities for building two-side
 - **optimize_spread** – Adjusts the base spread for volatility while enforcing a maximum.
 - **RiskControls** – Simple inventory based gating for enabling or disabling trading.
 - **PerformanceTracker** – Records realised PnL and executed trade count.
+- **MarketMaker trait** – Unified interface implemented by quoting, risk and performance components.
 - **FlowToxicityDetector** – Analyses the ratio of buy and sell volume to detect toxic flow.
 - **QuoteRefresher** – Tracks when quotes should be refreshed.
 - **reactive_adjust** – Moves quotes in the direction of recent flow.
@@ -31,14 +32,14 @@ Jackbot's market making engine provides a set of utilities for building two-side
 ```rust,no_run
 use rust_decimal_macros::dec;
 use jackbot::market_maker::{InventorySkewQuoter, RiskControls, PerformanceTracker};
-use jackbot_execution::market_making::{FlowToxicityDetector, QuoteRefresher, reactive_adjust};
+use jackbot_execution::market_making::{FlowToxicityDetector, QuoteRefresher, reactive_adjust, MarketMaker};
 use chrono::{Duration, Utc};
 
 let quoter = InventorySkewQuoter::new(dec!(2), dec!(0.5));
-let quote = quoter.quote(dec!(100), dec!(0.2));
+let quote = quoter.make_quote(dec!(100), dec!(0.2));
 
 let risk = RiskControls::new(dec!(0.25));
-assert!(risk.check_inventory(dec!(0.2)));
+assert!(risk.allow_trade(dec!(0.2)));
 
 let detector = FlowToxicityDetector::new(dec!(0.6));
 let trades = vec![(jackbot_execution::market_making::TradeSide::Buy, dec!(7)),

@@ -1,6 +1,14 @@
 use crate::error::DataError;
 
 /// Trait for L2 order book sequencing logic.
+///
+/// Exchanges that provide incremental order book updates usually include
+/// sequence numbers that allow clients to ensure no updates were missed.
+/// Implementations of this trait encapsulate the exchange specific rules for
+/// validating those sequences. Each call to [`validate_sequence`] consumes an
+/// update and returns it back if the update should be applied to the local
+/// order book. If an update is outdated it can be dropped by returning `Ok(None)`
+/// and any sequencing error should return [`DataError::InvalidSequence`].
 pub trait L2Sequencer<Update>: std::fmt::Debug + Send + Sync {
     /// Create a new sequencer from the initial snapshot sequence.
     fn new(last_update_id: u64) -> Self
@@ -12,7 +20,12 @@ pub trait L2Sequencer<Update>: std::fmt::Debug + Send + Sync {
     fn is_first_update(&self) -> bool;
 }
 
-// Example implementation for Binance Spot
+/// Example implementation for Binance Spot order books.
+///
+/// The Binance Spot WebSocket feed exposes `U` (first update id) and `u`
+/// (last update id) fields. Updates must start from the snapshot `lastUpdateId + 1`
+/// and thereafter each update must begin where the previous ended. This
+/// sequencer enforces those rules.
 #[derive(Debug, Clone)]
 pub struct BinanceSpotOrderBookL2Sequencer {
     pub updates_processed: u64,
@@ -25,7 +38,8 @@ impl BinanceSpotOrderBookL2Sequencer {
         &self,
         update: &Update,
     ) -> Result<(), DataError> {
-        // U <= lastUpdateId+1 AND u >= lastUpdateId+1
+        // Binance Spot step 5:
+        // "The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1"
         if update.first_update_id() <= self.last_update_id + 1
             && update.last_update_id() >= self.last_update_id + 1
         {
@@ -41,7 +55,8 @@ impl BinanceSpotOrderBookL2Sequencer {
         &self,
         update: &Update,
     ) -> Result<(), DataError> {
-        // U == prev_last_update_id+1
+        // Binance Spot step 6:
+        // "Each new event's U should be equal to the previous event's u+1"
         if update.first_update_id() == self.prev_last_update_id + 1 {
             Ok(())
         } else {
@@ -84,3 +99,59 @@ pub trait HasUpdateIds {
 
 // Example: implement HasUpdateIds for BinanceSpotOrderBookL2Update
 // (The actual struct is in binance/spot/l2.rs, so this is just a trait definition for now)
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[derive(Clone)]
+    struct DummyUpdate {
+        first: u64,
+        last: u64,
+    }
+
+    impl HasUpdateIds for DummyUpdate {
+        fn first_update_id(&self) -> u64 {
+            self.first
+        }
+        fn last_update_id(&self) -> u64 {
+            self.last
+        }
+    }
+
+    #[test]
+    fn test_sequencer_valid_flow() {
+        let mut seq = BinanceSpotOrderBookL2Sequencer::new(100);
+        // first valid update
+        let up1 = DummyUpdate { first: 101, last: 102 };
+        assert!(seq.validate_sequence(up1).unwrap().is_some());
+        assert!(!seq.is_first_update());
+
+        // next valid update must start from last id + 1
+        let up2 = DummyUpdate { first: 103, last: 105 };
+        assert!(seq.validate_sequence(up2).is_ok());
+        assert_eq!(seq.last_update_id, 105);
+    }
+
+    #[test]
+    fn test_sequencer_invalid_first() {
+        let mut seq = BinanceSpotOrderBookL2Sequencer::new(100);
+        let bad = DummyUpdate { first: 105, last: 106 };
+        assert!(matches!(
+            seq.validate_sequence(bad),
+            Err(DataError::InvalidSequence { .. })
+        ));
+    }
+
+    #[test]
+    fn test_sequencer_invalid_next() {
+        let mut seq = BinanceSpotOrderBookL2Sequencer::new(100);
+        let good = DummyUpdate { first: 101, last: 103 };
+        seq.validate_sequence(good).unwrap();
+        let bad = DummyUpdate { first: 105, last: 106 };
+        assert!(matches!(
+            seq.validate_sequence(bad),
+            Err(DataError::InvalidSequence { .. })
+        ));
+    }
+}

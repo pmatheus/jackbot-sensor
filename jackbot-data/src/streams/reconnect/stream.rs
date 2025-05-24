@@ -1,5 +1,6 @@
 use crate::streams::{consumer::StreamKey, reconnect::Event};
-use jackbot_integration::channel::Tx;
+use jackbot_integration::{channel::Tx, metric::{Metric, Tag, Field}};
+use chrono::Utc;
 use derive_more::Constructor;
 use futures::Stream;
 use futures_util::StreamExt;
@@ -32,6 +33,16 @@ where
                 move |state, (attempt, result)| match result {
                     Ok(stream) => {
                         info!(attempt, ?stream_key, "successfully initialised Stream");
+                        let metric = Metric {
+                            name: "ws_reconnect_success",
+                            time: Utc::now().timestamp_millis() as u64,
+                            tags: vec![
+                                Tag::new("exchange", stream_key.exchange.as_str()),
+                                Tag::new("stream", stream_key.stream),
+                            ],
+                            fields: vec![Field::new("attempt", attempt as u64)],
+                        };
+                        info!(?metric, "WebSocket reconnected successfully");
                         state.reset_backoff();
                         futures::future::Either::Left(future::ready(Some(Ok(stream))))
                     }
@@ -43,10 +54,22 @@ where
                             "failed to re-initialise Stream"
                         );
                         let sleep_duration = state.generate_sleep_duration();
+                        let metric = Metric {
+                            name: "ws_reconnect_backoff",
+                            time: Utc::now().timestamp_millis() as u64,
+                            tags: vec![
+                                Tag::new("exchange", stream_key.exchange.as_str()),
+                                Tag::new("stream", stream_key.stream),
+                            ],
+                            fields: vec![
+                                Field::new("attempt", attempt as u64),
+                                Field::new("backoff_ms", sleep_duration.as_millis() as u64),
+                            ],
+                        };
+                        warn!(?metric, "waiting before reconnect attempt");
                         let sleep_fut = tokio::time::sleep(sleep_duration);
                         state.multiply_backoff();
                         futures::future::Either::Right(Box::pin(async move {
-                            info!(?stream_key, ?sleep_duration, "waiting before reconnect attempt");
                             sleep_fut.await;
                             Some(Err(error))
                         }))
