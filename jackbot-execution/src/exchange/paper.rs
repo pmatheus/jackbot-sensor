@@ -17,6 +17,7 @@ use chrono::Utc;
 use fnv::FnvHashMap;
 use rust_decimal::Decimal;
 use smol_str::ToSmolStr;
+use crate::UnindexedAccountSnapshot;
 
 #[derive(Debug, Clone)]
 pub struct PaperBook {
@@ -244,6 +245,15 @@ impl PaperEngine {
         };
 
         (order_response, Some(notifications))
+    }
+
+    pub fn account_snapshot(&self) -> UnindexedAccountSnapshot {
+        let balances = self.account.balances().cloned().collect();
+        UnindexedAccountSnapshot {
+            exchange: self.exchange,
+            balances,
+            instruments: Vec::new(),
+        }
     }
 
     fn order_id_sequence_fetch_add(&mut self) -> OrderId {
