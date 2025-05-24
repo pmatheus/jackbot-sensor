@@ -12,6 +12,8 @@
 * Gate.io
 * Crypto.com
 * OKX
+  - OKX does not provide a public liquidations WebSocket channel. The code
+    includes a stub at `jackbot-data/src/exchange/okx/liquidation.rs`.
 
 **Instructions for Contributors:**
 - Check off each box as you complete the step for each task.
