@@ -21,10 +21,10 @@ This document summarises the current support for advanced order types across all
 | Coinbase | Yes | Yes | Yes | Yes | N/A | Spot only |
 | Hyperliquid | Yes | Yes | Yes | Yes | Yes | |
 | Kraken | Yes | Yes | Yes | Yes | Yes | |
-| MEXC | Yes | Yes | Yes | Yes | Stub | Jackpot API pending |
+| MEXC | Yes | Yes | Yes | Yes | Yes | |
 | Kucoin | Yes | Yes | Yes | Yes | Yes | |
-| Gate.io | Yes | Yes | Yes | Yes | Stub | Jackpot API pending |
-| Crypto.com | Yes | Yes | Yes | Yes | Stub | Jackpot API pending |
+| Gate.io | Yes | Yes | Yes | Yes | Yes | |
+| Crypto.com | Yes | Yes | Yes | Yes | Yes | |
 | OKX | Yes | Yes | Yes | Yes | Yes | |
 
 All exchanges expose the same trait-based interface in `jackbot-execution`. Stubs indicate planned integration where the exchange API does not yet offer an equivalent feature.
