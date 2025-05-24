@@ -22,6 +22,8 @@ pub mod trade;
 
 /// Liquidation types.
 pub mod liquidation;
+/// User WebSocket utilities.
+pub mod user_ws;
 
 /// [`BinanceFuturesUsd`] WebSocket server base url.
 ///
