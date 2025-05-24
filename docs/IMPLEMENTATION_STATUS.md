@@ -461,7 +461,7 @@ paper trading:
 > **Goal:** Implement 'prophetic orders' for all supported exchanges and both live/paper trading: allow users to specify limit orders far outside the allowed order book range, track these in jackbot, and automatically place them the instant the order book comes in range. Include robust range detection, event handling, and test coverage.
 
 **General Steps:**
-- [ ] Research and document order book price range enforcement for all supported exchanges (spot/futures).
+- [x] Research and document order book price range enforcement for all supported exchanges (spot/futures). The table below summarises the accepted limit order distance for each venue.
 - [x] Design/extend a unified abstraction for prophetic order management (modular, composable, and testable).
 - [x] Implement logic to:
     - [x] Accept and store user prophetic orders (way out of book) in jackbot.
