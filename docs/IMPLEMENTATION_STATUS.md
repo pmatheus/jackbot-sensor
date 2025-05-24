@@ -755,7 +755,7 @@ paper trading:
 - Kucoin REST quota: 30 requests/3s per IP. WebSocket quota: 100 messages/10s.
 - [x] OKX: Exchange-specific rate limiting implemented for REST and WebSocket.
 - [x] Hyperliquid: Exchange-specific rate limiting implemented for REST and WebSocket.
-- [x] MEXC: Exchange-specific rate limiting implemented for REST and WebSocket.
+- [x] MEXC: Exchange-specific rate limiting implemented for REST (600 req/min) and WebSocket (20 msgs/s) with adaptive backoff.
 - [x] Gate.io: Exchange-specific rate limiting implemented for REST and WebSocket.
 - [x] Crypto.com: Exchange-specific rate limiting implemented for REST and WebSocket.
 
