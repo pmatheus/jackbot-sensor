@@ -10,12 +10,14 @@ use std::{
 use tokio::sync::Mutex;
 use tokio::time;
 
+/// Type of record stored in Redis and persisted to snapshots.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum RecordType {
     OrderBook,
     Trade,
 }
 
+/// A single order book or trade record stored in Redis.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct DataRecord {
     pub exchange: String,
@@ -24,6 +26,7 @@ pub struct DataRecord {
     pub value: String,
 }
 
+/// Minimal in-memory stand in for Redis used in tests.
 #[derive(Debug, Default)]
 pub struct FakeRedis {
     data: Mutex<Vec<DataRecord>>,
@@ -88,6 +91,7 @@ struct IcebergMeta {
     files: Vec<String>,
 }
 
+/// Append a new file path to the Iceberg metadata file if it is not already present.
 pub fn register_with_iceberg(metadata_path: &Path, file_path: &Path) -> io::Result<()> {
     let mut meta: IcebergMeta = if metadata_path.exists() {
         let data = fs::read_to_string(metadata_path)?;
@@ -95,16 +99,21 @@ pub fn register_with_iceberg(metadata_path: &Path, file_path: &Path) -> io::Resu
     } else {
         IcebergMeta { schema_version: 1, files: Vec::new() }
     };
-    meta.files.push(file_path.display().to_string());
+    let entry = file_path.display().to_string();
+    if !meta.files.contains(&entry) {
+        meta.files.push(entry);
+    }
     fs::write(metadata_path, serde_json::to_string(&meta)? )
 }
 
+/// Configuration for how often snapshots are taken and how long they are kept.
 #[derive(Clone)]
 pub struct SnapshotConfig {
     pub interval: Duration,
     pub retention: Duration,
 }
 
+/// Periodically persists Redis data to S3 and registers files with Iceberg.
 pub struct SnapshotScheduler {
     redis: Arc<FakeRedis>,
     s3_root: PathBuf,
@@ -117,8 +126,12 @@ impl SnapshotScheduler {
         Self { redis, s3_root, iceberg_metadata, config }
     }
 
+    /// Persist all Redis records to a single Parquet file and register it.
     pub async fn snapshot_once(&self) -> io::Result<()> {
         let records = self.redis.get_all().await;
+        if records.is_empty() {
+            return Ok(());
+        }
         let file_name = format!("snapshot_{}.parquet", chrono::Utc::now().timestamp_millis());
         let local_path = std::env::temp_dir().join(&file_name);
         write_parquet(&records, &local_path)?;
@@ -133,6 +146,7 @@ impl SnapshotScheduler {
         Ok(())
     }
 
+    /// Continuously take snapshots according to the configured interval.
     pub async fn start(&self) {
         let mut interval = time::interval(self.config.interval);
         loop {
@@ -170,6 +184,19 @@ mod tests {
         let meta_contents = fs::read_to_string(meta).unwrap();
         let meta: IcebergMeta = serde_json::from_str(&meta_contents).unwrap();
         assert_eq!(meta.files.len(), 1);
+    }
+
+    #[tokio::test]
+    async fn test_snapshot_skip_empty() {
+        let redis = Arc::new(FakeRedis::default());
+        let dir = std::env::temp_dir();
+        let s3_root = dir.join("s3_empty");
+        let meta = dir.join("meta_empty.json");
+        let cfg = SnapshotConfig { interval: Duration::from_millis(1), retention: Duration::from_secs(0) };
+        let scheduler = SnapshotScheduler::new(redis, s3_root.clone(), meta.clone(), cfg);
+        scheduler.snapshot_once().await.unwrap();
+        assert!(!s3_root.exists());
+        assert!(!meta.exists());
     }
 }
 
