@@ -377,7 +377,7 @@ paper trading:
 
 **General Steps:**
  - [x] Research and document advanced order type support and limitations for all supported exchanges (spot/futures). See `docs/ADVANCED_ORDER_TYPE_SUPPORT.md`.
- - [ ] Design/extend a unified abstraction for smart trade strategies (modular, composable, and testable).
+ - [x] Design/extend a unified abstraction for smart trade strategies (modular, composable, and testable). See `docs/SMART_TRADE_ABSTRACTION.md`.
 - [x] Implement trailing take profit logic (dynamic adjustment as price moves in favor).
 - [x] Implement profit at predetermined price levels (partial or full closes at set targets).
 - [x] Implement trailing stop loss logic (dynamic stop that follows price).
