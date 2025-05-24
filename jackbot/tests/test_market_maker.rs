@@ -1,16 +1,17 @@
 use Jackbot::market_maker::{InventorySkewQuoter, optimize_spread, PerformanceTracker, RiskControls};
+use jackbot_execution::market_making::{MarketMaker, Quote};
 use rust_decimal_macros::dec;
 
 #[test]
 fn test_quotes_and_risk() {
     let quoter = InventorySkewQuoter::new(dec!(2), dec!(0.5));
-    let quote = quoter.quote(dec!(100), dec!(0.2));
+    let quote = quoter.make_quote(dec!(100), dec!(0.2));
     assert_eq!(quote.bid_price, dec!(100) - dec!(1) - dec!(0.1));
     assert_eq!(quote.ask_price, dec!(100) + dec!(1) - dec!(0.1));
 
     let risk = RiskControls::new(dec!(0.25));
-    assert!(risk.check_inventory(dec!(0.2)));
-    assert!(!risk.check_inventory(dec!(0.3)));
+    assert!(risk.allow_trade(dec!(0.2)));
+    assert!(!risk.allow_trade(dec!(0.3)));
 }
 
 #[test]
@@ -20,7 +21,7 @@ fn test_perf_and_spread() {
 
     let mut tracker = PerformanceTracker::default();
     tracker.record_trade(dec!(1));
-    tracker.record_trade(dec!(-0.5));
+    MarketMaker::record_trade(&mut tracker, dec!(-0.5));
     assert_eq!(tracker.trades(), 2);
     assert_eq!(tracker.realised_pnl(), dec!(0.5));
 }

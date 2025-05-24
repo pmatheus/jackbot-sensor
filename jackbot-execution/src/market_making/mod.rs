@@ -12,6 +12,35 @@ pub struct Quote {
     pub ask_price: Decimal,
 }
 
+/// Common interface for market making components.
+///
+/// Implementors may generate quotes, gate trading activity,
+/// or record performance metrics. Default methods are no-ops so
+/// individual components can override only what is relevant.
+pub trait MarketMaker {
+    /// Generate a new [`Quote`] given a mid price and inventory ratio.
+    ///
+    /// The default implementation simply returns a quote with bid and ask
+    /// equal to `mid_price`.
+    fn make_quote(&self, mid_price: Decimal, inventory_ratio: Decimal) -> Quote {
+        let _ = inventory_ratio;
+        Quote::new(mid_price, mid_price)
+    }
+
+    /// Determine if trading is permitted for the provided inventory ratio.
+    ///
+    /// By default trading is always allowed.
+    fn allow_trade(&self, inventory_ratio: Decimal) -> bool {
+        let _ = inventory_ratio;
+        true
+    }
+
+    /// Record realised PnL for a completed trade.
+    ///
+    /// The default implementation does nothing.
+    fn record_trade(&mut self, _pnl: Decimal) {}
+}
+
 /// Direction of a trade used for flow analysis.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 pub enum TradeSide {
