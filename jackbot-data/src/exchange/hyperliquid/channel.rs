@@ -13,8 +13,25 @@ impl AsRef<str> for HyperliquidChannel {
 }
 
 impl HyperliquidChannel {
+    /// Top of book updates.
     pub const ORDER_BOOK_L1: Self = Self("l1");
+    /// Full order book updates.
     pub const ORDER_BOOK_L2: Self = Self("l2");
+    /// Public trade events.
+    pub const TRADES: Self = Self("trades");
+    /// Liquidation events.
+    pub const LIQUIDATIONS: Self = Self("liquidations");
 }
 
-// TODO: Implement channel type and normalization.
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_channel_consts() {
+        assert_eq!(HyperliquidChannel::ORDER_BOOK_L1.as_ref(), "l1");
+        assert_eq!(HyperliquidChannel::ORDER_BOOK_L2.as_ref(), "l2");
+        assert_eq!(HyperliquidChannel::TRADES.as_ref(), "trades");
+        assert_eq!(HyperliquidChannel::LIQUIDATIONS.as_ref(), "liquidations");
+    }
+}
