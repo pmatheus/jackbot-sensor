@@ -235,7 +235,7 @@ Exchanges currently implementing the `Canonicalizer` trait:
 - **Goal:** Remove duplicated sequencing logic and standardize L2 order book update handling across exchanges.
 
 ## Next Steps
-- Expand tests for any remaining exchanges to cover the new abstraction.
+- [x] Expand tests for any remaining exchanges to cover the new abstraction.
 
 ## Other Exchanges
 - OKX, Bybit, Kraken, etc. do not currently require sequencing logic, but can opt-in to the new trait if needed in the future.
