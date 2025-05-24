@@ -297,8 +297,8 @@ paper trading:
 - [x] Research and document trading (order management) APIs for all supported exchanges (spot/futures).
 - [x] Design/extend a unified trading abstraction (trait/interface) for order placement, cancellation, modification, and status queries.
 - [x] Implement or refactor exchange adapters for live trading (real orders via authenticated API/WebSocket).
-- [ ] Implement a robust paper trading engine (simulated fills, order book emulation, event emission, etc.).
-- [ ] Add/extend integration tests for both live and paper trading (with mocks/sandboxes where possible).
+- [x] Implement a robust paper trading engine (simulated fills, order book emulation, event emission, etc.).
+- [x] Add/extend integration tests for both live and paper trading (with mocks/sandboxes where possible).
 - [ ] Add/extend module-level and user-facing documentation.
 - [ ] Update `docs/IMPLEMENTATION_STATUS.md` with status and links.
 
