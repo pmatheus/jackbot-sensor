@@ -33,3 +33,13 @@ tracker.update(ExchangeId::BinanceSpot, InstrumentIndex(0), dec!(5));
 ## Configurable Strategies
 
 Strategies can load parameters via `jackbot-strategy::StrategyConfig`. Combine this with the aggregation and position tracking utilities to build arbitrage strategies tailored to your requirements.
+
+### Arbitrage Strategy Parameters
+
+`ArbitrageStrategy` reads a `threshold` value from its configuration to determine the minimum spread required before executing a trade. The strategy records basic performance metrics:
+
+- `opportunities_detected` – number of spreads above the threshold
+- `opportunities_executed` – number of opportunities actually executed
+- `cumulative_spread` – total spread across all detected opportunities
+
+These metrics can be inspected after running a backtest or live session to evaluate execution quality.

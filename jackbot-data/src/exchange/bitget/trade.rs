@@ -108,4 +108,17 @@ mod tests {
         assert_eq!(kind.side, Side::Sell);
         assert_eq!(kind.id, "123456789");
     }
+
+    #[test]
+    fn test_bitget_trade_invalid_side() {
+        let json = r#"{
+            \"instId\": \"BTCUSDT\",
+            \"tradeId\": \"1\",
+            \"px\": \"42000.5\",
+            \"sz\": \"0.01\",
+            \"side\": \"unknown\",
+            \"ts\": \"1717000000000\"
+        }"#;
+        assert!(serde_json::from_str::<BitgetTrade>(json).is_err());
+    }
 }
