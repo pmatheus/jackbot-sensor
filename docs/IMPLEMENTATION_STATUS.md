@@ -697,8 +697,8 @@ paper trading:
 
 **General Steps:**
 - [x] Design a unified health monitoring abstraction for WebSocket connections (heartbeats, pings, activity timeouts).
-- [ ] Implement intelligent reconnection logic with exponential backoff and jitter for all exchanges/markets.
-- [ ] Add monitoring metrics (uptime, latency, reconnect frequency, message throughput).
+- [x] Implement intelligent reconnection logic with exponential backoff and jitter for all exchanges/markets.
+- [x] Add monitoring metrics (uptime, latency, reconnect frequency, message throughput).
 - [ ] Implement connection lifecycle events and error classification.
 - [ ] Ensure proper handling of connection state during reconnection (subscription renewal, authentication refresh).
 - [ ] Add resubscription logic for all data streams after reconnection.
