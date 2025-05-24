@@ -85,7 +85,7 @@ order book analytics, allowing more discrete participation in the market.
 
 ## Multi-Exchange Aggregation
 
-`jackbot-data` exposes an `OrderBookAggregator` for combining order books across exchanges with custom weights. Together with the `PositionTracker` and `StrategyConfig` utilities, this enables configurable arbitrage strategies. See [Multi-Exchange Aggregation and Arbitrage Framework](docs/MULTI_EXCHANGE_ARBITRAGE.md) for more details.
+`jackbot-data` exposes an `OrderBookAggregator` for combining order books across exchanges with custom weights. Together with the `PositionTracker` and `StrategyConfig` utilities, this enables configurable arbitrage strategies. The `ArbitrageStrategy` offers a tunable spread threshold and collects metrics such as detected opportunities and cumulative spread. See [Multi-Exchange Aggregation and Arbitrage Framework](docs/MULTI_EXCHANGE_ARBITRAGE.md) for more details.
 
 
 ## Contributing

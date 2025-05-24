@@ -55,3 +55,5 @@ impl<E> Strategy<E> for CountingStrategy {
         self.count += 1;
     }
 }
+
+pub mod arbitrage;

@@ -9,3 +9,10 @@ description = "Strategy trait and utilities for Jackbot"
 
 [dependencies]
 serde = { workspace = true, features = ["derive"] }
+jackbot-data = { workspace = true }
+jackbot-risk = { workspace = true }
+jackbot-instrument = { workspace = true }
+rust_decimal = { workspace = true }
+
+[dev-dependencies]
+rust_decimal_macros = { workspace = true }
