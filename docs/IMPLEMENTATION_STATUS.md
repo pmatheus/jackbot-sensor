@@ -674,7 +674,7 @@ Exchanges currently implementing the `Canonicalizer` trait:
 > **Goal:** Implement robust health monitoring and auto-reconnection logic for all WebSocket connections across all exchanges and markets. Ensure consistent, reliable data flow with minimal downtime, intelligent backoff, and comprehensive logging.
 
 **General Steps:**
-- [ ] Design a unified health monitoring abstraction for WebSocket connections (heartbeats, pings, activity timeouts).
+- [x] Design a unified health monitoring abstraction for WebSocket connections (heartbeats, pings, activity timeouts).
 - [ ] Implement intelligent reconnection logic with exponential backoff and jitter for all exchanges/markets.
 - [ ] Add monitoring metrics (uptime, latency, reconnect frequency, message throughput).
 - [ ] Implement connection lifecycle events and error classification.
