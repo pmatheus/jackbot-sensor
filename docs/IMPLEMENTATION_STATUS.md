@@ -243,9 +243,10 @@ paper trading:
   - [x] Add/extend tests for both.
 
 **Final Steps:**
-- [ ] Update feature matrix and exchange-by-exchange status in this file.
+- [x] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
-- [ ] Document any API quirks, limitations, or unsupported features.
+- [x] Document any API quirks, limitations, or unsupported features.
+- Snapshot pipeline documented in `docs/SNAPSHOT_PIPELINE.md`.
 
 **This matrix and TODO list must be kept up to date by all contributors.**
 
