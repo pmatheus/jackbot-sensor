@@ -178,7 +178,7 @@ paper trading:
 > **Goal:** Implement robust, fully-tested trade WebSocket listeners for both spot and futures for all project exchanges, following the new folder/module conventions and ensuring normalized trade event handling.
 
 **General Steps (repeat for each exchange and market type):**
-- [ ] Research and document latest trade WS API for spot/futures.
+- [x] Research and document at `docs/TRADE_WS_ENDPOINTS.md` latest trade WS API for spot/futures for all supported exchanges.
 - [ ] Scaffold or refactor `spot/trade.rs` and `futures/trade.rs` (and `mod.rs`).
 - [ ] Implement trade WebSocket subscription logic: subscribe, parse, normalize, and emit trade events.
 - [ ] Add/extend unit and integration tests (including edge cases).
