@@ -29,6 +29,19 @@ impl<ExchangeKey, InstrumentKey> JackpotOrderManager<ExchangeKey, InstrumentKey>
         if order.ticket_loss <= Decimal::ZERO {
             return Err("ticket loss must be positive".into());
         }
+
+        // ensure the potential isolated loss does not exceed the ticket size
+        let potential_loss = crate::risk::check::util::calculate_potential_loss(
+            order.request.state.quantity,
+            order.request.state.price,
+            order.leverage,
+        )
+        .ok_or_else(|| "invalid leverage or overflow".to_string())?;
+
+        if potential_loss > order.ticket_loss {
+            return Err("ticket loss below potential isolated loss".into());
+        }
+
         self.active.push(order);
         Ok(())
     }

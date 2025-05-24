@@ -1,5 +1,5 @@
 use rust_decimal::Decimal;
-use crate::smart_trade::SmartTradeSignal;
+use crate::smart_trade::{SmartTradeSignal, SmartTradeStrategy};
 
 #[derive(Debug, Clone)]
 pub struct TrailingStop {
@@ -13,7 +13,14 @@ impl TrailingStop {
         Self { trailing, highest: None, triggered: false }
     }
 
+    /// Evaluate the trailing stop with the provided price.
     pub fn update(&mut self, price: Decimal) -> Option<SmartTradeSignal> {
+        SmartTradeStrategy::evaluate(self, price)
+    }
+}
+
+impl SmartTradeStrategy for TrailingStop {
+    fn evaluate(&mut self, price: Decimal) -> Option<SmartTradeSignal> {
         if self.triggered {
             return None;
         }

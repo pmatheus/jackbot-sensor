@@ -2,6 +2,28 @@ use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use derive_more::Constructor;
 use chrono::{DateTime, Duration, Utc};
+use async_trait::async_trait;
+use crate::{client::ExecutionClient, error::UnindexedClientError};
+
+/// Unified interface for market making strategies.
+///
+/// Implementations should place, cancel or adjust orders using an
+/// [`ExecutionClient`] while keeping the quoting logic exchange agnostic.
+#[async_trait]
+pub trait MarketMakingStrategy<C>
+where
+    C: ExecutionClient + Clone + Send + Sync,
+{
+    /// Additional configuration required by the strategy.
+    type Config: Send + Sync;
+
+    /// Maintain markets using the provided client and configuration.
+    async fn maintain_market(
+        &mut self,
+        client: &C,
+        config: Self::Config,
+    ) -> Result<Quote, UnindexedClientError>;
+}
 
 /// Quote prices maintained by the market making logic.
 #[derive(Debug, Clone, Copy, PartialEq, Deserialize, Serialize, Constructor)]
@@ -10,6 +32,35 @@ pub struct Quote {
     pub bid_price: Decimal,
     /// Ask price to place on the exchange.
     pub ask_price: Decimal,
+}
+
+/// Common interface for market making components.
+///
+/// Implementors may generate quotes, gate trading activity,
+/// or record performance metrics. Default methods are no-ops so
+/// individual components can override only what is relevant.
+pub trait MarketMaker {
+    /// Generate a new [`Quote`] given a mid price and inventory ratio.
+    ///
+    /// The default implementation simply returns a quote with bid and ask
+    /// equal to `mid_price`.
+    fn make_quote(&self, mid_price: Decimal, inventory_ratio: Decimal) -> Quote {
+        let _ = inventory_ratio;
+        Quote::new(mid_price, mid_price)
+    }
+
+    /// Determine if trading is permitted for the provided inventory ratio.
+    ///
+    /// By default trading is always allowed.
+    fn allow_trade(&self, inventory_ratio: Decimal) -> bool {
+        let _ = inventory_ratio;
+        true
+    }
+
+    /// Record realised PnL for a completed trade.
+    ///
+    /// The default implementation does nothing.
+    fn record_trade(&mut self, _pnl: Decimal) {}
 }
 
 /// Direction of a trade used for flow analysis.

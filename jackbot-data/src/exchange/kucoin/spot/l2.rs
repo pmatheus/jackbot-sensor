@@ -6,7 +6,8 @@
 
 use crate::{
     Identifier,
-    books::{Canonicalizer, Level, OrderBook},
+    books::{Canonicalizer, Level, OrderBook, l2_sequencer::L2Sequencer},
+    error::DataError,
     event::{MarketEvent, MarketIter},
     exchange::{kucoin::channel::KucoinChannel, subscription::ExchangeSub},
     redis_store::RedisStore,
@@ -165,6 +166,35 @@ where
 {
     <&str as Deserialize>::deserialize(deserializer)
         .map(|market| ExchangeSub::from((KucoinChannel::ORDER_BOOK_L2, market)).id())
+}
+
+/// Sequencer implementation for Kucoin spot order books.
+#[derive(Debug, Clone)]
+pub struct KucoinSpotOrderBookL2Sequencer {
+    pub last_update_id: u64,
+    pub updates_processed: u64,
+}
+
+impl L2Sequencer<KucoinOrderBookL2> for KucoinSpotOrderBookL2Sequencer {
+    fn new(last_update_id: u64) -> Self {
+        Self {
+            last_update_id,
+            updates_processed: 0,
+        }
+    }
+
+    fn validate_sequence(
+        &mut self,
+        update: KucoinOrderBookL2,
+    ) -> Result<Option<KucoinOrderBookL2>, DataError> {
+        // Kucoin spot updates currently do not expose sequence numbers
+        self.updates_processed += 1;
+        Ok(Some(update))
+    }
+
+    fn is_first_update(&self) -> bool {
+        self.updates_processed == 0
+    }
 }
 
 #[cfg(test)]
