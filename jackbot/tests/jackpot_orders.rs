@@ -46,3 +46,10 @@ fn test_loss_controlled() {
     let ticket = manager.ticket_loss(&0).unwrap();
     assert!(position.loss_exceeded(ticket));
 }
+
+#[test]
+fn test_reject_ticket_below_loss() {
+    let mut manager: JackpotOrderManager<u8, u8> = JackpotOrderManager::default();
+    let order = JackpotOrder::new(sample_request(dec!(100)), dec!(100), dec!(0.5));
+    assert!(manager.add(order).is_err());
+}
