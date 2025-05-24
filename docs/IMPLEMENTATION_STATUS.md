@@ -99,7 +99,7 @@ Exchanges currently implementing the `Canonicalizer` trait:
   - [x] Update spot to use new `Canonicalizer` trait.
 
 - **Kucoin**
-  - [ ] Implement/refactor `spot/l2.rs` (L2 order book, WS, incremental). (Partially implemented, needs testing)
+  - [x] Implement/refactor `spot/l2.rs` (L2 order book, WS, incremental). (Complete with snapshot support and tests)
   - [x] Implement/refactor `futures/l2.rs` (L2 order book, WS, incremental).
   - [x] Add/extend tests for both.
   - [x] Update to use new `Canonicalizer` trait.
