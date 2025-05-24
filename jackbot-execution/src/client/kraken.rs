@@ -1,5 +1,3 @@
-pub mod futures;
-
 use url::Url;
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::UnboundedReceiverStream;
@@ -7,6 +5,8 @@ use tokio_tungstenite::tungstenite::Message as WsMessage;
 use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
 use std::str::FromStr;
+use futures::{StreamExt, SinkExt};
+
 use crate::{
     client::ExecutionClient,
     UnindexedAccountEvent, UnindexedAccountSnapshot,
@@ -14,11 +14,12 @@ use crate::{
     error::{UnindexedClientError, UnindexedOrderError},
     order::{
         Order, OrderKey, OrderKind, TimeInForce,
-        id::{ClientOrderId, OrderId, StrategyId},
+        id::{ClientOrderId, OrderId, StrategyId, TradeId},
         request::{OrderRequestCancel, OrderRequestOpen, UnindexedOrderResponseCancel},
-        state::{Open, Cancelled, OrderState},
+        state::{Open, OrderState},
     },
-    trade::{Trade, AssetFees, TradeId},
+    trade::{Trade, AssetFees},
+    AccountEvent, AccountEventKind,
 };
 use jackbot_instrument::{
     Side,
@@ -28,22 +29,25 @@ use jackbot_instrument::{
 };
 use jackbot_integration::protocol::websocket::{connect, WebSocket};
 use jackbot_integration::snapshot::Snapshot;
-use tokio::time::Duration;
 
+/// Configuration for [`KrakenWsClient`].
 #[derive(Clone, Debug)]
-pub struct BinanceWsConfig {
+pub struct KrakenWsConfig {
+    /// WebSocket endpoint URL.
     pub url: Url,
+    /// Authentication payload sent upon connection.
     pub auth_payload: String,
 }
 
+/// WebSocket client streaming authenticated account events from Kraken.
 #[derive(Clone, Debug)]
-pub struct BinanceWsClient {
-    config: BinanceWsConfig,
+pub struct KrakenWsClient {
+    config: KrakenWsConfig,
 }
 
-impl ExecutionClient for BinanceWsClient {
-    const EXCHANGE: ExchangeId = ExchangeId::BinanceSpot;
-    type Config = BinanceWsConfig;
+impl ExecutionClient for KrakenWsClient {
+    const EXCHANGE: ExchangeId = ExchangeId::Kraken;
+    type Config = KrakenWsConfig;
     type AccountStream = UnboundedReceiverStream<UnindexedAccountEvent>;
 
     fn new(config: Self::Config) -> Self {
@@ -75,14 +79,14 @@ impl ExecutionClient for BinanceWsClient {
                 match connect(url.clone()).await {
                     Ok(ws) => {
                         if run_connection(ws, &tx, &auth).await.is_err() {
-                            tokio::time::sleep(Duration::from_millis(50)).await;
+                            tokio::time::sleep(std::time::Duration::from_millis(50)).await;
                             continue;
                         } else {
                             break;
                         }
                     }
                     Err(_) => {
-                        tokio::time::sleep(Duration::from_millis(50)).await;
+                        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
                     }
                 }
             }
@@ -92,63 +96,33 @@ impl ExecutionClient for BinanceWsClient {
 
     async fn cancel_order(
         &self,
-        request: OrderRequestCancel<ExchangeId, &InstrumentNameExchange>,
+        _request: OrderRequestCancel<ExchangeId, &InstrumentNameExchange>,
     ) -> UnindexedOrderResponseCancel {
-        UnindexedOrderResponseCancel {
-            key: OrderKey {
-                exchange: ExchangeId::BinanceSpot,
-                instrument: request.key.instrument.clone(),
-                strategy: request.key.strategy,
-                cid: request.key.cid.clone(),
-            },
-            state: Ok(Cancelled {
-                id: request.state.id.unwrap_or(OrderId(String::new())),
-                time_exchange: Utc::now(),
-            }),
-        }
+        unimplemented!()
     }
 
     async fn open_order(
         &self,
-        request: OrderRequestOpen<ExchangeId, &InstrumentNameExchange>,
+        _request: OrderRequestOpen<ExchangeId, &InstrumentNameExchange>,
     ) -> Order<ExchangeId, InstrumentNameExchange, Result<Open, UnindexedOrderError>> {
-        Order {
-            key: OrderKey {
-                exchange: ExchangeId::BinanceSpot,
-                instrument: request.key.instrument.clone(),
-                strategy: request.key.strategy,
-                cid: request.key.cid.clone(),
-            },
-            side: request.state.side,
-            price: request.state.price,
-            quantity: request.state.quantity,
-            kind: request.state.kind,
-            time_in_force: request.state.time_in_force,
-            state: Ok(Open {
-                id: OrderId(Utc::now().timestamp_millis().to_string()),
-                time_exchange: Utc::now(),
-                filled_quantity: Decimal::ZERO,
-            }),
-        }
+        unimplemented!()
     }
 
-    async fn fetch_balances(
-        &self,
-    ) -> Result<Vec<AssetBalance<AssetNameExchange>>, UnindexedClientError> {
-        Ok(Vec::new())
+    async fn fetch_balances(&self) -> Result<Vec<AssetBalance<AssetNameExchange>>, UnindexedClientError> {
+        unimplemented!()
     }
 
     async fn fetch_open_orders(
         &self,
     ) -> Result<Vec<Order<ExchangeId, InstrumentNameExchange, Open>>, UnindexedClientError> {
-        Ok(Vec::new())
+        unimplemented!()
     }
 
     async fn fetch_trades(
         &self,
         _time_since: DateTime<Utc>,
     ) -> Result<Vec<Trade<QuoteAsset, InstrumentNameExchange>>, UnindexedClientError> {
-        Ok(Vec::new())
+        unimplemented!()
     }
 }
 
@@ -167,7 +141,7 @@ async fn run_connection(
         };
         match msg {
             WsMessage::Text(text) => {
-                if let Ok(event) = serde_json::from_str::<BinanceEvent>(&text) {
+                if let Ok(event) = serde_json::from_str::<KrakenEvent>(&text) {
                     if let Some(evt) = to_account_event(event) {
                         let _ = tx.send(evt);
                     }
@@ -180,12 +154,11 @@ async fn run_connection(
     Err(())
 }
 
-#[derive(Deserialize)]
-#[serde(tag = "e")]
-enum BinanceEvent {
+#[derive(serde::Deserialize)]
+#[serde(tag = "type")]
+enum KrakenEvent {
     #[serde(rename = "balance")]
     Balance {
-        #[serde(rename = "E")]
         time: u64,
         asset: String,
         free: String,
@@ -193,26 +166,28 @@ enum BinanceEvent {
     },
     #[serde(rename = "order")]
     Order {
-        #[serde(rename = "E")]
         time: u64,
-        #[serde(rename = "s")]
-        symbol: String,
-        #[serde(rename = "S")]
+        pair: String,
         side: String,
-        #[serde(rename = "p")]
         price: String,
-        #[serde(rename = "q")]
-        quantity: String,
-        #[serde(rename = "i")]
-        order_id: u64,
-        #[serde(rename = "X")]
+        size: String,
+        order_id: String,
         status: String,
+    },
+    #[serde(rename = "trade")]
+    Trade {
+        time: u64,
+        trade_id: u64,
+        pair: String,
+        side: String,
+        price: String,
+        size: String,
     },
 }
 
-fn to_account_event(event: BinanceEvent) -> Option<UnindexedAccountEvent> {
+fn to_account_event(event: KrakenEvent) -> Option<UnindexedAccountEvent> {
     match event {
-        BinanceEvent::Balance { time, asset, free, total } => {
+        KrakenEvent::Balance { time, asset, free, total } => {
             let time = Utc.timestamp_millis_opt(time as i64).single()?;
             let free = Decimal::from_str(&free).ok()?;
             let total = Decimal::from_str(&total).ok()?;
@@ -222,23 +197,23 @@ fn to_account_event(event: BinanceEvent) -> Option<UnindexedAccountEvent> {
                 time_exchange: time,
             };
             Some(AccountEvent::new(
-                ExchangeId::BinanceSpot,
+                ExchangeId::Kraken,
                 AccountEventKind::BalanceSnapshot(Snapshot(balance)),
             ))
         }
-        BinanceEvent::Order { time, symbol, side, price, quantity, order_id, .. } => {
+        KrakenEvent::Order { time, pair, side, price, size, order_id, .. } => {
             let time = Utc.timestamp_millis_opt(time as i64).single()?;
-            let side = match side.as_str() {
+            let side = match side.to_uppercase().as_str() {
                 "BUY" => Side::Buy,
                 "SELL" => Side::Sell,
                 _ => return None,
             };
             let price = Decimal::from_str(&price).ok()?;
-            let quantity = Decimal::from_str(&quantity).ok()?;
+            let quantity = Decimal::from_str(&size).ok()?;
             let order = Order {
                 key: OrderKey {
-                    exchange: ExchangeId::BinanceSpot,
-                    instrument: InstrumentNameExchange(symbol),
+                    exchange: ExchangeId::Kraken,
+                    instrument: InstrumentNameExchange(pair),
                     strategy: StrategyId::unknown(),
                     cid: ClientOrderId::default(),
                 },
@@ -248,15 +223,41 @@ fn to_account_event(event: BinanceEvent) -> Option<UnindexedAccountEvent> {
                 kind: OrderKind::Market,
                 time_in_force: TimeInForce::GoodUntilCancelled { post_only: false },
                 state: OrderState::active(Open {
-                    id: OrderId(order_id.to_string()),
+                    id: OrderId(order_id),
                     time_exchange: time,
                     filled_quantity: quantity,
                 }),
             };
             Some(AccountEvent::new(
-                ExchangeId::BinanceSpot,
+                ExchangeId::Kraken,
                 AccountEventKind::OrderSnapshot(Snapshot(order)),
+            ))
+        }
+        KrakenEvent::Trade { time, trade_id, pair, side, price, size } => {
+            let time = Utc.timestamp_millis_opt(time as i64).single()?;
+            let side = match side.to_uppercase().as_str() {
+                "BUY" => Side::Buy,
+                "SELL" => Side::Sell,
+                _ => return None,
+            };
+            let price = Decimal::from_str(&price).ok()?;
+            let quantity = Decimal::from_str(&size).ok()?;
+            let trade = Trade {
+                id: TradeId(trade_id.to_string()),
+                order_id: OrderId(String::new()),
+                instrument: InstrumentNameExchange(pair),
+                strategy: StrategyId::unknown(),
+                time_exchange: time,
+                side,
+                price,
+                quantity,
+                fees: AssetFees::default(),
+            };
+            Some(AccountEvent::new(
+                ExchangeId::Kraken,
+                AccountEventKind::Trade(trade),
             ))
         }
     }
 }
+

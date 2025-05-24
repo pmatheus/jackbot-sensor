@@ -1,9 +1,14 @@
 //! L2 order book message types for Hyperliquid futures.
+//!
+//! This module provides order book parsing and a basic [`L2Sequencer`]
+//! implementation for Hyperliquid's futures markets.
 use crate::{
     Identifier,
-    books::{Canonicalizer, Level, OrderBook},
+    books::{Canonicalizer, Level, OrderBook, l2_sequencer::L2Sequencer},
+    error::DataError,
     event::{MarketEvent, MarketIter},
     exchange::{hyperliquid::channel::HyperliquidChannel, subscription::ExchangeSub},
+    redis_store::RedisStore,
     subscription::book::{OrderBookEvent, OrderBooksL2},
 };
 use chrono::{DateTime, Utc};
@@ -38,6 +43,20 @@ impl Canonicalizer for HyperliquidFuturesOrderBookL2 {
     }
 }
 
+impl HyperliquidFuturesOrderBookL2 {
+    /// Persist this order book snapshot to the provided [`RedisStore`].
+    pub fn store_snapshot<Store: RedisStore>(&self, store: &Store) {
+        let snapshot = self.canonicalize(self.time);
+        store.store_snapshot(ExchangeId::Hyperliquid, self.subscription_id.as_ref(), &snapshot);
+    }
+
+    /// Persist this order book update to the provided [`RedisStore`].
+    pub fn store_delta<Store: RedisStore>(&self, store: &Store) {
+        let delta = OrderBookEvent::Update(self.canonicalize(self.time));
+        store.store_delta(ExchangeId::Hyperliquid, self.subscription_id.as_ref(), &delta);
+    }
+}
+
 impl<InstrumentKey> From<(ExchangeId, InstrumentKey, HyperliquidFuturesOrderBookL2)>
     for MarketIter<InstrumentKey, OrderBookEvent>
 {
@@ -63,11 +82,40 @@ where
         .map(|market| ExchangeSub::from((HyperliquidChannel::ORDER_BOOK_L2, market)).id())
 }
 
+/// Sequencer implementation for Hyperliquid futures order books.
+#[derive(Debug, Clone)]
+pub struct HyperliquidFuturesOrderBookL2Sequencer {
+    pub last_update_id: u64,
+    pub updates_processed: u64,
+}
+
+impl L2Sequencer<HyperliquidFuturesOrderBookL2> for HyperliquidFuturesOrderBookL2Sequencer {
+    fn new(last_update_id: u64) -> Self {
+        Self {
+            last_update_id,
+            updates_processed: 0,
+        }
+    }
+
+    fn validate_sequence(
+        &mut self,
+        update: HyperliquidFuturesOrderBookL2,
+    ) -> Result<Option<HyperliquidFuturesOrderBookL2>, DataError> {
+        // Hyperliquid does not expose incremental sequence numbers
+        self.updates_processed += 1;
+        Ok(Some(update))
+    }
+
+    fn is_first_update(&self) -> bool {
+        self.updates_processed == 0
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use rust_decimal_macros::dec;
-    use crate::books::Level;
+    use crate::{books::Level, redis_store::InMemoryStore};
 
     #[test]
     fn test_hyperliquid_futures_order_book_l2() {
@@ -78,5 +126,28 @@ mod tests {
         let canonical = book.canonicalize(book.time);
         assert_eq!(canonical.bids().levels()[0], Level::new(dec!(30000.0), dec!(1.0)));
         assert_eq!(canonical.asks().levels()[0], Level::new(dec!(30010.0), dec!(2.0)));
+    }
+
+    #[test]
+    fn test_store_methods_and_sequencer() {
+        let store = InMemoryStore::new();
+        let book = HyperliquidFuturesOrderBookL2 {
+            subscription_id: "BTC".into(),
+            time: Utc::now(),
+            bids: vec![(dec!(30000.0), dec!(1.0))],
+            asks: vec![(dec!(30010.0), dec!(2.0))],
+        };
+        book.store_snapshot(&store);
+        assert!(store.get_snapshot(ExchangeId::Hyperliquid, "BTC").is_some());
+
+        let delta_book = HyperliquidFuturesOrderBookL2 { time: Utc::now(), ..book };
+        delta_book.store_delta(&store);
+        assert_eq!(store.delta_len(ExchangeId::Hyperliquid, "BTC"), 1);
+
+        let mut sequencer = HyperliquidFuturesOrderBookL2Sequencer::new(0);
+        assert!(sequencer.is_first_update());
+        let result = sequencer.validate_sequence(delta_book);
+        assert!(matches!(result, Ok(Some(_))));
+        assert!(!sequencer.is_first_update());
     }
 }
