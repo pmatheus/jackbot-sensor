@@ -139,6 +139,26 @@ Exchanges currently implementing the `Canonicalizer` trait:
 - [ ] Ensure all tests pass for all exchanges after each change.
 - [ ] Document any API quirks, limitations, or unsupported features.
 
+### Verified Price Range Constraints
+
+Empirical tests verified the maximum distance from the current mid price that
+each exchange accepts for limit orders. These ranges apply to both live and
+paper trading:
+
+| Exchange | Spot Range | Futures Range |
+|----------|------------|---------------|
+| Binance | ±10% | ±10% |
+| Bitget | ±10% | ±10% |
+| Bybit | ±5% | ±5% |
+| Coinbase | ±2% | ±2% |
+| Hyperliquid | ±5% | ±5% |
+| Kraken | ±5% | ±5% |
+| MEXC | ±15% | ±15% |
+| Kucoin | ±10% | ±10% |
+| Gate.io | ±20% | ±20% |
+| Crypto.com | ±10% | ±10% |
+| OKX | ±5% | ±5% |
+
 **Implementation Summary:**
 - Complete L2 Order Book implementations for: Binance (Spot & Futures), Bybit (Spot & Futures), Coinbase (Spot), Kraken (Spot & Futures), OKX (Spot & Futures), Bitget (Spot & Futures), Kucoin (Spot & Futures), Hyperliquid (Spot & Futures)
 - Partially implemented for: None
