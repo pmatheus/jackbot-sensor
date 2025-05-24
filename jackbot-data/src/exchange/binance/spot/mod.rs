@@ -17,6 +17,8 @@ use std::fmt::{Display, Formatter};
 pub mod l2;
 /// Trade types.
 pub mod trade;
+/// User WebSocket utilities.
+pub mod user_ws;
 
 /// [`BinanceSpot`] WebSocket server base url.
 ///

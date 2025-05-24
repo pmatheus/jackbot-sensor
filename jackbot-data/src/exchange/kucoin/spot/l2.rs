@@ -1,8 +1,13 @@
-// Kucoin Order Book L2 stub
+//! Level 2 order book types for Kucoin spot.
+//!
+//! This module defines the WebSocket message structures for Kucoin's spot
+//! order book stream and provides a simple [`L2Sequencer`] implementation for
+//! validating update order.
 
 use crate::{
     Identifier,
-    books::{Canonicalizer, Level, OrderBook},
+    books::{Canonicalizer, Level, OrderBook, l2_sequencer::L2Sequencer},
+    error::DataError,
     event::{MarketEvent, MarketIter},
     exchange::{kucoin::channel::KucoinChannel, subscription::ExchangeSub},
     redis_store::RedisStore,
@@ -82,6 +87,35 @@ where
         .map(|market| ExchangeSub::from((KucoinChannel::ORDER_BOOK_L2, market)).id())
 }
 
+/// Sequencer implementation for Kucoin spot order books.
+#[derive(Debug, Clone)]
+pub struct KucoinSpotOrderBookL2Sequencer {
+    pub last_update_id: u64,
+    pub updates_processed: u64,
+}
+
+impl L2Sequencer<KucoinOrderBookL2> for KucoinSpotOrderBookL2Sequencer {
+    fn new(last_update_id: u64) -> Self {
+        Self {
+            last_update_id,
+            updates_processed: 0,
+        }
+    }
+
+    fn validate_sequence(
+        &mut self,
+        update: KucoinOrderBookL2,
+    ) -> Result<Option<KucoinOrderBookL2>, DataError> {
+        // Kucoin spot updates currently do not expose sequence numbers
+        self.updates_processed += 1;
+        Ok(Some(update))
+    }
+
+    fn is_first_update(&self) -> bool {
+        self.updates_processed == 0
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -111,5 +145,21 @@ mod tests {
         let delta_book = KucoinOrderBookL2 { time: Utc::now(), ..book };
         delta_book.store_delta(&store);
         assert_eq!(store.delta_len(ExchangeId::Kucoin, "BTC-USDT"), 1);
+    }
+
+    #[test]
+    fn test_sequencer() {
+        let input = KucoinOrderBookL2 {
+            subscription_id: "BTC-USDT".into(),
+            time: Utc::now(),
+            bids: vec![(dec!(30000.0), dec!(1.0))],
+            asks: vec![(dec!(30010.0), dec!(2.0))],
+        };
+
+        let mut sequencer = KucoinSpotOrderBookL2Sequencer::new(0);
+        assert!(sequencer.is_first_update());
+        let result = sequencer.validate_sequence(input);
+        assert!(matches!(result, Ok(Some(_))));
+        assert!(!sequencer.is_first_update());
     }
 }
