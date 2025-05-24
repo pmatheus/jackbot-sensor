@@ -759,7 +759,7 @@ Exchanges currently implementing the `Canonicalizer` trait:
 - [x] Implement performance metrics calculation and reporting (P&L, Sharpe, drawdown, etc.).
 - [x] Add visualization and charting capabilities for backtest results.
 - [x] Support parallel backtesting for parameter optimization and Monte Carlo simulations.
-- [ ] Add/extend integration and unit tests for backtesting framework components.
+- [x] Add/extend integration and unit tests for backtesting framework components.
 - [x] Add/extend module-level and user-facing documentation.
 - [x] Update `docs/IMPLEMENTATION_STATUS.md` with status and links.
 
