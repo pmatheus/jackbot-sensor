@@ -827,8 +827,8 @@ paper trading:
 - [x] Risk Management Framework (exposure limits, correlation checks, worst-case analysis)
 - [x] Smart Execution Routing (latency-aware, fee-optimized)
 - [x] Real-time Monitoring and Visualization
-- [ ] Configurable Arbitrage Strategies (parameters, thresholds, execution tactics)
-- [ ] Performance Metrics and Reporting (realized opportunities, missed opportunities, execution quality)
+- [x] Configurable Arbitrage Strategies (parameters, thresholds, execution tactics)
+- [x] Performance Metrics and Reporting (realized opportunities, missed opportunities, execution quality)
 
 **Final Steps:**
 - [ ] Update feature matrix and exchange-by-exchange status in this file.
