@@ -18,4 +18,32 @@ impl From<&str> for HyperliquidMarket {
     }
 }
 
-// TODO: Implement market type and normalization.
+impl From<String> for HyperliquidMarket {
+    fn from(s: String) -> Self {
+        Self(s)
+    }
+}
+
+impl std::fmt::Display for HyperliquidMarket {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl crate::Identifier<HyperliquidMarket> for HyperliquidMarket {
+    fn id(&self) -> HyperliquidMarket {
+        self.clone()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_market_from_str() {
+        let m = HyperliquidMarket::from("BTC");
+        assert_eq!(m.as_ref(), "BTC");
+        assert_eq!(m.to_string(), "BTC");
+    }
+}
