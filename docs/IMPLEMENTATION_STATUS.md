@@ -361,7 +361,7 @@ paper trading:
   - [x] Add/extend tests for both.
 
 **Final Steps:**
-- [ ] Update feature matrix and exchange-by-exchange status in this file.
+- [x] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
 - [ ] Document any API quirks, limitations, or unsupported features.
 
@@ -398,8 +398,8 @@ paper trading:
  - [x] Gate.io: Implement all smart trade features (spot/futures, live/paper)
  - [x] Crypto.com: Implement all smart trade features (spot/futures, live/paper)
 
-**Final Steps:**
-- [ ] Update feature matrix and exchange-by-exchange status in this file.
+- **Final Steps:**
+- [x] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
 - [ ] Document any API quirks, limitations, or unsupported features.
 
@@ -444,8 +444,8 @@ paper trading:
  - [x] Gate.io: Implement all advanced execution order types (spot/futures, live/paper)
  - [x] Crypto.com: Implement all advanced execution order types (spot/futures, live/paper)
 
-**Final Steps:**
-- [ ] Update feature matrix and exchange-by-exchange status in this file.
+- **Final Steps:**
+- [x] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
 - [ ] Document any API quirks, limitations, or unsupported features.
 
@@ -487,7 +487,7 @@ paper trading:
 - [x] Crypto.com: Implement all prophetic order logic and range detection (spot/futures, live/paper)
 
 **Final Steps:**
-- [ ] Update feature matrix and exchange-by-exchange status in this file.
+- [x] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
 - [ ] Document any API quirks, limitations, or unsupported features.
 
