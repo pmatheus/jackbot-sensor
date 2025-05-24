@@ -2,6 +2,28 @@ use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use derive_more::Constructor;
 use chrono::{DateTime, Duration, Utc};
+use async_trait::async_trait;
+use crate::{client::ExecutionClient, error::UnindexedClientError};
+
+/// Unified interface for market making strategies.
+///
+/// Implementations should place, cancel or adjust orders using an
+/// [`ExecutionClient`] while keeping the quoting logic exchange agnostic.
+#[async_trait]
+pub trait MarketMakingStrategy<C>
+where
+    C: ExecutionClient + Clone + Send + Sync,
+{
+    /// Additional configuration required by the strategy.
+    type Config: Send + Sync;
+
+    /// Maintain markets using the provided client and configuration.
+    async fn maintain_market(
+        &mut self,
+        client: &C,
+        config: Self::Config,
+    ) -> Result<Quote, UnindexedClientError>;
+}
 
 /// Quote prices maintained by the market making logic.
 #[derive(Debug, Clone, Copy, PartialEq, Deserialize, Serialize, Constructor)]
