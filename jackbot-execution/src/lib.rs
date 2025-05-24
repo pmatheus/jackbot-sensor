@@ -56,6 +56,9 @@ pub mod market_making;
 /// Unified trait for advanced order execution strategies.
 pub mod advanced;
 
+/// Async wrappers over [`ExecutionClient`] providing a unified trading API.
+pub mod trading;
+
 /// Time-weighted average price execution.
 pub mod twap;
 
