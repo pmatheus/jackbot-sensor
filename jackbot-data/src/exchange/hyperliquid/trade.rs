@@ -86,7 +86,10 @@ impl<InstrumentKey: Clone> From<(ExchangeId, InstrumentKey, HyperliquidTrades)>
 mod tests {
     use super::*;
     use crate::subscription::trade::PublicTrade;
+    use crate::event::MarketEvent;
+    use jackbot_instrument::exchange::ExchangeId;
     use jackbot_instrument::Side;
+    use jackbot_integration::subscription::SubscriptionId;
 
     #[test]
     fn test_hyperliquid_trade_to_public_trade() {
@@ -106,5 +109,48 @@ mod tests {
         assert_eq!(public.amount, 0.01);
         assert_eq!(public.side, Side::Buy);
         assert_eq!(public.id, "123456789");
+    }
+
+    #[test]
+    fn test_hyperliquid_trade_invalid_side() {
+        let json = r#"{
+            "coin": "BTC",
+            "side": "invalid",
+            "px": "42000.5",
+            "sz": "0.01",
+            "hash": "abc123",
+            "time": 1717000000000,
+            "tid": 987654321,
+            "users": ["user1", "user2"]
+        }"#;
+        let trade: HyperliquidTrade = serde_json::from_str(json).unwrap();
+        assert!(trade.to_public_trade().is_none());
+    }
+
+    #[test]
+    fn test_hyperliquid_trades_market_iter() {
+        let json = r#"{
+            "coin": "BTC",
+            "side": "sell",
+            "px": "42000.5",
+            "sz": "0.01",
+            "hash": "abc123",
+            "time": 1717000000000,
+            "tid": 111,
+            "users": ["user1", "user2"]
+        }"#;
+        let trade: HyperliquidTrade = serde_json::from_str(json).unwrap();
+        let trades = HyperliquidTrades {
+            data: vec![trade],
+            subscription_id: Some(SubscriptionId::from("BTC")),
+        };
+        let events: MarketIter<String, PublicTrade> =
+            (ExchangeId::Hyperliquid, "BTC".to_string(), trades).into();
+        assert_eq!(events.len(), 1);
+        let MarketEvent { kind, .. } = events.into_iter().next().unwrap().unwrap();
+        assert_eq!(kind.price, 42000.5);
+        assert_eq!(kind.amount, 0.01);
+        assert_eq!(kind.side, Side::Sell);
+        assert_eq!(kind.id, "111");
     }
 }

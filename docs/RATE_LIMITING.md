@@ -28,5 +28,7 @@ Rate limit modules are implemented for:
 - Kraken
 - OKX
 - Kucoin
+- MEXC
+- Crypto.com
 
 Other exchanges will be added as integrations mature.
