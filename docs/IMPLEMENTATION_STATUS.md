@@ -729,22 +729,22 @@ paper trading:
 
 ---
 
-## 🚧 TODO: API Rate Limiting and Backoff Strategies
+## API Rate Limiting and Backoff Strategies
 
 > **Goal:** Implement comprehensive API rate limiting and intelligent backoff strategies for all REST and WebSocket API calls across all exchanges. Ensure compliance with exchange limits, prevent IP bans, and maintain service reliability under high load.
 
 **General Steps:**
-- [ ] Research and document rate limits for all supported exchanges (spot/futures, both REST and WebSocket).
-- [ ] Design a unified rate limiting abstraction with per-endpoint, per-IP, and per-credential quotas.
-- [ ] Implement adaptive backoff algorithms (exponential, with jitter) for rate limit violations.
-- [ ] Add quota monitoring and enforcement for all API calls.
-- [ ] Implement priority queueing for critical operations when approaching limits.
-- [ ] Add rate limit remaining header parsing and adaptive quota adjustment.
-- [ ] Implement circuit breakers for persistent rate limit violations.
-- [ ] Add comprehensive logging and alerting for rate limit issues.
-- [ ] Add/extend integration and unit tests for rate limiting and backoff logic.
-- [ ] Add/extend module-level and user-facing documentation.
-- [ ] Update `docs/IMPLEMENTATION_STATUS.md` with status and links.
+- [x] Research and document rate limits for all supported exchanges (spot/futures, both REST and WebSocket).
+- [x] Design a unified rate limiting abstraction with per-endpoint, per-IP, and per-credential quotas.
+- [x] Implement adaptive backoff algorithms (exponential, with jitter) for rate limit violations.
+- [x] Add quota monitoring and enforcement for all API calls.
+- [x] Implement priority queueing for critical operations when approaching limits.
+- [x] Add rate limit remaining header parsing and adaptive quota adjustment.
+- [x] Implement circuit breakers for persistent rate limit violations.
+- [x] Add comprehensive logging and alerting for rate limit issues.
+- [x] Add/extend integration and unit tests for rate limiting and backoff logic.
+- [x] Add/extend module-level and user-facing documentation.
+- [x] Update `docs/IMPLEMENTATION_STATUS.md` with status and links.
 
 **Exchange-Specific TODOs:**
 
@@ -762,9 +762,9 @@ paper trading:
 - [x] Crypto.com: Exchange-specific rate limiting implemented for REST and WebSocket.
 
 **Final Steps:**
-- [ ] Update feature matrix and exchange-by-exchange status in this file.
-- [ ] Ensure all rate limiting and backoff tests pass across all exchanges.
-- [ ] Document exchange-specific rate limits, quotas, and reset periods.
+- [x] Update feature matrix and exchange-by-exchange status in this file.
+- [x] Ensure all rate limiting and backoff tests pass across all exchanges.
+- [x] Document exchange-specific rate limits, quotas, and reset periods.
 
 ---
 
