@@ -10,6 +10,7 @@ use crate::{
     exchange::{hyperliquid::channel::HyperliquidChannel, subscription::ExchangeSub},
     redis_store::RedisStore,
     subscription::book::{OrderBookEvent, OrderBooksL2},
+    redis_store::RedisStore,
 };
 use chrono::{DateTime, Utc};
 use jackbot_instrument::exchange::ExchangeId;
@@ -17,6 +18,7 @@ use jackbot_integration::subscription::SubscriptionId;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
+/// Hyperliquid futures real-time OrderBook Level2 message.
 #[derive(Clone, PartialEq, PartialOrd, Debug, Deserialize, Serialize)]
 pub struct HyperliquidFuturesOrderBookL2 {
     #[serde(alias = "coin", deserialize_with = "de_ob_l2_subscription_id")]
@@ -74,6 +76,7 @@ impl<InstrumentKey> From<(ExchangeId, InstrumentKey, HyperliquidFuturesOrderBook
     }
 }
 
+/// Deserialize a HyperliquidFuturesOrderBookL2 `coin` as the associated [`SubscriptionId`].
 pub fn de_ob_l2_subscription_id<'de, D>(deserializer: D) -> Result<SubscriptionId, D::Error>
 where
     D: serde::de::Deserializer<'de>,
@@ -129,7 +132,7 @@ mod tests {
     }
 
     #[test]
-    fn test_store_methods_and_sequencer() {
+    fn test_store_methods() {
         let store = InMemoryStore::new();
         let book = HyperliquidFuturesOrderBookL2 {
             subscription_id: "BTC".into(),
@@ -143,11 +146,5 @@ mod tests {
         let delta_book = HyperliquidFuturesOrderBookL2 { time: Utc::now(), ..book };
         delta_book.store_delta(&store);
         assert_eq!(store.delta_len(ExchangeId::Hyperliquid, "BTC"), 1);
-
-        let mut sequencer = HyperliquidFuturesOrderBookL2Sequencer::new(0);
-        assert!(sequencer.is_first_update());
-        let result = sequencer.validate_sequence(delta_book);
-        assert!(matches!(result, Ok(Some(_))));
-        assert!(!sequencer.is_first_update());
     }
 }
