@@ -332,4 +332,17 @@ mod tests {
         assert_eq!(book.asks[0], (dec!(30010.0), dec!(2.0)));
         assert_eq!(book.action, Some("update".to_string()));
     }
+
+    #[test]
+    fn test_okx_futures_sequencer() {
+        let mut sequencer = OkxFuturesOrderBookL2Sequencer::new(0);
+        assert!(sequencer.is_first_update());
+
+        let input = r#"{"instId":"BTC-USDT","bids":[["30000.0","1.0"]],"asks":[["30010.0","2.0"]],"action":"snapshot"}"#;
+        let book: OkxOrderBookL2 = serde_json::from_str(input).unwrap();
+
+        let result = sequencer.validate_sequence(book);
+        assert!(result.is_ok());
+        assert!(!sequencer.is_first_update());
+    }
 }
