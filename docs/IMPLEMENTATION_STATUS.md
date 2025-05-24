@@ -271,6 +271,7 @@ paper trading:
 - Example files dedicated to L1 streams have also been removed.
 - Added `TRADE_WS_ENDPOINTS.md` summarising trade WebSocket endpoints.
 - Scaffolding baseline trade WebSocket modules across exchanges.
+- Implemented Gate.io trade WebSocket modules with event normalization.
 
 ## Current Features
 
