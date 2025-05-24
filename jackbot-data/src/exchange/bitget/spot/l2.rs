@@ -354,4 +354,22 @@ mod tests {
         assert_eq!(snapshot.asks[0], (dec!(30010.0), dec!(2.0)));
         assert_eq!(snapshot.action, "snapshot");
     }
+
+    #[test]
+    fn test_bitget_sequencer() {
+        let mut sequencer = BitgetSpotOrderBookL2Sequencer::new(0);
+        assert!(sequencer.is_first_update());
+
+        let input = r#"{
+            "action": "snapshot",
+            "instId": "BTCUSDT",
+            "bids": [["30000.0", "1.0"]],
+            "asks": [["30010.0", "2.0"]]
+        }"#;
+        let update: BitgetOrderBookL2Update = serde_json::from_str(input).unwrap();
+
+        let result = sequencer.validate_sequence(update);
+        assert!(result.is_ok());
+        assert!(!sequencer.is_first_update());
+    }
 }

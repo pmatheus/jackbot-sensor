@@ -85,7 +85,7 @@ order book analytics, allowing more discrete participation in the market.
 
 ## Multi-Exchange Aggregation
 
-`jackbot-data` exposes an `OrderBookAggregator` for combining order books across exchanges with custom weights. Together with the `PositionTracker` and `StrategyConfig` utilities, this enables configurable arbitrage strategies. See [Multi-Exchange Aggregation and Arbitrage Framework](docs/MULTI_EXCHANGE_ARBITRAGE.md) for more details.
+`jackbot-data` exposes an `OrderBookAggregator` for combining order books across exchanges with custom weights. Together with the `PositionTracker` and `StrategyConfig` utilities, this enables configurable arbitrage strategies. The `ArbitrageStrategy` offers a tunable spread threshold and collects metrics such as detected opportunities and cumulative spread. See [Multi-Exchange Aggregation and Arbitrage Framework](docs/MULTI_EXCHANGE_ARBITRAGE.md) for more details.
 
 
 ## Contributing
@@ -97,5 +97,5 @@ Please read our contribution guidelines before submitting pull requests.
 [Include your license information here] 
 ## Snapshotting Redis Data to S3
 
-The `jackbot-snapshot` crate demonstrates extracting multi-exchange order book and trade data from Redis, serializing it to Parquet, uploading snapshots to a partitioned S3 layout, and tracking them with a minimal Iceberg table. A configurable `SnapshotScheduler` handles periodic persistence and retention cleanup.
+The `jackbot-snapshot` crate demonstrates extracting multi-exchange order book and trade data from Redis and persisting it to an S3 data lake managed with Apache Iceberg. Snapshots are written in Parquet format and uploaded to partitioned paths organised by exchange and market. Duplicate files are avoided and stale snapshots are pruned based on a configurable retention period. See [SNAPSHOT_PIPELINE.md](docs/SNAPSHOT_PIPELINE.md) for details on how the scheduler works and how to configure it.
 

@@ -116,6 +116,25 @@ L2 order book data provides a detailed view of market depth with multiple price 
 - **Update Frequency**: Real-time
 - **Reference**: [Merkle WebSocket API Documentation](https://docs.merklex.io/docs/ws-streams/orderbook)
 
+### Kucoin
+
+#### Spot Market
+- **WebSocket URL**: wss://ws-api.kucoin.com/endpoint
+- **Subscription Method**:
+  ```json
+  {
+    "id": "jackbot-kucoin-sub",
+    "type": "subscribe",
+    "topic": "level2",
+    "privateChannel": false,
+    "response": true,
+    "market": "<symbol>"
+  }
+  ```
+- **Snapshot**: Fetch via REST `GET /api/v1/market/orderbook/level2?symbol=<symbol>`
+- **Update Types**: `snapshot` or `delta` with `sequenceStart`/`sequenceEnd`
+- **Reference**: [Kucoin WebSocket API Documentation](https://docs.kucoin.com/#level-2-market-data)
+
 ## Implementation Requirements
 
 For implementing L2 order book streams:
