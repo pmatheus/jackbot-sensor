@@ -29,6 +29,26 @@ This document summarises the current support for advanced order types across all
 
 All exchanges expose the same trait-based interface in `jackbot-execution`. Stubs indicate planned integration where the exchange API does not yet offer an equivalent feature.
 
+## Maker-Only (Post-Only) Support
+
+Some advanced execution algorithms rely on placing maker-only orders. The table below summarises native post-only capabilities across supported venues. Where a venue lacks a direct API flag, Jackbot emulates the behaviour by cancelling and reposting orders when they would otherwise match as takers.
+
+| Exchange | Spot Post-Only | Futures Post-Only | Notes |
+|----------|----------------|-------------------|-------|
+| Binance | Yes | Yes | |
+| Bitget | Yes | Yes | |
+| Bybit | Yes | Yes | |
+| Coinbase | Yes | N/A | Spot only venue |
+| Hyperliquid | N/A | Yes | Perpetual markets only |
+| Kraken | Yes | Yes | |
+| MEXC | Yes | Yes | |
+| Kucoin | Yes | Yes | |
+| Gate.io | Yes | Yes | |
+| Crypto.com | Yes | Yes | |
+| OKX | Yes | Yes | |
+
+Refer to `docs/IMPLEMENTATION_STATUS.md` for ongoing implementation details and per-exchange notes.
+
 ## Unified Abstraction Design
 
 Advanced order types share common behaviours: splitting orders, scheduling placements and monitoring state. To encourage consistency each exchange implementation should provide an `AdvancedOrderExecutor` built on top of `ExecutionClient`:

@@ -415,7 +415,7 @@ paper trading:
 > **Goal:** Implement advanced execution order types for all supported exchanges and both live/paper trading: 'always maker' (post-only, top-of-book, auto-cancel/repost), and advanced TWAP/VWAP with untraceable curves using order book blending and jackbot-data analytics. Ensure robust abstraction, event handling, and test coverage.
 
 **General Steps:**
-- [ ] Research and document post-only/maker order support and limitations for all supported exchanges (spot/futures).
+ - [x] Research and document post-only/maker order support and limitations for all supported exchanges (spot/futures). See [ADVANCED_ORDER_TYPE_SUPPORT.md](ADVANCED_ORDER_TYPE_SUPPORT.md#maker-only-post-only-support).
  - [x] Design/extend a unified abstraction for advanced execution strategies (modular, composable, and testable).
  - [x] Implement 'always maker' order logic:
     - [x] Place post-only order at top of book (best bid for buy, best ask for sell).
