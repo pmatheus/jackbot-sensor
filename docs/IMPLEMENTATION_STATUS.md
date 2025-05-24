@@ -252,10 +252,8 @@ paper trading:
 
 ## L2 Order Book Sequencer Abstraction (Complete)
 
-- `jackbot-data/src/books/l2_sequencer.rs` defines a generic `L2Sequencer` trait and a `HasUpdateIds` trait for L2 update types.
-- Binance Spot and Binance Futures use this abstraction.
-- Comprehensive unit tests cover the sequencing logic.
-- The goal of removing duplicated sequencing logic and standardising update handling across exchanges is achieved.
+## Next Steps
+- [x] Expand tests for any remaining exchanges to cover the new abstraction.
 
 ## Other Exchanges
 - OKX, Bybit, Kraken, etc. do not currently require sequencing logic, but can opt-in to the new trait if needed in the future.
