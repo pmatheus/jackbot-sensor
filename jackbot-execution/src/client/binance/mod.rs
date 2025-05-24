@@ -1,4 +1,5 @@
 pub mod futures;
+pub mod paper;
 
 use url::Url;
 use tokio::sync::mpsc;

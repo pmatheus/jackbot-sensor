@@ -307,7 +307,7 @@ paper trading:
 
 - **Binance**
   - [x] Implement/refactor live trading adapter (spot/futures).
-  - [ ] Implement/refactor paper trading adapter (spot/futures).
+  - [x] Implement/refactor paper trading adapter (spot/futures).
   - [x] Add/extend tests for both.
 
 - **Bitget**
