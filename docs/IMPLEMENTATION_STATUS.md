@@ -904,9 +904,9 @@ paper trading:
  - [x] Stress Testing and Scenario Analysis
 
 **Final Steps:**
-- [ ] Update feature matrix and exchange-by-exchange status in this file.
-- [ ] Ensure all risk management components function correctly with test configurations.
-- [ ] Document the risk framework, configuration options, and best practices.
+- [x] Update feature matrix and exchange-by-exchange status in this file.
+- [x] Ensure all risk management components function correctly with test configurations.
+- [x] Document the risk framework, configuration options, and best practices. See [RISK_FRAMEWORK.md](RISK_FRAMEWORK.md) for details.
 
 ---
 
