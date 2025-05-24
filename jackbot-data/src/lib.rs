@@ -103,7 +103,7 @@ use jackbot_integration::{
     error::SocketError,
     protocol::{
         StreamParser,
-        websocket::{WebSocketParser, WsMessage, WsSink, WsStream, WsError},
+        websocket::{WebSocketParser, WsMessage, WsSink, WsStream, WsError, with_heartbeat},
     },
     stream::ExchangeStream,
 };
@@ -243,16 +243,7 @@ where
 
         // Apply optional heartbeat timeout monitoring
         let ws_stream = if let Some(timeout) = Exchange::heartbeat_interval() {
-            ws_stream
-                .timeout(timeout)
-                .map(|result| match result {
-                    Ok(msg) => msg,
-                    Err(_) => Err(WsError::Io(io::Error::new(
-                        io::ErrorKind::TimedOut,
-                        "heartbeat timeout",
-                    ))),
-                })
-                .boxed()
+            with_heartbeat(ws_stream, timeout, Exchange::ID).boxed()
         } else {
             ws_stream.boxed()
         };
