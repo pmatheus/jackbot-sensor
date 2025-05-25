@@ -54,7 +54,9 @@ impl GateioOrderBookL2 {
 impl<InstrumentKey> From<(ExchangeId, InstrumentKey, GateioOrderBookL2)>
     for MarketIter<InstrumentKey, OrderBookEvent>
 {
-    fn from((exchange_id, instrument, book): (ExchangeId, InstrumentKey, GateioOrderBookL2)) -> Self {
+    fn from(
+        (exchange_id, instrument, book): (ExchangeId, InstrumentKey, GateioOrderBookL2),
+    ) -> Self {
         let order_book = book.canonicalize(book.time);
 
         Self(vec![Ok(MarketEvent {

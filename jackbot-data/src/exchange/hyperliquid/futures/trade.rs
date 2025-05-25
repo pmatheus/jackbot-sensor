@@ -1,12 +1,12 @@
 //! Trade event types for Hyperliquid Futures.
 //!
-//! Provides convenient aliases for [`Hyperliquid`](super::super::super::Hyperliquid)
+//! Provides convenient aliases for [`Hyperliquid`](super::super::Hyperliquid)
 //! futures trade streams.
 
+use super::super::Hyperliquid;
 use crate::{
+    ExchangeWsStream, subscription::trade::PublicTrades,
     transformer::stateless::StatelessTransformer,
-    subscription::trade::PublicTrades,
-    ExchangeWsStream,
 };
 use super::super::Hyperliquid;
 
