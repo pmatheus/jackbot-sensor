@@ -1,3 +1,4 @@
+use rust_decimal::Decimal;
 use jackbot_instrument::instrument::InstrumentIndex;
 use parking_lot::Mutex;
 use rust_decimal::Decimal;
@@ -29,9 +30,16 @@ pub trait RiskAlertHook<InstrumentKey = InstrumentIndex> {
 }
 
 /// Simple alert hook that stores alerts in a vector.
-#[derive(Default)]
 pub struct VecAlertHook<InstrumentKey = InstrumentIndex> {
     pub alerts: Mutex<Vec<RiskViolation<InstrumentKey>>>,
+}
+
+impl<InstrumentKey> Default for VecAlertHook<InstrumentKey> {
+    fn default() -> Self {
+        Self {
+            alerts: Mutex::new(Vec::new()),
+        }
+    }
 }
 
 impl<InstrumentKey> RiskAlertHook<InstrumentKey> for VecAlertHook<InstrumentKey>

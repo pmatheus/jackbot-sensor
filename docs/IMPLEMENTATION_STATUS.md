@@ -36,6 +36,10 @@
 - If a feature is not supported by an exchange, explicitly document it here
 - Keep the feature matrix and TODOs current for team visibility
 
+### Pending Workspace Tasks
+- [ ] Resolve formatting errors in `jackbot` and `jackbot-execution` crates preventing `cargo fmt --all` from completing successfully.
+- [ ] Address clippy warnings in `jackbot-integration` (deprecated `rand` APIs and large error variants) so `cargo clippy --all-targets --all-features -- -D warnings` passes.
+
 ## Canonical Order Book Representation
 
 We've implemented a new framework for standardizing all exchange-specific orderbook formats into a canonical representation:
@@ -998,7 +1002,8 @@ Some exchanges use slightly different heartbeat mechanisms:
 
  - [x] Real-time Risk Monitoring and Dashboards
  - [x] Alerting and Notification System
- - [x] Stress Testing and Scenario Analysis
+- [x] Stress Testing and Scenario Analysis
+- [x] Fixed VecAlertHook Default implementation and added missing `rust_decimal_macros` dev dependency for tests
 
 **Final Steps:**
 - [x] Update feature matrix and exchange-by-exchange status in this file.

@@ -17,3 +17,6 @@ rust_decimal = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 derive_more = { workspace = true, features = ["constructor"] }
 parking_lot = { workspace = true }
+
+[dev-dependencies]
+rust_decimal_macros = { workspace = true }
