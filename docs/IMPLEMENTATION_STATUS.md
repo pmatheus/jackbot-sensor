@@ -850,7 +850,7 @@ paper and mock engines support automatic liquidation.
 
 **Final Steps:**
 - [x] Update feature matrix and exchange-by-exchange status in this file.
-- [ ] Ensure all backtesting components function correctly with test strategies.
+- [x] Ensure all backtesting components function correctly with test strategies.
 - [x] Document any limitations or assumptions in the simulation model.
 
 ---
