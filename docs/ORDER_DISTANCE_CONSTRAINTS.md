@@ -17,3 +17,12 @@ This document summarises the maximum distance from the current mid price that ea
 | OKX | ±5% | ±5% |
 
 These values inform the `PropheticOrderManager` when determining whether a stored order should be placed. Values may change over time as venues adjust their rules. If tests detect a new limit, update this table and the implementation accordingly.
+
+## Testing Notes
+
+During the prophetic order tests a few quirks were identified:
+
+- A negative `range_percent` is treated the same as a positive value.
+- Orders with duplicate client IDs are ignored by the manager.
+
+Keep these behaviours in mind when integrating prophetic order logic.
