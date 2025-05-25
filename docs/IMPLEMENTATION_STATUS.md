@@ -776,7 +776,7 @@ paper and mock engines support automatic liquidation.
 - [x] Implement connection lifecycle events and error classification.
 - [x] Ensure proper handling of connection state during reconnection (subscription renewal, authentication refresh).
 - [x] Add resubscription logic for all data streams after reconnection.
-- [ ] Implement circuit-breaker patterns for persistent failures.
+- [x] Implement circuit-breaker patterns for persistent failures.
 - [x] Add comprehensive logging and diagnostics for connection issues.
 - [x] Add/extend integration and unit tests for health monitoring and reconnection logic.
 - [x] Add/extend module-level and user-facing documentation.
@@ -785,21 +785,31 @@ paper and mock engines support automatic liquidation.
 **Exchange-Specific TODOs:**
 
 - [x] Binance: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures). (Heartbeat tracking, exponential backoff, and metrics added)
- - [x] Bitget: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
+- [x] Bitget: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [x] Bybit: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [x] Coinbase: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [x] Kraken: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [x] Kucoin: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [x] OKX: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [x] Hyperliquid: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
- - [x] MEXC: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
-- [ ] Gate.io: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
- - [x] Crypto.com: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
+- [x] MEXC: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
+- [x] Gate.io: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
+- [x] Crypto.com: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
+
 
 **Final Steps:**
-- [ ] Update feature matrix and exchange-by-exchange status in this file.
-- [ ] Ensure all health monitoring and reconnection tests pass across all exchanges.
-- [ ] Document any exchange-specific quirks, heartbeat patterns, or limitations.
+- [x] Update feature matrix and exchange-by-exchange status in this file.
+- [x] Ensure all health monitoring and reconnection tests pass across all exchanges.
+- [x] Document any exchange-specific quirks, heartbeat patterns, or limitations.
+
+### Heartbeat Quirks
+
+Some exchanges use slightly different heartbeat mechanisms:
+
+- **Bitget** requires a client `ping` message every 10 seconds or the server will close the connection.
+- **MEXC** sends periodic `ping` events and expects an immediate `pong` reply.
+- **Gate.io** disconnects after 30 seconds if `pong` responses are not received.
+- **Crypto.com** issues numbered `ping` messages that must be echoed back in a `pong` to keep the session alive.
 
 ---
 
