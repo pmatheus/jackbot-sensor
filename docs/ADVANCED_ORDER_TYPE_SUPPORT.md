@@ -34,6 +34,10 @@ All exchanges expose the same trait-based interface in `jackbot-execution`. Stub
 - Coinbase only supports spot trading. Advanced orders operate on spot markets only.
 - Hyperliquid offers perpetual futures exclusively.
 - Gate.io, Crypto.com and MEXC clients are currently stubs with placeholder implementations.
+- `PropheticOrderManager` treats `range_percent` as an absolute value. Negative
+  inputs behave the same as positive ones.
+- Prophetic orders with duplicate client order IDs are ignored to prevent
+  accidental double placement.
 
 ## Maker-Only (Post-Only) Support
 

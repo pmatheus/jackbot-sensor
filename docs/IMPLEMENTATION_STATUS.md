@@ -291,6 +291,7 @@ paper trading. The full table also lives in
 - Example files dedicated to L1 streams have also been removed.
 - Added `TRADE_WS_ENDPOINTS.md` summarising trade WebSocket endpoints.
 - Added `USER_WS_AUTH.md` summarising authentication and user WebSocket endpoints.
+- Added `USER_WS_QUIRKS.md` summarising user WebSocket quirks and limitations.
 - Scaffolding baseline trade WebSocket modules across exchanges.
 - Implemented Gate.io trade WebSocket modules with event normalization.
 
@@ -635,8 +636,10 @@ paper and mock engines support automatic liquidation.
 - [x] MEXC: Integrate snapshot logic for order book and trades
 - [x] Gate.io: Integrate snapshot logic for order book and trades
 - [x] Crypto.com: Integrate snapshot logic for order book and trades
+- [x] Snapshot integration completed across all supported exchanges
 - [x] Snapshot module now supports AWS credentials and full Iceberg table
   management. Local paths remain available for tests via the `file://` scheme.
+- Snapshot uploads rely on the `aws` CLI and do not clean up old objects in S3.
 
 
 **Final Steps:**
@@ -737,10 +740,25 @@ paper and mock engines support automatic liquidation.
 
 
 **Final Steps:**
-- [ ] Update feature matrix and exchange-by-exchange status in this file.
+- [x] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
 - [ ] Document any API quirks, limitations, or unsupported features.
 
+### User WebSocket Support Matrix
+| Exchange | Spot WS | Futures WS |
+|---------|---------|------------|
+| Binance | Yes | Yes |
+| Bitget | Yes | Yes |
+| Bybit | Yes | Yes |
+| Coinbase | Yes | N/A* |
+| Hyperliquid | Yes | Yes |
+| Kraken | Yes | Yes |
+| MEXC | Yes | Yes |
+| Kucoin | Yes | Yes |
+| Gate.io | Yes | Yes |
+| Crypto.com | Yes | Yes |
+| OKX | Yes | Yes |
+*Coinbase only offers spot markets.
 ---
 
 **Instructions for Contributors:**
@@ -777,6 +795,7 @@ paper and mock engines support automatic liquidation.
 - [x] MEXC: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [x] Gate.io: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [x] Crypto.com: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
+
 
 **Final Steps:**
 - [x] Update feature matrix and exchange-by-exchange status in this file.
