@@ -3,9 +3,9 @@ use std::{
     fs::{self, File},
     io::{self, Write},
     path::{Path, PathBuf},
+    process::Command,
     sync::Arc,
     time::{Duration, SystemTime},
-
 };
 use tokio::sync::Mutex;
 use tokio::time;
@@ -51,21 +51,41 @@ pub fn write_parquet(records: &[DataRecord], path: &Path) -> io::Result<()> {
     Ok(())
 }
 
-pub fn upload_to_s3(local_path: &Path, s3_root: &Path) -> io::Result<PathBuf> {
+pub fn upload_to_s3(local_path: &Path, s3_root: &str) -> io::Result<String> {
     let file_name = local_path
         .file_name()
-        .ok_or_else(|| io::Error::new(io::ErrorKind::Other, "missing file name"))?;
-    fs::create_dir_all(s3_root)?;
-    let dest = s3_root.join(file_name);
-    fs::copy(local_path, &dest)?;
-    Ok(dest)
+        .ok_or_else(|| io::Error::other("missing file name"))?
+        .to_str()
+        .ok_or_else(|| io::Error::other("invalid file name"))?;
+
+    if let Some(path) = s3_root.strip_prefix("file://") {
+        let root = Path::new(path);
+        fs::create_dir_all(root)?;
+        let dest = root.join(file_name);
+        fs::copy(local_path, &dest)?;
+        Ok(dest.display().to_string())
+    } else {
+        let dest = format!("{}/{}", s3_root.trim_end_matches('/'), file_name);
+        let status = Command::new("aws")
+            .args(["s3", "cp", local_path.to_str().unwrap(), &dest])
+            .status()?;
+        if status.success() {
+            Ok(dest)
+        } else {
+            Err(io::Error::other("aws cli failed"))
+        }
+    }
 }
 
-fn cleanup_old_files(root: &Path, retention: Duration) -> io::Result<()> {
-    if !root.exists() {
+fn cleanup_old_files(root: &str, retention: Duration) -> io::Result<()> {
+    let path = match root.strip_prefix("file://") {
+        Some(p) => Path::new(p),
+        None => return Ok(()),
+    };
+    if !path.exists() {
         return Ok(());
     }
-    for entry in fs::read_dir(root)? {
+    for entry in fs::read_dir(path)? {
         let entry = entry?;
         let metadata = entry.metadata()?;
         if metadata.is_file() {
@@ -79,31 +99,46 @@ fn cleanup_old_files(root: &Path, retention: Duration) -> io::Result<()> {
                 }
             }
         } else if metadata.is_dir() {
-            cleanup_old_files(&entry.path(), retention)?;
+            cleanup_old_files(&format!("file://{}", entry.path().display()), retention)?;
         }
     }
     Ok(())
 }
 
 #[derive(Serialize, Deserialize, Default)]
-pub struct IcebergMeta {
-    pub schema_version: u32,
+pub struct IcebergSnapshot {
+    pub snapshot_id: u64,
     pub files: Vec<String>,
 }
 
-/// Append a new file path to the Iceberg metadata file if it is not already present.
-pub fn register_with_iceberg(metadata_path: &Path, file_path: &Path) -> io::Result<()> {
-    let mut meta: IcebergMeta = if metadata_path.exists() {
+#[derive(Serialize, Deserialize, Default)]
+pub struct IcebergTable {
+    pub format_version: u32,
+    pub current_snapshot_id: u64,
+    pub snapshots: Vec<IcebergSnapshot>,
+}
+
+/// Append a new data file to the Iceberg table metadata using a new snapshot.
+pub fn register_with_iceberg(metadata_path: &Path, file_path: &str) -> io::Result<()> {
+    let mut table: IcebergTable = if metadata_path.exists() {
         let data = fs::read_to_string(metadata_path)?;
         serde_json::from_str(&data).unwrap_or_default()
     } else {
-        IcebergMeta { schema_version: 1, files: Vec::new() }
+        IcebergTable {
+            format_version: 2,
+            current_snapshot_id: 0,
+            snapshots: Vec::new(),
+        }
     };
-    let entry = file_path.display().to_string();
-    if !meta.files.contains(&entry) {
-        meta.files.push(entry);
-    }
-    fs::write(metadata_path, serde_json::to_string(&meta)? )
+
+    let new_id = table.current_snapshot_id + 1;
+    table.current_snapshot_id = new_id;
+    table.snapshots.push(IcebergSnapshot {
+        snapshot_id: new_id,
+        files: vec![file_path.to_string()],
+    });
+
+    fs::write(metadata_path, serde_json::to_string(&table)?)
 }
 
 /// Configuration for how often snapshots are taken and how long they are kept.
@@ -116,14 +151,24 @@ pub struct SnapshotConfig {
 /// Periodically persists Redis data to S3 and registers files with Iceberg.
 pub struct SnapshotScheduler {
     redis: Arc<FakeRedis>,
-    s3_root: PathBuf,
+    s3_root: String,
     iceberg_metadata: PathBuf,
     config: SnapshotConfig,
 }
 
 impl SnapshotScheduler {
-    pub fn new(redis: Arc<FakeRedis>, s3_root: PathBuf, iceberg_metadata: PathBuf, config: SnapshotConfig) -> Self {
-        Self { redis, s3_root, iceberg_metadata, config }
+    pub fn new(
+        redis: Arc<FakeRedis>,
+        s3_root: String,
+        iceberg_metadata: PathBuf,
+        config: SnapshotConfig,
+    ) -> Self {
+        Self {
+            redis,
+            s3_root,
+            iceberg_metadata,
+            config,
+        }
     }
 
     /// Persist all Redis records to a single Parquet file and register it.
@@ -136,10 +181,15 @@ impl SnapshotScheduler {
         let local_path = std::env::temp_dir().join(&file_name);
         write_parquet(&records, &local_path)?;
         let (exchange, market) = records
-            .get(0)
+            .first()
             .map(|r| (r.exchange.clone(), r.market.clone()))
             .unwrap_or_else(|| ("unknown".into(), "unknown".into()));
-        let dest_dir = self.s3_root.join(&exchange).join(&market);
+        let dest_dir = format!(
+            "{}/{}/{}",
+            self.s3_root.trim_end_matches('/'),
+            exchange,
+            market
+        );
         let s3_path = upload_to_s3(&local_path, &dest_dir)?;
         register_with_iceberg(&self.iceberg_metadata, &s3_path)?;
         cleanup_old_files(&self.s3_root, self.config.retention)?;
@@ -175,32 +225,44 @@ mod tests {
             })
             .await;
         let dir = std::env::temp_dir();
-        let s3_root = dir.join("s3_test");
+        let s3_root = format!("file://{}", dir.join("s3_test").display());
+        let local_root = Path::new(&s3_root[7..]);
         let meta = dir.join("meta.json");
-        let _ = fs::remove_dir_all(&s3_root);
+        let _ = fs::remove_dir_all(local_root);
         let _ = fs::remove_file(&meta);
-        let cfg = SnapshotConfig { interval: Duration::from_millis(1), retention: Duration::from_secs(1) };
+        let cfg = SnapshotConfig {
+            interval: Duration::from_millis(1),
+            retention: Duration::from_secs(1),
+        };
         let scheduler = SnapshotScheduler::new(redis, s3_root.clone(), meta.clone(), cfg);
         scheduler.snapshot_once().await.unwrap();
-        assert!(fs::read_dir(s3_root.join("exch/btc-usd")).unwrap().next().is_some());
+        assert!(
+            fs::read_dir(local_root.join("exch/btc-usd"))
+                .unwrap()
+                .next()
+                .is_some()
+        );
         let meta_contents = fs::read_to_string(meta).unwrap();
-        let meta: IcebergMeta = serde_json::from_str(&meta_contents).unwrap();
-        assert_eq!(meta.files.len(), 1);
+        let meta: IcebergTable = serde_json::from_str(&meta_contents).unwrap();
+        assert_eq!(meta.current_snapshot_id, 1);
     }
 
     #[tokio::test]
     async fn test_snapshot_skip_empty() {
         let redis = Arc::new(FakeRedis::default());
         let dir = std::env::temp_dir();
-        let s3_root = dir.join("s3_empty");
+        let s3_root = format!("file://{}", dir.join("s3_empty").display());
+        let local_root = Path::new(&s3_root[7..]);
         let meta = dir.join("meta_empty.json");
-        let _ = fs::remove_dir_all(&s3_root);
+        let _ = fs::remove_dir_all(local_root);
         let _ = fs::remove_file(&meta);
-        let cfg = SnapshotConfig { interval: Duration::from_millis(1), retention: Duration::from_secs(1) };
+        let cfg = SnapshotConfig {
+            interval: Duration::from_millis(1),
+            retention: Duration::from_secs(1),
+        };
         let scheduler = SnapshotScheduler::new(redis, s3_root.clone(), meta.clone(), cfg);
         scheduler.snapshot_once().await.unwrap();
-        assert!(!s3_root.exists());
+        assert!(!local_root.exists());
         assert!(!meta.exists());
     }
 }
-
