@@ -64,9 +64,7 @@ pub enum ExchangeId {
     Kraken,
     Kucoin,
     Liquid,
-    Gateio,
     Mexc,
-    Gateio,
     Okx,
     Poloniex,
     Hyperliquid,
@@ -108,9 +106,7 @@ impl ExchangeId {
             ExchangeId::Kraken => "kraken",
             ExchangeId::Kucoin => "kucoin",
             ExchangeId::Liquid => "liquid",
-            ExchangeId::Gateio => "gateio",
             ExchangeId::Mexc => "mexc",
-            ExchangeId::Gateio => "gateio",
             ExchangeId::Okx => "okx",
             ExchangeId::Poloniex => "poloniex",
             ExchangeId::Hyperliquid => "hyperliquid",
@@ -134,7 +130,7 @@ mod tests {
         );
         assert_eq!(
             serde_json::from_str::<ExchangeId>(r#""gateio""#).unwrap(),
-            ExchangeId::Gateio
+            ExchangeId::GateIo
         );
     }
 }

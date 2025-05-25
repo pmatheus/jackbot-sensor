@@ -29,6 +29,12 @@ This document summarises the current support for advanced order types across all
 
 All exchanges expose the same trait-based interface in `jackbot-execution`. Stubs indicate planned integration where the exchange API does not yet offer an equivalent feature.
 
+**Limitations**
+
+- Coinbase only supports spot trading. Advanced orders operate on spot markets only.
+- Hyperliquid offers perpetual futures exclusively.
+- Gate.io, Crypto.com and MEXC clients are currently stubs with placeholder implementations.
+
 ## Maker-Only (Post-Only) Support
 
 Some advanced execution algorithms rely on placing maker-only orders. The table below summarises native post-only capabilities across supported venues. Where a venue lacks a direct API flag, Jackbot emulates the behaviour by cancelling and reposting orders when they would otherwise match as takers.
