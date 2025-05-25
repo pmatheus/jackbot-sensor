@@ -40,6 +40,7 @@ tokio = { workspace = true, features = [
 ] }
 tokio-stream = { workspace = true }
 futures = { workspace = true }
+rand = { workspace = true }
 pin-project = { workspace = true }
 
 # Data Structures
@@ -56,9 +57,11 @@ url = { workspace = true }
 hmac = { workspace = true }
 hex = { workspace = true }
 base64 = { workspace = true }
+rand = { workspace = true }
 
 # Misc
 chrono = { workspace = true, features = ["serde"] }
 itertools = { workspace = true }
 bytes = { workspace = true }
 derive_more = { workspace = true, features = ["display", "constructor"] }
+rand = { workspace = true }
