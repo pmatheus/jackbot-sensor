@@ -15,10 +15,13 @@ async fn test_scheduler_multiple_snapshots() {
     let dir = std::env::temp_dir();
     let s3_root = dir.join("s3_integration");
     let meta = dir.join("meta_integration.json");
-    let cfg = SnapshotConfig { interval: Duration::from_millis(1), retention: Duration::from_secs(0) };
+    let _ = std::fs::remove_dir_all(&s3_root);
+    let _ = std::fs::remove_file(&meta);
+    let cfg = SnapshotConfig { interval: Duration::from_millis(1), retention: Duration::from_secs(1) };
     let scheduler = SnapshotScheduler::new(redis, s3_root.clone(), meta.clone(), cfg);
     // Take two snapshots manually
     scheduler.snapshot_once().await.unwrap();
+    tokio::time::sleep(Duration::from_millis(1)).await;
     scheduler.snapshot_once().await.unwrap();
 
     let files: Vec<_> = std::fs::read_dir(s3_root.join("exch/eth-usd")).unwrap().collect();

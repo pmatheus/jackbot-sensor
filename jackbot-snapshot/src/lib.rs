@@ -86,9 +86,9 @@ fn cleanup_old_files(root: &Path, retention: Duration) -> io::Result<()> {
 }
 
 #[derive(Serialize, Deserialize, Default)]
-struct IcebergMeta {
-    schema_version: u32,
-    files: Vec<String>,
+pub struct IcebergMeta {
+    pub schema_version: u32,
+    pub files: Vec<String>,
 }
 
 /// Append a new file path to the Iceberg metadata file if it is not already present.
@@ -177,7 +177,9 @@ mod tests {
         let dir = std::env::temp_dir();
         let s3_root = dir.join("s3_test");
         let meta = dir.join("meta.json");
-        let cfg = SnapshotConfig { interval: Duration::from_millis(1), retention: Duration::from_secs(0) };
+        let _ = fs::remove_dir_all(&s3_root);
+        let _ = fs::remove_file(&meta);
+        let cfg = SnapshotConfig { interval: Duration::from_millis(1), retention: Duration::from_secs(1) };
         let scheduler = SnapshotScheduler::new(redis, s3_root.clone(), meta.clone(), cfg);
         scheduler.snapshot_once().await.unwrap();
         assert!(fs::read_dir(s3_root.join("exch/btc-usd")).unwrap().next().is_some());
@@ -192,7 +194,9 @@ mod tests {
         let dir = std::env::temp_dir();
         let s3_root = dir.join("s3_empty");
         let meta = dir.join("meta_empty.json");
-        let cfg = SnapshotConfig { interval: Duration::from_millis(1), retention: Duration::from_secs(0) };
+        let _ = fs::remove_dir_all(&s3_root);
+        let _ = fs::remove_file(&meta);
+        let cfg = SnapshotConfig { interval: Duration::from_millis(1), retention: Duration::from_secs(1) };
         let scheduler = SnapshotScheduler::new(redis, s3_root.clone(), meta.clone(), cfg);
         scheduler.snapshot_once().await.unwrap();
         assert!(!s3_root.exists());
