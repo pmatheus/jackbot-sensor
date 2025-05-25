@@ -1,7 +1,7 @@
 use super::super::book::{BybitOrderBookL2Data, BybitOrderBookLevel};
 use crate::{
     Identifier, SnapshotFetcher,
-    books::Canonicalizer,
+    books::canonical::Canonicalizer,
     error::DataError,
     event::MarketEvent,
     exchange::bybit::{futures::BybitPerpetualsUsd, market::BybitMarket, message::BybitPayload},
@@ -89,6 +89,7 @@ impl SnapshotFetcher<BybitPerpetualsUsd, OrderBooksL2>
 #[cfg(test)]
 mod tests {
     use super::*;
+    use jackbot_integration::subscription::SubscriptionId;
     use fnv::FnvHashMap;
     use rust_decimal_macros::dec;
 

@@ -4,11 +4,14 @@ use tokio::sync::mpsc;
 use tokio_stream::wrappers::UnboundedReceiverStream;
 use tokio_tungstenite::tungstenite::Message as WsMessage;
 use futures::{StreamExt, SinkExt};
+use tracing::{error, warn};
 use url::Url;
 use jackbot_integration::{
     protocol::websocket::{connect, WebSocket},
     error::SocketError,
+    circuit_breaker::CircuitBreaker,
 };
+use crate::exchange::DEFAULT_HEARTBEAT_INTERVAL;
 
 /// Generic user WebSocket event used across exchanges.
 #[derive(Debug, Deserialize, PartialEq)]
@@ -67,12 +70,19 @@ async fn run_connection(
     auth_payload: &str,
 ) -> Result<(), ()> {
     if ws.send(WsMessage::text(auth_payload)).await.is_err() {
+        error!("failed to send auth payload over WebSocket");
         return Err(());
     }
-    while let Some(msg) = ws.next().await {
+    while let Some(msg) = match tokio::time::timeout(DEFAULT_HEARTBEAT_INTERVAL, ws.next()).await {
+        Ok(m) => m,
+        Err(_) => return Err(()),
+    } {
         let msg = match msg {
             Ok(m) => m,
-            Err(_) => return Err(()),
+            Err(err) => {
+                error!(?err, "WebSocket stream error");
+                return Err(());
+            }
         };
         match msg {
             WsMessage::Text(text) => {
@@ -80,7 +90,10 @@ async fn run_connection(
                     let _ = tx.send(event);
                 }
             }
-            WsMessage::Close(_) => return Err(()),
+            WsMessage::Close(_) => {
+                warn!("received close frame from server");
+                return Err(());
+            }
             _ => {}
         }
     }
@@ -94,18 +107,35 @@ pub async fn user_stream(
 ) -> Result<UnboundedReceiverStream<UserWsEvent>, SocketError> {
     let (tx, rx) = mpsc::unbounded_channel();
     tokio::spawn(async move {
+        let mut breaker = CircuitBreaker::new(5, Duration::from_secs(5));
+
+        let mut backoff = Duration::from_millis(50);
+
         loop {
+            if breaker.is_open() {
+                if let Some(wait) = breaker.remaining() {
+                    warn!(?wait, "circuit breaker open, waiting before reconnect");
+                    tokio::time::sleep(wait).await;
+                    continue;
+                }
+            }
             match connect(url.clone()).await {
                 Ok(ws) => {
+                    breaker.reset();
                     if run_connection(ws, &tx, &auth_payload).await.is_err() {
-                        tokio::time::sleep(Duration::from_millis(50)).await;
+                        breaker.record_failure();
+                        tokio::time::sleep(backoff).await;
+                        backoff = std::cmp::min(backoff * 2, Duration::from_secs(30));
                         continue;
                     } else {
                         break;
                     }
                 }
-                Err(_) => {
-                    tokio::time::sleep(Duration::from_millis(50)).await;
+                Err(err) => {
+                    breaker.record_failure();
+                    warn!(?err, "failed to connect to WebSocket");
+                    tokio::time::sleep(backoff).await;
+                    backoff = std::cmp::min(backoff * 2, Duration::from_secs(30));
                 }
             }
         }
@@ -148,6 +178,38 @@ pub mod tests {
         assert!(matches!(ev2, UserWsEvent::Order{..}));
         let ev3 = stream.next().await.unwrap();
         assert!(matches!(ev3, UserWsEvent::Position{..}));
+    }
+
+    async fn run_timeout_server(first: String) -> String {
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        tokio::spawn(async move {
+            // first connection - no messages, triggers heartbeat
+            let (stream1, _) = listener.accept().await.unwrap();
+            let mut ws1 = accept_async(stream1).await.unwrap();
+            ws1.next().await.unwrap().unwrap();
+            tokio::time::sleep(DEFAULT_HEARTBEAT_INTERVAL + Duration::from_secs(1)).await;
+            ws1.close(None).await.unwrap();
+
+            // second connection - send real payload
+            let (stream2, _) = listener.accept().await.unwrap();
+            let mut ws2 = accept_async(stream2).await.unwrap();
+            ws2.next().await.unwrap().unwrap();
+            ws2.send(Message::Text(first)).await.unwrap();
+            ws2.close(None).await.unwrap();
+        });
+        format!("127.0.0.1:{}", addr.port())
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn test_user_stream_reconnect_on_timeout() {
+        tokio::time::pause();
+        let first = r#"{\"e\":\"balance\",\"E\":1,\"asset\":\"BTC\",\"free\":\"0.5\",\"total\":\"1.0\"}"#.to_string();
+        let addr = run_timeout_server(first.clone()).await;
+        let mut stream = user_stream(Url::parse(&format!("ws://{}", addr)).unwrap(), "{}".to_string()).await.unwrap();
+        tokio::time::advance(DEFAULT_HEARTBEAT_INTERVAL + Duration::from_secs(2)).await;
+        let ev1 = stream.next().await.unwrap();
+        assert!(matches!(ev1, UserWsEvent::Balance{..}));
     }
 }
 
