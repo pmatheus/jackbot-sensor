@@ -7,7 +7,7 @@ use crate::{
     subscription::trade::PublicTrades,
     ExchangeWsStream,
 };
-use super::super::super::Kraken;
+use super::super::Kraken;
 
 pub use super::super::trade::KrakenTrades;
 

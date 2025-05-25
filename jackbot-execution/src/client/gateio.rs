@@ -26,7 +26,7 @@ pub struct GateIoClient;
 pub struct GateIoConfig;
 
 impl ExecutionClient for GateIoClient {
-    const EXCHANGE: ExchangeId = ExchangeId::GateIo;
+    const EXCHANGE: ExchangeId = ExchangeId::Gateio;
     type Config = GateIoConfig;
     type AccountStream = stream::Empty<UnindexedAccountEvent>;
 

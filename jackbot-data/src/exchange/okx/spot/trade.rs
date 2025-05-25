@@ -7,7 +7,7 @@ use crate::{
     subscription::trade::PublicTrades,
     ExchangeWsStream,
 };
-use super::super::super::Okx;
+use super::super::Okx;
 
 pub use super::super::trade::OkxTrades;
 
