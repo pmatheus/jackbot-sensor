@@ -57,7 +57,6 @@ pub enum ExchangeId {
     Cryptocom,
     Deribit,
     Gemini,
-    GateIo,
     Hitbtc,
     #[serde(alias = "huobi")]
     Htx,
@@ -101,7 +100,6 @@ impl ExchangeId {
             ExchangeId::Cryptocom => "cryptocom",
             ExchangeId::Deribit => "deribit",
             ExchangeId::Gemini => "gemini",
-            ExchangeId::GateIo => "gate_io",
             ExchangeId::Hitbtc => "hitbtc",
             ExchangeId::Htx => "htx", // huobi alias
             ExchangeId::Kraken => "kraken",
