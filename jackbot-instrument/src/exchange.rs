@@ -60,6 +60,7 @@ pub enum ExchangeId {
     Hitbtc,
     #[serde(alias = "huobi")]
     Htx,
+    Gateio,
     Kraken,
     Kucoin,
     Liquid,
