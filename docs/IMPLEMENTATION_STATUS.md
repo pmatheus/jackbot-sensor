@@ -94,6 +94,7 @@ Exchanges currently implementing the `Canonicalizer` trait:
   - [x] Implement/refactor paper trading adapter (spot/futures).
   - [x] Add/extend tests for both.
   - [x] Document unsupported features (stub only).
+  - Futures trade streams unavailable; see `exchange/coinbase/futures` stub.
   - [x] Update to use new `Canonicalizer` trait.
 
 - **Kraken**
@@ -191,11 +192,11 @@ paper trading. The full table also lives in
 
 **General Steps (repeat for each exchange and market type):**
 - [x] Research and document at `docs/TRADE_WS_ENDPOINTS.md` latest trade WS API for spot/futures for all supported exchanges.
-- [ ] Scaffold or refactor `spot/trade.rs` and `futures/trade.rs` (and `mod.rs`).
-- [ ] Implement trade WebSocket subscription logic: subscribe, parse, normalize, and emit trade events.
-- [ ] Add/extend unit and integration tests (including edge cases).
-- [ ] Add/extend module-level docs.
-- [ ] Update `docs/IMPLEMENTATION_STATUS.md` with status and links.
+- [x] Scaffold or refactor `spot/trade.rs` and `futures/trade.rs` (and `mod.rs`).
+- [x] Implement trade WebSocket subscription logic: subscribe, parse, normalize, and emit trade events.
+- [x] Add/extend unit and integration tests (including edge cases).
+- [x] Add/extend module-level docs.
+- [x] Update `docs/IMPLEMENTATION_STATUS.md` with status and links.
 
 **Exchange-Specific TODOs:**
 
