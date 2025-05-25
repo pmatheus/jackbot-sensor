@@ -10,6 +10,8 @@ pub const WEBSOCKET_BASE_URL_BYBIT_SPOT: &str = "wss://stream.bybit.com/v5/publi
 // L2 order book implementation
 pub mod l2;
 pub mod trade;
+/// User WebSocket utilities.
+pub mod user_ws;
 
 /// [`Bybit`] spot execution.
 pub type BybitSpot = Bybit<BybitServerSpot>;
