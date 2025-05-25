@@ -8,7 +8,7 @@ use crate::{
     subscription::trade::PublicTrades,
     ExchangeWsStream,
 };
-use super::super::super::Coinbase;
+use super::super::Coinbase;
 
 pub use super::super::trade::CoinbaseTrade;
 

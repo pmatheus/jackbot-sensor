@@ -61,10 +61,10 @@ Exchanges currently implementing the `Canonicalizer` trait:
 
 **General Steps (repeat for each exchange and market type):**
 - [x] Research and document at `docs/L2_DATA_STREAMS.md` latest L2 order book WS API for spot/futures for all supported exchanges.
-- [ ] Scaffold or refactor `spot/l2.rs` and `futures/l2.rs` (and `mod.rs`).
-- [ ] Implement L2 order book logic: subscribe, parse, normalize, maintain local book, handle sequencing/resync.
-- [ ] Add/extend unit and integration tests (including edge cases).
-- [ ] Add/extend module-level docs.
+- [x] Scaffold or refactor `spot/l2.rs` and `futures/l2.rs` (and `mod.rs`).
+- [x] Implement L2 order book logic: subscribe, parse, normalize, maintain local book, handle sequencing/resync.
+- [x] Add/extend unit and integration tests (including edge cases).
+- [x] Add/extend module-level docs.
 -
 
 **Exchange-Specific TODOs:**
@@ -149,13 +149,14 @@ Exchanges currently implementing the `Canonicalizer` trait:
 **Final Steps:**
 - [x] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
-- [ ] Document any API quirks, limitations, or unsupported features.
+ - [x] Document any API quirks, limitations, or unsupported features.
 
 ### Verified Price Range Constraints
 
 Empirical tests verified the maximum distance from the current mid price that
 each exchange accepts for limit orders. These ranges apply to both live and
-paper trading:
+paper trading. The full table also lives in
+[ORDER_DISTANCE_CONSTRAINTS.md](ORDER_DISTANCE_CONSTRAINTS.md):
 
 | Exchange | Spot Range | Futures Range |
 |----------|------------|---------------|
@@ -316,8 +317,8 @@ paper trading:
 - [x] Implement or refactor exchange adapters for live trading (real orders via authenticated API/WebSocket).
 - [x] Implement a robust paper trading engine (simulated fills, order book emulation, event emission, etc.).
 - [x] Add/extend integration tests for both live and paper trading (with mocks/sandboxes where possible).
-- [ ] Add/extend module-level and user-facing documentation.
-- [ ] Update `docs/IMPLEMENTATION_STATUS.md` with status and links.
+- [x] Add/extend module-level and user-facing documentation.
+- [x] Update `docs/IMPLEMENTATION_STATUS.md` with status and links.
 
 **Exchange-Specific TODOs:**
 
@@ -427,7 +428,8 @@ paper trading:
 - **Final Steps:**
 - [x] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
-- [ ] Document any API quirks, limitations, or unsupported features.
+- [x] Document any API quirks, limitations, or unsupported features.
+- [x] Verified TWAP/VWAP and post-only maker logic compile for all exchange clients. Coinbase is spot-only and Hyperliquid provides futures only.
 
 ---
 
@@ -544,7 +546,10 @@ paper trading:
 - [x] Risk Control & Monitoring (auto-close, ticket enforcement, all exchanges)
  - [x] MEXC: Implement all jackpot order logic and risk control (futures/perpetuals, live/paper)
  - [x] Gate.io: Implement all jackpot order logic and risk control (futures/perpetuals, live/paper)
- - [x] Crypto.com: Implement all jackpot order logic and risk control (futures/perpetuals, live/paper)
+- [x] Crypto.com: Implement all jackpot order logic and risk control (futures/perpetuals, live/paper)
+
+**Limitations:** Real exchange APIs for jackpot orders are currently stubbed. Only the
+paper and mock engines support automatic liquidation.
 
 
 **Final Steps:**
@@ -584,6 +589,7 @@ paper trading:
 - [x] Downstream Consumer API (pub/sub, streams, etc.)
 - [x] MEXC: Integrate Redis for order book and trades
 - [x] Gate.io: Integrate Redis for order book and trades
+- Gate.io now uses a single `ExchangeId::Gateio` variant across all crates.
 - [x] Crypto.com: Integrate Redis for order book and trades
 
 **Final Steps:**
@@ -621,6 +627,9 @@ paper trading:
 - [x] MEXC: Integrate snapshot logic for order book and trades
 - [x] Gate.io: Integrate snapshot logic for order book and trades
 - [x] Crypto.com: Integrate snapshot logic for order book and trades
+- [ ] Snapshot module uses a simplified metadata file and local S3 directories
+  for testing. Full AWS credential handling and production-grade Iceberg
+  table management remain future work.
 
 **Final Steps:**
 - [ ] Update feature matrix and exchange-by-exchange status in this file.
@@ -669,6 +678,7 @@ paper trading:
   - [x] Add/extend tests for both.
   - [x] Document unsupported features (stub only).
 
+
 - **Coinbase**
   - [x] Implement/refactor live trading adapter (spot/futures).
   - [x] Implement/refactor paper trading adapter (spot/futures).
@@ -716,6 +726,7 @@ paper trading:
   - [x] Implement/refactor paper trading adapter (spot/futures).
   - [x] Add/extend tests for both.
   - [x] Document unsupported features (stub only).
+
 
 **Final Steps:**
 - [ ] Update feature matrix and exchange-by-exchange status in this file.
@@ -869,8 +880,8 @@ paper trading:
 
 **Final Steps:**
 - [ ] Update feature matrix and exchange-by-exchange status in this file.
-- [ ] Ensure all arbitrage components function correctly with test configurations.
-- [ ] Document any limitations, risks, or exchange-specific considerations.
+- [x] Ensure all arbitrage components function correctly with test configurations.
+- [x] Document any limitations, risks, or exchange-specific considerations. Current implementation focuses on cross-exchange spreads; triangular paths and fee-aware execution are still TODO.
 
 ---
 

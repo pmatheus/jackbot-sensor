@@ -13,7 +13,8 @@ use tokio_tungstenite::{
     },
 };
 use tracing::{debug, warn};
-use futures::{Stream, StreamExt};
+use futures::Stream;
+use tokio_stream::StreamExt;
 use std::{time::Duration, io};
 use crate::metric::{Metric, Tag, Field};
 use chrono::Utc;

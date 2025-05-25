@@ -209,4 +209,22 @@ mod tests {
         assert_eq!(merged.bids().levels()[0].amount, dec!(3));
         assert_eq!(merged.asks().levels()[0].amount, dec!(3));
     }
+
+    #[test]
+    fn detects_arbitrage_with_three_exchanges() {
+        let book_a = build_book(dec!(9), dec!(10));
+        let book_b = build_book(dec!(11), dec!(12));
+        let book_c = build_book(dec!(13), dec!(14));
+
+        let agg = OrderBookAggregator::new([
+            ExchangeBook { exchange: ExchangeId::BinanceSpot, book: book_a, weight: Decimal::ONE },
+            ExchangeBook { exchange: ExchangeId::Coinbase, book: book_b, weight: Decimal::ONE },
+            ExchangeBook { exchange: ExchangeId::Kraken, book: book_c, weight: Decimal::ONE },
+        ]);
+
+        let opp = agg.detect_arbitrage(dec!(0)).expect("should detect");
+        assert_eq!(opp.buy_exchange, ExchangeId::BinanceSpot);
+        assert_eq!(opp.sell_exchange, ExchangeId::Kraken);
+        assert_eq!(opp.spread, dec!(3));
+    }
 }
