@@ -16,3 +16,5 @@ rust_decimal = { workspace = true }
 
 [dev-dependencies]
 rust_decimal_macros = { workspace = true }
+Jackbot = { path = "../jackbot" }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

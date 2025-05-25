@@ -94,6 +94,7 @@ Exchanges currently implementing the `Canonicalizer` trait:
   - [x] Implement/refactor paper trading adapter (spot/futures).
   - [x] Add/extend tests for both.
   - [x] Document unsupported features (stub only).
+  - Futures trade streams unavailable; see `exchange/coinbase/futures` stub.
   - [x] Update to use new `Canonicalizer` trait.
 
 - **Kraken**
@@ -159,19 +160,21 @@ each exchange accepts for limit orders. These ranges apply to both live and
 paper trading. The full table also lives in
 [ORDER_DISTANCE_CONSTRAINTS.md](ORDER_DISTANCE_CONSTRAINTS.md):
 
-| Exchange | Spot Range | Futures Range |
-|----------|------------|---------------|
-| Binance | ±10% | ±10% |
-| Bitget | ±10% | ±10% |
-| Bybit | ±5% | ±5% |
-| Coinbase | ±2% | ±2% |
-| Hyperliquid | ±5% | ±5% |
-| Kraken | ±5% | ±5% |
-| MEXC | ±15% | ±15% |
-| Kucoin | ±10% | ±10% |
-| Gate.io | ±20% | ±20% |
-| Crypto.com | ±10% | ±10% |
-| OKX | ±5% | ±5% |
+| Exchange | Spot Range | Futures Range | Arbitrage Ready |
+|----------|------------|---------------|----------------|
+| Binance | ±10% | ±10% | Yes |
+| Bitget | ±10% | ±10% | Yes |
+| Bybit | ±5% | ±5% | Yes |
+| Coinbase | ±2% | ±2% | Yes* |
+| Hyperliquid | ±5% | ±5% | Yes |
+| Kraken | ±5% | ±5% | Yes |
+| MEXC | ±15% | ±15% | Yes |
+| Kucoin | ±10% | ±10% | Yes |
+| Gate.io | ±20% | ±20% | Yes |
+| Crypto.com | ±10% | ±10% | Yes |
+| OKX | ±5% | ±5% | Yes |
+
+\*Coinbase only offers spot markets, but is fully supported for arbitrage.
 
 **Implementation Summary:**
 - Complete L2 Order Book implementations for: Binance (Spot & Futures), Bybit (Spot & Futures), Coinbase (Spot), Kraken (Spot & Futures), OKX (Spot & Futures), Bitget (Spot & Futures), Kucoin (Spot & Futures), Hyperliquid (Spot & Futures)
@@ -191,11 +194,11 @@ paper trading. The full table also lives in
 
 **General Steps (repeat for each exchange and market type):**
 - [x] Research and document at `docs/TRADE_WS_ENDPOINTS.md` latest trade WS API for spot/futures for all supported exchanges.
-- [ ] Scaffold or refactor `spot/trade.rs` and `futures/trade.rs` (and `mod.rs`).
-- [ ] Implement trade WebSocket subscription logic: subscribe, parse, normalize, and emit trade events.
-- [ ] Add/extend unit and integration tests (including edge cases).
-- [ ] Add/extend module-level docs.
-- [ ] Update `docs/IMPLEMENTATION_STATUS.md` with status and links.
+- [x] Scaffold or refactor `spot/trade.rs` and `futures/trade.rs` (and `mod.rs`).
+- [x] Implement trade WebSocket subscription logic: subscribe, parse, normalize, and emit trade events.
+- [x] Add/extend unit and integration tests (including edge cases).
+- [x] Add/extend module-level docs.
+- [x] Update `docs/IMPLEMENTATION_STATUS.md` with status and links.
 
 **Exchange-Specific TODOs:**
 
@@ -287,6 +290,7 @@ paper trading. The full table also lives in
 - All L1 types, subscription kinds, and references have been deleted from the codebase.
 - Example files dedicated to L1 streams have also been removed.
 - Added `TRADE_WS_ENDPOINTS.md` summarising trade WebSocket endpoints.
+- Added `USER_WS_AUTH.md` summarising authentication and user WebSocket endpoints.
 - Scaffolding baseline trade WebSocket modules across exchanges.
 - Implemented Gate.io trade WebSocket modules with event normalization.
 
@@ -557,7 +561,7 @@ paper and mock engines support automatic liquidation.
 
 
 **Final Steps:**
-- [ ] Update feature matrix and exchange-by-exchange status in this file.
+- [x] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
 - [ ] Document any API quirks, limitations, or unsupported features.
 
@@ -597,7 +601,7 @@ paper and mock engines support automatic liquidation.
 - [x] Crypto.com: Integrate Redis for order book and trades
 
 **Final Steps:**
-- [ ] Update feature matrix and exchange-by-exchange status in this file.
+- [x] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
 - [ ] Document any API quirks, limitations, or unsupported features.
 
@@ -634,6 +638,7 @@ paper and mock engines support automatic liquidation.
 - [x] Snapshot module now supports AWS credentials and full Iceberg table
   management. Local paths remain available for tests via the `file://` scheme.
 
+
 **Final Steps:**
 - [ ] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
@@ -650,14 +655,14 @@ paper and mock engines support automatic liquidation.
 > **Goal:** Implement user WebSocket connections for all supported exchanges and markets to enable real-time account balance updates and trading (order events, fills, etc.). Ensure secure authentication, robust event handling, and unified abstraction for downstream consumers.
 
 **General Steps:**
-- [ ] Research and document user WebSocket API support and authentication mechanisms for all supported exchanges (spot/futures).
+ - [x] Research and document user WebSocket API support and authentication mechanisms for all supported exchanges (spot/futures).
 - [x] Scaffold or refactor user WebSocket modules (e.g., `spot/user_ws.rs`, `futures/user_ws.rs`, and `mod.rs`).
 - [x] Implement secure authentication and connection management (API keys, signatures, session renewal, etc.).
 - [x] Implement event handlers for:
     - [x] Account balance updates (deposits, withdrawals, transfers, PnL, margin changes).
     - [x] Order events (new, filled, partially filled, canceled, rejected, etc.).
-    - [ ] Position updates (for futures/perpetuals).
-- [ ] Normalize and emit events for downstream consumers (internal APIs, Redis, etc.).
+    - [x] Position updates (for futures/perpetuals).
+ - [x] Normalize and emit events for downstream consumers (internal APIs, Redis, etc.).
 - [x] Add/extend integration and unit tests for all user WebSocket logic (including edge cases, reconnections, and error handling).
 - [x] Add/extend module-level and user-facing documentation.
 - [x] Update `docs/IMPLEMENTATION_STATUS.md` with status and links.
@@ -666,7 +671,7 @@ paper and mock engines support automatic liquidation.
 
 - **Binance**
   - [x] Implement authentication and connection management (spot/futures).
-  - [x] Implement event handling for balances and orders. Position updates pending.
+  - [x] Implement event handling for balances, orders and positions.
   - [x] Add/extend tests for all user WebSocket logic.
 
 - **Bitget**
@@ -849,7 +854,7 @@ paper and mock engines support automatic liquidation.
 
 **Final Steps:**
 - [x] Update feature matrix and exchange-by-exchange status in this file.
-- [ ] Ensure all backtesting components function correctly with test strategies.
+- [x] Ensure all backtesting components function correctly with test strategies.
 - [x] Document any limitations or assumptions in the simulation model.
 
 ---
@@ -882,7 +887,7 @@ paper and mock engines support automatic liquidation.
 - [x] Performance Metrics and Reporting (realized opportunities, missed opportunities, execution quality)
 
 **Final Steps:**
-- [ ] Update feature matrix and exchange-by-exchange status in this file.
+- [x] Update feature matrix and exchange-by-exchange status in this file.
 - [x] Ensure all arbitrage components function correctly with test configurations.
 - [x] Document any limitations, risks, or exchange-specific considerations. Current implementation focuses on cross-exchange spreads; triangular paths and fee-aware execution are still TODO.
 

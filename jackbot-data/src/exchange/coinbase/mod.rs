@@ -127,3 +127,7 @@ where
 }
 
 pub mod spot;
+
+/// Coinbase does not currently expose futures trade streams. This stub module
+/// is provided for interface consistency only.
+pub mod futures;
