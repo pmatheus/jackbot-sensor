@@ -767,7 +767,7 @@ paper and mock engines support automatic liquidation.
 **Exchange-Specific TODOs:**
 
 - [x] Binance: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures). (Heartbeat tracking, exponential backoff, and metrics added)
-- [ ] Bitget: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
+ - [x] Bitget: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [x] Bybit: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [x] Coinbase: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [x] Kraken: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
