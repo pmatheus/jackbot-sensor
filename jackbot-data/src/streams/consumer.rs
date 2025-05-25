@@ -12,9 +12,9 @@ use crate::{
     },
     subscription::{Subscription, SubscriptionKind, display_subscriptions_without_exchange},
 };
-use jackbot_instrument::exchange::ExchangeId;
 use derive_more::Constructor;
-use futures::Stream;
+use futures::{Stream, StreamExt};
+use jackbot_instrument::exchange::ExchangeId;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 use tracing::info;
@@ -70,7 +70,10 @@ where
         "MarketStream with auto reconnect initialising"
     );
 
-    use std::sync::{Arc, atomic::{AtomicUsize, Ordering}};
+    use std::sync::{
+        Arc,
+        atomic::{AtomicUsize, Ordering},
+    };
     use tokio::time::Instant;
 
     let reconnects = Arc::new(AtomicUsize::new(0));
