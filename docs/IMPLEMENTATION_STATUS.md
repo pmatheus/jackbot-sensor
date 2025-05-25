@@ -291,6 +291,7 @@ paper trading. The full table also lives in
 - Example files dedicated to L1 streams have also been removed.
 - Added `TRADE_WS_ENDPOINTS.md` summarising trade WebSocket endpoints.
 - Added `USER_WS_AUTH.md` summarising authentication and user WebSocket endpoints.
+- Added `USER_WS_QUIRKS.md` summarising user WebSocket quirks and limitations.
 - Scaffolding baseline trade WebSocket modules across exchanges.
 - Implemented Gate.io trade WebSocket modules with event normalization.
 
