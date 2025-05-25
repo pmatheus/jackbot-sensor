@@ -61,10 +61,10 @@ Exchanges currently implementing the `Canonicalizer` trait:
 
 **General Steps (repeat for each exchange and market type):**
 - [x] Research and document at `docs/L2_DATA_STREAMS.md` latest L2 order book WS API for spot/futures for all supported exchanges.
-- [ ] Scaffold or refactor `spot/l2.rs` and `futures/l2.rs` (and `mod.rs`).
-- [ ] Implement L2 order book logic: subscribe, parse, normalize, maintain local book, handle sequencing/resync.
-- [ ] Add/extend unit and integration tests (including edge cases).
-- [ ] Add/extend module-level docs.
+- [x] Scaffold or refactor `spot/l2.rs` and `futures/l2.rs` (and `mod.rs`).
+- [x] Implement L2 order book logic: subscribe, parse, normalize, maintain local book, handle sequencing/resync.
+- [x] Add/extend unit and integration tests (including edge cases).
+- [x] Add/extend module-level docs.
 -
 
 **Exchange-Specific TODOs:**
