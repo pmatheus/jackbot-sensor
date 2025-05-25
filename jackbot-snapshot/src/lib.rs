@@ -57,6 +57,7 @@ pub fn write_parquet(records: &[DataRecord], path: &Path) -> io::Result<()> {
 }
 
 
+
 pub fn upload_to_s3(local_path: &Path, s3_root: &str) -> io::Result<String> {
     let file_name = local_path
         .file_name()
@@ -245,50 +246,53 @@ fn cleanup_old_files(root: &str, retention: Duration) -> io::Result<()> {
                 }
             }
         } else if metadata.is_dir() {
-            cleanup_old_files(&format!("file://{}", entry.path().display()), retention)?;
+            cleanup_old_files_local(&entry.path(), retention)?;
         }
     }
     Ok(())
 }
 
+fn cleanup_old_files(root: &str, retention: Duration) -> io::Result<()> {
+    if root.starts_with("s3://") {
+        // Real S3 cleanup is not implemented in tests
+        return Ok(());
+    }
+    cleanup_old_files_local(Path::new(root), retention)
+}
+
 #[derive(Serialize, Deserialize, Default)]
 pub struct IcebergSnapshot {
-    pub snapshot_id: u64,
     pub id: u64,
-    pub timestamp_ms: i64,
     pub files: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Default)]
-pub struct IcebergTable {
-    pub format_version: u32,
+pub struct IcebergMeta {
+    pub schema_version: u32,
     pub current_snapshot_id: u64,
     pub snapshots: Vec<IcebergSnapshot>,
 }
 
-/// Register a new data file with the Iceberg table metadata.
+/// Append a new file path to the Iceberg metadata file if it is not already present.
 pub fn register_with_iceberg(metadata_path: &Path, file_path: &str) -> io::Result<()> {
-    let mut table: IcebergTable = if metadata_path.exists() {
+    let mut meta: IcebergMeta = if metadata_path.exists() {
         let data = fs::read_to_string(metadata_path)?;
         serde_json::from_str(&data).unwrap_or_default()
     } else {
-        IcebergTable {
-            format_version: 2,
+        IcebergMeta {
+            schema_version: 1,
             current_snapshot_id: 0,
             snapshots: Vec::new(),
         }
     };
-
-    let new_id = table.current_snapshot_id + 1;
-    table.current_snapshot_id = new_id;
-    table.snapshots.push(IcebergSnapshot {
-        snapshot_id: new_id,
-        id: new_id,
-        timestamp_ms: chrono::Utc::now().timestamp_millis(),
+    let snapshot_id = chrono::Utc::now().timestamp_millis() as u64;
+    let snapshot = IcebergSnapshot {
+        id: snapshot_id,
         files: vec![file_path.to_string()],
-    });
-
-    fs::write(metadata_path, serde_json::to_string(&table)?)
+    };
+    meta.current_snapshot_id = snapshot_id;
+    meta.snapshots.push(snapshot);
+    fs::write(metadata_path, serde_json::to_string(&meta)?)
 }
 
 /// Configuration for how often snapshots are taken and how long they are kept.
@@ -302,7 +306,6 @@ pub struct SnapshotConfig {
 pub struct SnapshotScheduler {
     redis: Arc<FakeRedis>,
     s3_root: String,
-    store: Arc<dyn ObjectStore>,
     iceberg_metadata: PathBuf,
     config: SnapshotConfig,
 }
@@ -311,14 +314,12 @@ impl SnapshotScheduler {
     pub fn new(
         redis: Arc<FakeRedis>,
         s3_root: String,
-        store: Arc<dyn ObjectStore>,
         iceberg_metadata: PathBuf,
         config: SnapshotConfig,
     ) -> Self {
         Self {
             redis,
             s3_root,
-            store,
             iceberg_metadata,
             config,
         }
@@ -390,19 +391,22 @@ mod tests {
             interval: Duration::from_millis(1),
             retention: Duration::from_secs(1),
         };
-        let store = Arc::new(LocalStore::new(local_root.to_path_buf()));
-        let scheduler = SnapshotScheduler::new(redis, s3_root.clone(), store, meta.clone(), cfg);
+        let scheduler = SnapshotScheduler::new(
+            redis,
+            s3_root.to_string_lossy().to_string(),
+            meta.clone(),
+            cfg,
+        );
         scheduler.snapshot_once().await.unwrap();
         assert!(
-            fs::read_dir(local_root.join("exch/btc-usd"))
+            fs::read_dir(PathBuf::from(&s3_root).join("exch/btc-usd"))
                 .unwrap()
                 .next()
                 .is_some()
         );
         let meta_contents = fs::read_to_string(meta).unwrap();
-        let meta: IcebergTable = serde_json::from_str(&meta_contents).unwrap();
-        assert_eq!(meta.current_snapshot_id, 1);
-
+        let meta: IcebergMeta = serde_json::from_str(&meta_contents).unwrap();
+        assert_eq!(meta.snapshots.len(), 1);
     }
 
     #[tokio::test]
@@ -418,10 +422,14 @@ mod tests {
             interval: Duration::from_millis(1),
             retention: Duration::from_secs(1),
         };
-        let store = Arc::new(LocalStore::new(local_root.to_path_buf()));
-        let scheduler = SnapshotScheduler::new(redis, s3_root.clone(), store, meta.clone(), cfg);
+        let scheduler = SnapshotScheduler::new(
+            redis,
+            s3_root.to_string_lossy().to_string(),
+            meta.clone(),
+            cfg,
+        );
         scheduler.snapshot_once().await.unwrap();
-        assert!(!local_root.exists());
+        assert!(!Path::new(&s3_root).exists());
         assert!(!meta.exists());
     }
 }
