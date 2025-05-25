@@ -398,7 +398,8 @@ paper trading. The full table also lives in
 - **Final Steps:**
 - [x] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
-- [ ] Document any API quirks, limitations, or unsupported features.
+- [x] Document any API quirks, limitations, or unsupported features.
+- [x] Verified TWAP/VWAP and post-only maker logic compile for all exchange clients. Coinbase is spot-only and Hyperliquid provides futures only.
 
 ---
 
