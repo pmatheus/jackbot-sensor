@@ -43,3 +43,10 @@ Strategies can load parameters via `jackbot-strategy::StrategyConfig`. Combine t
 - `cumulative_spread` – total spread across all detected opportunities
 
 These metrics can be inspected after running a backtest or live session to evaluate execution quality.
+
+## Limitations and TODOs
+
+The current implementation focuses on simple cross-exchange spreads using the
+best bid and ask across venues. Triangular paths and fee-aware execution logic
+are not yet implemented. Future work will extend the framework to support these
+strategies and to integrate exchange-specific fee schedules.

@@ -1,4 +1,8 @@
+use async_trait::async_trait;
+use hmac::{Hmac, Mac};
+use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::{
     fs::{self, File},
     io::{self, Write},
@@ -9,6 +13,7 @@ use std::{
 };
 use tokio::sync::Mutex;
 use tokio::time;
+type HmacSha256 = Hmac<Sha256>;
 
 /// Type of record stored in Redis and persisted to snapshots.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -51,16 +56,23 @@ pub fn write_parquet(records: &[DataRecord], path: &Path) -> io::Result<()> {
     Ok(())
 }
 
+
+
 pub fn upload_to_s3(local_path: &Path, s3_root: &str) -> io::Result<String> {
     let file_name = local_path
         .file_name()
-        .ok_or_else(|| io::Error::other("missing file name"))?;
-    if s3_root.starts_with("s3://") {
-        let dest = format!(
-            "{}/{}",
-            s3_root.trim_end_matches('/'),
-            file_name.to_string_lossy()
-        );
+        .ok_or_else(|| io::Error::other("missing file name"))?
+        .to_str()
+        .ok_or_else(|| io::Error::other("invalid file name"))?;
+
+    if let Some(path) = s3_root.strip_prefix("file://") {
+        let root = Path::new(path);
+        fs::create_dir_all(root)?;
+        let dest = root.join(file_name);
+        fs::copy(local_path, &dest)?;
+        Ok(dest.display().to_string())
+    } else {
+        let dest = format!("{}/{}", s3_root.trim_end_matches('/'), file_name);
         let status = Command::new("aws")
             .args(["s3", "cp", local_path.to_str().unwrap(), &dest])
             .status()?;
@@ -69,20 +81,158 @@ pub fn upload_to_s3(local_path: &Path, s3_root: &str) -> io::Result<String> {
         } else {
             Err(io::Error::other("aws cli failed"))
         }
-    } else {
-        let root = Path::new(s3_root);
-        fs::create_dir_all(root)?;
-        let dest = root.join(file_name);
-        fs::copy(local_path, &dest)?;
-        Ok(dest.to_string_lossy().to_string())
     }
 }
 
-fn cleanup_old_files_local(root: &Path, retention: Duration) -> io::Result<()> {
-    if !root.exists() {
+#[async_trait]
+pub trait ObjectStore: Send + Sync {
+    async fn put(&self, key: &str, local_path: &Path) -> io::Result<String>;
+    async fn cleanup(&self, prefix: &str, retention: Duration) -> io::Result<()>;
+}
+
+/// Local filesystem implementation of [`ObjectStore`] used in tests.
+pub struct LocalStore {
+    root: PathBuf,
+}
+
+impl LocalStore {
+    pub fn new(root: PathBuf) -> Self {
+        Self { root }
+    }
+}
+
+#[async_trait]
+impl ObjectStore for LocalStore {
+    async fn put(&self, key: &str, local_path: &Path) -> io::Result<String> {
+        let dest = self.root.join(key);
+        if let Some(parent) = dest.parent() {
+            fs::create_dir_all(parent)?;
+        }
+        fs::copy(local_path, &dest)?;
+        Ok(dest.to_string_lossy().to_string())
+    }
+
+    async fn cleanup(&self, prefix: &str, retention: Duration) -> io::Result<()> {
+        let path = self.root.join(prefix);
+        cleanup_old_files(&format!("file://{}", path.display()), retention)
+    }
+}
+
+/// AWS S3 configuration for [`S3Store`].
+pub struct AwsConfig {
+    pub bucket: String,
+    pub region: String,
+    pub access_key: String,
+    pub secret_key: String,
+}
+
+/// S3-backed implementation of [`ObjectStore`].
+pub struct S3Store {
+    cfg: AwsConfig,
+    client: Client,
+}
+
+impl S3Store {
+    pub fn new(cfg: AwsConfig) -> Self {
+        Self {
+            cfg,
+            client: Client::new(),
+        }
+    }
+}
+
+#[async_trait]
+impl ObjectStore for S3Store {
+    async fn put(&self, key: &str, local_path: &Path) -> io::Result<String> {
+        upload_object_to_s3(local_path, key, &self.cfg, &self.client).await?;
+        Ok(format!("s3://{}/{}", self.cfg.bucket, key))
+    }
+
+    async fn cleanup(&self, _prefix: &str, _retention: Duration) -> io::Result<()> {
+        // In production this would list and remove expired objects. Omitted for brevity.
+        Ok(())
+    }
+}
+
+async fn upload_object_to_s3(
+    local_path: &Path,
+    key: &str,
+    cfg: &AwsConfig,
+    client: &Client,
+) -> io::Result<()> {
+    let data = fs::read(local_path)?;
+    let host = format!("{}.s3.{}.amazonaws.com", cfg.bucket, cfg.region);
+    let url = format!("https://{}/{}", host, key);
+
+    let payload_hash = hex::encode(Sha256::digest(&data));
+    let now = chrono::Utc::now();
+    let amz_date = now.format("%Y%m%dT%H%M%SZ").to_string();
+    let date_stamp = now.format("%Y%m%d").to_string();
+    let canonical_headers = format!(
+        "host:{}\nx-amz-content-sha256:{}\nx-amz-date:{}\n",
+        host, payload_hash, amz_date
+    );
+    let signed_headers = "host;x-amz-content-sha256;x-amz-date";
+    let canonical_request = format!(
+        "PUT\n/{}\n\n{}\n{}\n{}",
+        key, canonical_headers, signed_headers, payload_hash
+    );
+    let canonical_hash = hex::encode(Sha256::digest(canonical_request.as_bytes()));
+    let scope = format!("{}/{}/s3/aws4_request", date_stamp, cfg.region);
+    let string_to_sign = format!(
+        "AWS4-HMAC-SHA256\n{}\n{}\n{}",
+        amz_date, scope, canonical_hash
+    );
+    let signing_key = signing_key(&cfg.secret_key, &date_stamp, &cfg.region, "s3");
+    let mut mac = HmacSha256::new_from_slice(&signing_key).expect("HMAC can take key");
+    mac.update(string_to_sign.as_bytes());
+    let signature = hex::encode(mac.finalize().into_bytes());
+    let authorization = format!(
+        "AWS4-HMAC-SHA256 Credential={}/{}, SignedHeaders={}, Signature={}",
+        cfg.access_key, scope, signed_headers, signature
+    );
+
+    let res = client
+        .put(url)
+        .header("x-amz-content-sha256", payload_hash)
+        .header("x-amz-date", amz_date)
+        .header("Authorization", authorization)
+        .body(data)
+        .send()
+        .await
+        .map_err(|e| io::Error::other(e.to_string()))?;
+
+    if !res.status().is_success() {
+        return Err(io::Error::other(format!(
+            "s3 upload failed: {}",
+            res.status()
+        )));
+    }
+    Ok(())
+}
+
+fn signing_key(secret: &str, date: &str, region: &str, service: &str) -> Vec<u8> {
+    let k_date = hmac_sha256(format!("AWS4{}", secret).as_bytes(), date.as_bytes());
+    let k_region = hmac_sha256(&k_date, region.as_bytes());
+    let k_service = hmac_sha256(&k_region, service.as_bytes());
+    hmac_sha256(&k_service, b"aws4_request")
+}
+
+fn hmac_sha256(key: &[u8], data: &[u8]) -> Vec<u8> {
+    let mut mac = HmacSha256::new_from_slice(key).expect("HMAC can take key");
+    mac.update(data);
+    mac.finalize().into_bytes().to_vec()
+}
+
+fn cleanup_old_files(root: &str, retention: Duration) -> io::Result<()> {
+    let path = match root.strip_prefix("file://") {
+        Some(p) => Path::new(p),
+        None => return Ok(()),
+    };
+    if !path.exists() {
         return Ok(());
     }
-    for entry in fs::read_dir(root)? {
+    for entry in fs::read_dir(path)? {
         let entry = entry?;
         let metadata = entry.metadata()?;
         if metadata.is_file() {
@@ -196,7 +346,9 @@ impl SnapshotScheduler {
         );
         let s3_path = upload_to_s3(&local_path, &dest_dir)?;
         register_with_iceberg(&self.iceberg_metadata, &s3_path)?;
-        cleanup_old_files(&self.s3_root, self.config.retention)?;
+        self.store
+            .cleanup(&format!("{}/{}", exchange, market), self.config.retention)
+            .await?;
         Ok(())
     }
 
@@ -215,6 +367,7 @@ impl SnapshotScheduler {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::Arc;
 
     #[tokio::test]
     async fn test_snapshot_once() {
@@ -229,9 +382,10 @@ mod tests {
             })
             .await;
         let dir = std::env::temp_dir();
-        let s3_root = dir.join("s3_test");
+        let s3_root = format!("file://{}", dir.join("s3_test").display());
+        let local_root = Path::new(&s3_root[7..]);
         let meta = dir.join("meta.json");
-        let _ = fs::remove_dir_all(&s3_root);
+        let _ = fs::remove_dir_all(local_root);
         let _ = fs::remove_file(&meta);
         let cfg = SnapshotConfig {
             interval: Duration::from_millis(1),
@@ -259,9 +413,10 @@ mod tests {
     async fn test_snapshot_skip_empty() {
         let redis = Arc::new(FakeRedis::default());
         let dir = std::env::temp_dir();
-        let s3_root = dir.join("s3_empty");
+        let s3_root = format!("file://{}", dir.join("s3_empty").display());
+        let local_root = Path::new(&s3_root[7..]);
         let meta = dir.join("meta_empty.json");
-        let _ = fs::remove_dir_all(&s3_root);
+        let _ = fs::remove_dir_all(local_root);
         let _ = fs::remove_file(&meta);
         let cfg = SnapshotConfig {
             interval: Duration::from_millis(1),

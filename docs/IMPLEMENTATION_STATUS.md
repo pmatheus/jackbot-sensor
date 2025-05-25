@@ -94,6 +94,7 @@ Exchanges currently implementing the `Canonicalizer` trait:
   - [x] Implement/refactor paper trading adapter (spot/futures).
   - [x] Add/extend tests for both.
   - [x] Document unsupported features (stub only).
+  - Futures trade streams unavailable; see `exchange/coinbase/futures` stub.
   - [x] Update to use new `Canonicalizer` trait.
 
 - **Kraken**
@@ -159,19 +160,21 @@ each exchange accepts for limit orders. These ranges apply to both live and
 paper trading. The full table also lives in
 [ORDER_DISTANCE_CONSTRAINTS.md](ORDER_DISTANCE_CONSTRAINTS.md):
 
-| Exchange | Spot Range | Futures Range |
-|----------|------------|---------------|
-| Binance | ±10% | ±10% |
-| Bitget | ±10% | ±10% |
-| Bybit | ±5% | ±5% |
-| Coinbase | ±2% | ±2% |
-| Hyperliquid | ±5% | ±5% |
-| Kraken | ±5% | ±5% |
-| MEXC | ±15% | ±15% |
-| Kucoin | ±10% | ±10% |
-| Gate.io | ±20% | ±20% |
-| Crypto.com | ±10% | ±10% |
-| OKX | ±5% | ±5% |
+| Exchange | Spot Range | Futures Range | Arbitrage Ready |
+|----------|------------|---------------|----------------|
+| Binance | ±10% | ±10% | Yes |
+| Bitget | ±10% | ±10% | Yes |
+| Bybit | ±5% | ±5% | Yes |
+| Coinbase | ±2% | ±2% | Yes* |
+| Hyperliquid | ±5% | ±5% | Yes |
+| Kraken | ±5% | ±5% | Yes |
+| MEXC | ±15% | ±15% | Yes |
+| Kucoin | ±10% | ±10% | Yes |
+| Gate.io | ±20% | ±20% | Yes |
+| Crypto.com | ±10% | ±10% | Yes |
+| OKX | ±5% | ±5% | Yes |
+
+\*Coinbase only offers spot markets, but is fully supported for arbitrage.
 
 **Implementation Summary:**
 - Complete L2 Order Book implementations for: Binance (Spot & Futures), Bybit (Spot & Futures), Coinbase (Spot), Kraken (Spot & Futures), OKX (Spot & Futures), Bitget (Spot & Futures), Kucoin (Spot & Futures), Hyperliquid (Spot & Futures)
@@ -191,11 +194,11 @@ paper trading. The full table also lives in
 
 **General Steps (repeat for each exchange and market type):**
 - [x] Research and document at `docs/TRADE_WS_ENDPOINTS.md` latest trade WS API for spot/futures for all supported exchanges.
-- [ ] Scaffold or refactor `spot/trade.rs` and `futures/trade.rs` (and `mod.rs`).
-- [ ] Implement trade WebSocket subscription logic: subscribe, parse, normalize, and emit trade events.
-- [ ] Add/extend unit and integration tests (including edge cases).
-- [ ] Add/extend module-level docs.
-- [ ] Update `docs/IMPLEMENTATION_STATUS.md` with status and links.
+- [x] Scaffold or refactor `spot/trade.rs` and `futures/trade.rs` (and `mod.rs`).
+- [x] Implement trade WebSocket subscription logic: subscribe, parse, normalize, and emit trade events.
+- [x] Add/extend unit and integration tests (including edge cases).
+- [x] Add/extend module-level docs.
+- [x] Update `docs/IMPLEMENTATION_STATUS.md` with status and links.
 
 **Exchange-Specific TODOs:**
 
@@ -287,6 +290,8 @@ paper trading. The full table also lives in
 - All L1 types, subscription kinds, and references have been deleted from the codebase.
 - Example files dedicated to L1 streams have also been removed.
 - Added `TRADE_WS_ENDPOINTS.md` summarising trade WebSocket endpoints.
+- Added `USER_WS_AUTH.md` summarising authentication and user WebSocket endpoints.
+- Added `USER_WS_QUIRKS.md` summarising user WebSocket quirks and limitations.
 - Scaffolding baseline trade WebSocket modules across exchanges.
 - Implemented Gate.io trade WebSocket modules with event normalization.
 
@@ -552,12 +557,19 @@ paper trading. The full table also lives in
  - [x] Gate.io: Implement all jackpot order logic and risk control (futures/perpetuals, live/paper)
 - [x] Crypto.com: Implement all jackpot order logic and risk control (futures/perpetuals, live/paper)
 
-**Limitations:** Real exchange APIs for jackpot orders are currently stubbed. Only the
-paper and mock engines support automatic liquidation.
+**Limitations:** Real exchange APIs for jackpot orders are currently stubbed.
+Only the paper and mock engines support automatic liquidation.
+
+- Binance, Bybit, Kraken, Kucoin and OKX expose leverage settings but no
+  ticket-based loss limit. `JackpotMonitor` enforces liquidation client side.
+- Coinbase lacks futures trading entirely, so jackpot orders are unsupported.
+- Hyperliquid provides perpetual markets without explicit ticket control.
+- Gate.io, Crypto.com and MEXC clients remain unimplemented pending API
+  confirmation.
 
 
 **Final Steps:**
-- [ ] Update feature matrix and exchange-by-exchange status in this file.
+- [x] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
 - [ ] Document any API quirks, limitations, or unsupported features.
 
@@ -597,7 +609,7 @@ paper and mock engines support automatic liquidation.
 - [x] Crypto.com: Integrate Redis for order book and trades
 
 **Final Steps:**
-- [ ] Update feature matrix and exchange-by-exchange status in this file.
+- [x] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
 - [ ] Document any API quirks, limitations, or unsupported features.
 
@@ -631,11 +643,14 @@ paper and mock engines support automatic liquidation.
 - [x] MEXC: Integrate snapshot logic for order book and trades
 - [x] Gate.io: Integrate snapshot logic for order book and trades
 - [x] Crypto.com: Integrate snapshot logic for order book and trades
-- [x] Snapshot module now handles AWS credentials and full Iceberg table
-  management instead of a simplified local-only implementation.
+- [x] Snapshot integration completed across all supported exchanges
+- [x] Snapshot module now supports AWS credentials and full Iceberg table
+  management. Local paths remain available for tests via the `file://` scheme.
+- Snapshot uploads rely on the `aws` CLI and do not clean up old objects in S3.
+
 
 **Final Steps:**
-- [ ] Update feature matrix and exchange-by-exchange status in this file.
+- [x] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
 - [ ] Document any API quirks, limitations, or unsupported features.
 
@@ -650,14 +665,14 @@ paper and mock engines support automatic liquidation.
 > **Goal:** Implement user WebSocket connections for all supported exchanges and markets to enable real-time account balance updates and trading (order events, fills, etc.). Ensure secure authentication, robust event handling, and unified abstraction for downstream consumers.
 
 **General Steps:**
-- [ ] Research and document user WebSocket API support and authentication mechanisms for all supported exchanges (spot/futures).
+ - [x] Research and document user WebSocket API support and authentication mechanisms for all supported exchanges (spot/futures).
 - [x] Scaffold or refactor user WebSocket modules (e.g., `spot/user_ws.rs`, `futures/user_ws.rs`, and `mod.rs`).
 - [x] Implement secure authentication and connection management (API keys, signatures, session renewal, etc.).
 - [x] Implement event handlers for:
     - [x] Account balance updates (deposits, withdrawals, transfers, PnL, margin changes).
     - [x] Order events (new, filled, partially filled, canceled, rejected, etc.).
-    - [ ] Position updates (for futures/perpetuals).
-- [ ] Normalize and emit events for downstream consumers (internal APIs, Redis, etc.).
+    - [x] Position updates (for futures/perpetuals).
+ - [x] Normalize and emit events for downstream consumers (internal APIs, Redis, etc.).
 - [x] Add/extend integration and unit tests for all user WebSocket logic (including edge cases, reconnections, and error handling).
 - [x] Add/extend module-level and user-facing documentation.
 - [x] Update `docs/IMPLEMENTATION_STATUS.md` with status and links.
@@ -666,7 +681,7 @@ paper and mock engines support automatic liquidation.
 
 - **Binance**
   - [x] Implement authentication and connection management (spot/futures).
-  - [x] Implement event handling for balances and orders. Position updates pending.
+  - [x] Implement event handling for balances, orders and positions.
   - [x] Add/extend tests for all user WebSocket logic.
 
 - **Bitget**
@@ -732,10 +747,25 @@ paper and mock engines support automatic liquidation.
 
 
 **Final Steps:**
-- [ ] Update feature matrix and exchange-by-exchange status in this file.
+- [x] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
 - [ ] Document any API quirks, limitations, or unsupported features.
 
+### User WebSocket Support Matrix
+| Exchange | Spot WS | Futures WS |
+|---------|---------|------------|
+| Binance | Yes | Yes |
+| Bitget | Yes | Yes |
+| Bybit | Yes | Yes |
+| Coinbase | Yes | N/A* |
+| Hyperliquid | Yes | Yes |
+| Kraken | Yes | Yes |
+| MEXC | Yes | Yes |
+| Kucoin | Yes | Yes |
+| Gate.io | Yes | Yes |
+| Crypto.com | Yes | Yes |
+| OKX | Yes | Yes |
+*Coinbase only offers spot markets.
 ---
 
 **Instructions for Contributors:**
@@ -750,33 +780,43 @@ paper and mock engines support automatic liquidation.
 - [x] Design a unified health monitoring abstraction for WebSocket connections (heartbeats, pings, activity timeouts).
 - [x] Implement intelligent reconnection logic with exponential backoff and jitter for all exchanges/markets.
 - [x] Add monitoring metrics (uptime, latency, reconnect frequency, message throughput).
-- [ ] Implement connection lifecycle events and error classification.
-- [ ] Ensure proper handling of connection state during reconnection (subscription renewal, authentication refresh).
-- [ ] Add resubscription logic for all data streams after reconnection.
-- [ ] Implement circuit-breaker patterns for persistent failures.
-- [ ] Add comprehensive logging and diagnostics for connection issues.
-- [ ] Add/extend integration and unit tests for health monitoring and reconnection logic.
-- [ ] Add/extend module-level and user-facing documentation.
-- [ ] Update `docs/IMPLEMENTATION_STATUS.md` with status and links.
+- [x] Implement connection lifecycle events and error classification.
+- [x] Ensure proper handling of connection state during reconnection (subscription renewal, authentication refresh).
+- [x] Add resubscription logic for all data streams after reconnection.
+- [x] Implement circuit-breaker patterns for persistent failures.
+- [x] Add comprehensive logging and diagnostics for connection issues.
+- [x] Add/extend integration and unit tests for health monitoring and reconnection logic.
+- [x] Add/extend module-level and user-facing documentation.
+- [x] Update `docs/IMPLEMENTATION_STATUS.md` with status and links.
 
 **Exchange-Specific TODOs:**
 
 - [x] Binance: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures). (Heartbeat tracking, exponential backoff, and metrics added)
-- [ ] Bitget: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
+- [x] Bitget: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [x] Bybit: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [x] Coinbase: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [x] Kraken: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [x] Kucoin: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [x] OKX: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [x] Hyperliquid: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
-- [ ] MEXC: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
-- [ ] Gate.io: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
-- [ ] Crypto.com: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
+- [x] MEXC: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
+- [x] Gate.io: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
+- [x] Crypto.com: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
+
 
 **Final Steps:**
-- [ ] Update feature matrix and exchange-by-exchange status in this file.
-- [ ] Ensure all health monitoring and reconnection tests pass across all exchanges.
-- [ ] Document any exchange-specific quirks, heartbeat patterns, or limitations.
+- [x] Update feature matrix and exchange-by-exchange status in this file.
+- [x] Ensure all health monitoring and reconnection tests pass across all exchanges.
+- [x] Document any exchange-specific quirks, heartbeat patterns, or limitations.
+
+### Heartbeat Quirks
+
+Some exchanges use slightly different heartbeat mechanisms:
+
+- **Bitget** requires a client `ping` message every 10 seconds or the server will close the connection.
+- **MEXC** sends periodic `ping` events and expects an immediate `pong` reply.
+- **Gate.io** disconnects after 30 seconds if `pong` responses are not received.
+- **Crypto.com** issues numbered `ping` messages that must be echoed back in a `pong` to keep the session alive.
 
 ---
 
@@ -849,7 +889,7 @@ paper and mock engines support automatic liquidation.
 
 **Final Steps:**
 - [x] Update feature matrix and exchange-by-exchange status in this file.
-- [ ] Ensure all backtesting components function correctly with test strategies.
+- [x] Ensure all backtesting components function correctly with test strategies.
 - [x] Document any limitations or assumptions in the simulation model.
 
 ---
@@ -882,7 +922,7 @@ paper and mock engines support automatic liquidation.
 - [x] Performance Metrics and Reporting (realized opportunities, missed opportunities, execution quality)
 
 **Final Steps:**
-- [ ] Update feature matrix and exchange-by-exchange status in this file.
+- [x] Update feature matrix and exchange-by-exchange status in this file.
 - [x] Ensure all arbitrage components function correctly with test configurations.
 - [x] Document any limitations, risks, or exchange-specific considerations. Current implementation focuses on cross-exchange spreads; triangular paths and fee-aware execution are still TODO.
 
