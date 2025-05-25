@@ -46,6 +46,12 @@ The setup script installs:
 - **Development libraries**: Required for building Rust dependencies
 - **Apache Arrow dependencies**: For Parquet file format support
 
+### Redis Caveats
+
+- Only the last 1000 deltas and trades are retained per instrument. Older entries are dropped.
+- Connection errors are ignored, so ensure Redis is reachable to avoid data loss.
+- All keys default to the `jb` prefix. Use a custom prefix if sharing a Redis instance.
+
 ## Post-Installation
 
 After installing the dependencies:
