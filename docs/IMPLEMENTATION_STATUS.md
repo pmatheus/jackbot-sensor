@@ -758,8 +758,8 @@ paper and mock engines support automatic liquidation.
 - [ ] Implement connection lifecycle events and error classification.
 - [ ] Ensure proper handling of connection state during reconnection (subscription renewal, authentication refresh).
 - [ ] Add resubscription logic for all data streams after reconnection.
-- [ ] Implement circuit-breaker patterns for persistent failures.
-- [ ] Add comprehensive logging and diagnostics for connection issues.
+- [x] Implement circuit-breaker patterns for persistent failures.
+- [x] Add comprehensive logging and diagnostics for connection issues.
 - [ ] Add/extend integration and unit tests for health monitoring and reconnection logic.
 - [ ] Add/extend module-level and user-facing documentation.
 - [ ] Update `docs/IMPLEMENTATION_STATUS.md` with status and links.
