@@ -33,6 +33,8 @@ All exchanges expose the same trait-based interface in `jackbot-execution`. Stub
 
 - Coinbase only supports spot trading and trailing stops are emulated client-side.
 - Hyperliquid offers perpetual futures exclusively.
+- Jackpot orders rely on isolated high leverage APIs. Most venues do not expose
+  ticket-based loss limits, so this project must create an abstraction arround it. where it only allow orders of certain sizes an leverages to look like bets
 - Binance futures lack native trailing or multi-level order endpoints and rely on emulation.
 - Kraken trailing semantics differ from other venues and require mapping.
 - OKX exposes advanced features via algorithmic order endpoints that are not yet integrated.

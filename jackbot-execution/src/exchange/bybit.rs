@@ -1,6 +1,8 @@
 //! Jackpot order execution for Bybit.
 //!
-//! This is currently a stub. API integration will be added in the future.
+//! Bybit exposes leverage configuration but not a direct API for ticket based
+//! liquidation. Jackpot orders are therefore not yet implemented and this
+//! function simply returns an error.
 #![allow(dead_code)]
 
 pub fn place_jackpot_order() -> Result<(), &'static str> {
