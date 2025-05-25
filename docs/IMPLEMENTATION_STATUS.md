@@ -139,13 +139,14 @@ Exchanges currently implementing the `Canonicalizer` trait:
 **Final Steps:**
 - [x] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
-- [ ] Document any API quirks, limitations, or unsupported features.
+ - [x] Document any API quirks, limitations, or unsupported features.
 
 ### Verified Price Range Constraints
 
 Empirical tests verified the maximum distance from the current mid price that
 each exchange accepts for limit orders. These ranges apply to both live and
-paper trading:
+paper trading. The full table also lives in
+[ORDER_DISTANCE_CONSTRAINTS.md](ORDER_DISTANCE_CONSTRAINTS.md):
 
 | Exchange | Spot Range | Futures Range |
 |----------|------------|---------------|
