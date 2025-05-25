@@ -40,7 +40,6 @@ tokio = { workspace = true, features = [
 ] }
 tokio-stream = { workspace = true }
 futures = { workspace = true }
-rand = { workspace = true }
 pin-project = { workspace = true }
 
 # Data Structures
