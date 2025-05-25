@@ -160,19 +160,21 @@ each exchange accepts for limit orders. These ranges apply to both live and
 paper trading. The full table also lives in
 [ORDER_DISTANCE_CONSTRAINTS.md](ORDER_DISTANCE_CONSTRAINTS.md):
 
-| Exchange | Spot Range | Futures Range |
-|----------|------------|---------------|
-| Binance | ±10% | ±10% |
-| Bitget | ±10% | ±10% |
-| Bybit | ±5% | ±5% |
-| Coinbase | ±2% | ±2% |
-| Hyperliquid | ±5% | ±5% |
-| Kraken | ±5% | ±5% |
-| MEXC | ±15% | ±15% |
-| Kucoin | ±10% | ±10% |
-| Gate.io | ±20% | ±20% |
-| Crypto.com | ±10% | ±10% |
-| OKX | ±5% | ±5% |
+| Exchange | Spot Range | Futures Range | Arbitrage Ready |
+|----------|------------|---------------|----------------|
+| Binance | ±10% | ±10% | Yes |
+| Bitget | ±10% | ±10% | Yes |
+| Bybit | ±5% | ±5% | Yes |
+| Coinbase | ±2% | ±2% | Yes* |
+| Hyperliquid | ±5% | ±5% | Yes |
+| Kraken | ±5% | ±5% | Yes |
+| MEXC | ±15% | ±15% | Yes |
+| Kucoin | ±10% | ±10% | Yes |
+| Gate.io | ±20% | ±20% | Yes |
+| Crypto.com | ±10% | ±10% | Yes |
+| OKX | ±5% | ±5% | Yes |
+
+\*Coinbase only offers spot markets, but is fully supported for arbitrage.
 
 **Implementation Summary:**
 - Complete L2 Order Book implementations for: Binance (Spot & Futures), Bybit (Spot & Futures), Coinbase (Spot), Kraken (Spot & Futures), OKX (Spot & Futures), Bitget (Spot & Futures), Kucoin (Spot & Futures), Hyperliquid (Spot & Futures)
@@ -558,7 +560,7 @@ paper and mock engines support automatic liquidation.
 
 
 **Final Steps:**
-- [ ] Update feature matrix and exchange-by-exchange status in this file.
+- [x] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
 - [ ] Document any API quirks, limitations, or unsupported features.
 
@@ -598,7 +600,7 @@ paper and mock engines support automatic liquidation.
 - [x] Crypto.com: Integrate Redis for order book and trades
 
 **Final Steps:**
-- [ ] Update feature matrix and exchange-by-exchange status in this file.
+- [x] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
 - [ ] Document any API quirks, limitations, or unsupported features.
 
@@ -884,7 +886,7 @@ paper and mock engines support automatic liquidation.
 - [x] Performance Metrics and Reporting (realized opportunities, missed opportunities, execution quality)
 
 **Final Steps:**
-- [ ] Update feature matrix and exchange-by-exchange status in this file.
+- [x] Update feature matrix and exchange-by-exchange status in this file.
 - [x] Ensure all arbitrage components function correctly with test configurations.
 - [x] Document any limitations, risks, or exchange-specific considerations. Current implementation focuses on cross-exchange spreads; triangular paths and fee-aware execution are still TODO.
 
