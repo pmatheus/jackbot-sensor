@@ -10,7 +10,6 @@ use crate::{
 };
 use super::super::Hyperliquid;
 
-
 pub use super::super::trade::HyperliquidTrades;
 
 /// [`ExchangeTransformer`](crate::transformer::ExchangeTransformer) used to

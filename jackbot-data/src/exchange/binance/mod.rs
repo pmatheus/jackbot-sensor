@@ -5,7 +5,7 @@ use self::{
 };
 use crate::{
     ExchangeWsStream, NoInitialSnapshots,
-    exchange::{Connector, ExchangeServer, ExchangeSub, StreamSelector},
+    exchange::{Connector, ExchangeServer, ExchangeSub, StreamSelector, PingInterval},
     instrument::InstrumentData,
     subscriber::{WebSocketSubscriber, validator::WebSocketSubValidator},
     subscription::{Map, trade::PublicTrades},
