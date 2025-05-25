@@ -1,6 +1,8 @@
 //! Jackpot order execution for Hyperliquid.
 //!
-//! This is currently a stub. API integration will be added in the future.
+//! Hyperliquid only offers perpetual futures and does not provide a ticket
+//! based liquidation mechanism via the API. Jackpot orders are unimplemented
+//! and this function returns an error.
 #![allow(dead_code)]
 
 pub fn place_jackpot_order() -> Result<(), &'static str> {

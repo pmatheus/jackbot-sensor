@@ -1,6 +1,8 @@
 //! Jackpot order execution for Kraken.
 //!
-//! This is currently a stub. API integration will be added in the future.
+//! Kraken's API does not expose isolated high leverage endpoints or ticket
+//! based liquidation. Jackpot orders are therefore unimplemented and this
+//! function returns an error.
 #![allow(dead_code)]
 
 pub fn place_jackpot_order() -> Result<(), &'static str> {

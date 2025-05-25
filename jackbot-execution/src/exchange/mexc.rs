@@ -1,6 +1,8 @@
 //! Jackpot order execution for MEXC.
 //!
-//! This is currently a stub. API integration will be added in the future.
+//! The public API has no documented support for isolated high leverage orders
+//! with a fixed ticket loss. This implementation is a stub that always
+//! returns an error.
 #![allow(dead_code)]
 
 /// Attempt to place a jackpot order on MEXC.

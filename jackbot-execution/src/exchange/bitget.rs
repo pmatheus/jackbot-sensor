@@ -1,6 +1,8 @@
 //! Jackpot order execution for Bitget.
 //!
-//! This is currently a stub. API integration will be added in the future.
+//! Bitget's API does not yet expose isolated high leverage orders with a fixed
+//! ticket loss. Until these endpoints are available this function returns an
+//! error.
 #![allow(dead_code)]
 
 pub fn place_jackpot_order() -> Result<(), &'static str> {
