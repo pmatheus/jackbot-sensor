@@ -637,6 +637,7 @@ paper and mock engines support automatic liquidation.
 - [x] Crypto.com: Integrate snapshot logic for order book and trades
 - [x] Snapshot module now supports AWS credentials and full Iceberg table
   management. Local paths remain available for tests via the `file://` scheme.
+- Snapshot uploads rely on the `aws` CLI and do not clean up old objects in S3.
 
 
 **Final Steps:**
