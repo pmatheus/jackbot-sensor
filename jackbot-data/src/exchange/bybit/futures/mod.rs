@@ -15,6 +15,8 @@ pub mod l2;
 
 /// Trade types.
 pub mod trade;
+/// User WebSocket utilities.
+pub mod user_ws;
 
 /// [`BybitPerpetualsUsd`] WebSocket server base url.
 ///
