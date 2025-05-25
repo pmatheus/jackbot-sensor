@@ -556,8 +556,15 @@ paper trading. The full table also lives in
  - [x] Gate.io: Implement all jackpot order logic and risk control (futures/perpetuals, live/paper)
 - [x] Crypto.com: Implement all jackpot order logic and risk control (futures/perpetuals, live/paper)
 
-**Limitations:** Real exchange APIs for jackpot orders are currently stubbed. Only the
-paper and mock engines support automatic liquidation.
+**Limitations:** Real exchange APIs for jackpot orders are currently stubbed.
+Only the paper and mock engines support automatic liquidation.
+
+- Binance, Bybit, Kraken, Kucoin and OKX expose leverage settings but no
+  ticket-based loss limit. `JackpotMonitor` enforces liquidation client side.
+- Coinbase lacks futures trading entirely, so jackpot orders are unsupported.
+- Hyperliquid provides perpetual markets without explicit ticket control.
+- Gate.io, Crypto.com and MEXC clients remain unimplemented pending API
+  confirmation.
 
 
 **Final Steps:**

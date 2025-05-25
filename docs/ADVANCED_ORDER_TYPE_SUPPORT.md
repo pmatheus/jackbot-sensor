@@ -34,6 +34,9 @@ All exchanges expose the same trait-based interface in `jackbot-execution`. Stub
 - Coinbase only supports spot trading. Advanced orders operate on spot markets only.
 - Hyperliquid offers perpetual futures exclusively.
 - Gate.io, Crypto.com and MEXC clients are currently stubs with placeholder implementations.
+- Jackpot orders rely on isolated high leverage APIs. Most venues do not expose
+  ticket-based loss limits, so exchange modules return errors until integration
+  is possible.
 
 ## Maker-Only (Post-Only) Support
 
