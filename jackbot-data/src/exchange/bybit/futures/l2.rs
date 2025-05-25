@@ -89,6 +89,7 @@ impl SnapshotFetcher<BybitPerpetualsUsd, OrderBooksL2>
 #[cfg(test)]
 mod tests {
     use super::*;
+    use jackbot_integration::subscription::SubscriptionId;
     use fnv::FnvHashMap;
     use rust_decimal_macros::dec;
 

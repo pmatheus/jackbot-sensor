@@ -3,10 +3,10 @@
 //! Provides convenient aliases for [`Hyperliquid`](super::super::Hyperliquid)
 //! trade streams.
 
+use super::super::Hyperliquid;
 use crate::{
+    ExchangeWsStream, subscription::trade::PublicTrades,
     transformer::stateless::StatelessTransformer,
-    subscription::trade::PublicTrades,
-    ExchangeWsStream,
 };
 use super::super::Hyperliquid;
 

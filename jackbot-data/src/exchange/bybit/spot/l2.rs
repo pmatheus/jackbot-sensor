@@ -87,6 +87,7 @@ impl SnapshotFetcher<BybitSpot, OrderBooksL2> for BybitSpotOrderBooksL2SnapshotF
 mod tests {
     use super::*;
     use chrono::{TimeZone, Utc};
+    use jackbot_integration::subscription::SubscriptionId;
     use fnv::FnvHashMap;
     use rust_decimal_macros::dec;
 
