@@ -60,6 +60,7 @@ pub enum ExchangeId {
     Hitbtc,
     #[serde(alias = "huobi")]
     Htx,
+    Gateio,
     Kraken,
     Kucoin,
     Liquid,
@@ -104,6 +105,7 @@ impl ExchangeId {
             ExchangeId::Kraken => "kraken",
             ExchangeId::Kucoin => "kucoin",
             ExchangeId::Liquid => "liquid",
+            ExchangeId::Gateio => "gateio",
             ExchangeId::Mexc => "mexc",
             ExchangeId::Okx => "okx",
             ExchangeId::Poloniex => "poloniex",
@@ -128,7 +130,7 @@ mod tests {
         );
         assert_eq!(
             serde_json::from_str::<ExchangeId>(r#""gateio""#).unwrap(),
-            ExchangeId::GateIo
+            ExchangeId::Gateio
         );
     }
 }
