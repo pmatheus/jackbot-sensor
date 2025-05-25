@@ -14,14 +14,12 @@ use tokio::sync::Mutex;
 use tokio::time;
 type HmacSha256 = Hmac<Sha256>;
 
-/// Type of record stored in Redis and persisted to snapshots.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum RecordType {
     OrderBook,
     Trade,
 }
 
-/// A single order book or trade record stored in Redis.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct DataRecord {
     pub exchange: String,
@@ -30,7 +28,6 @@ pub struct DataRecord {
     pub value: String,
 }
 
-/// Minimal in-memory stand in for Redis used in tests.
 #[derive(Debug, Default)]
 pub struct FakeRedis {
     data: Mutex<Vec<DataRecord>>,
@@ -217,60 +214,62 @@ fn cleanup_old_files(root: &str, retention: Duration) -> io::Result<()> {
                 }
             }
         } else if metadata.is_dir() {
-            cleanup_old_files(&format!("file://{}", entry.path().display()), retention)?;
+            cleanup_old_files_local(&entry.path(), retention)?;
         }
     }
     Ok(())
 }
 
+fn cleanup_old_files(root: &str, retention: Duration) -> io::Result<()> {
+    if root.starts_with("s3://") {
+        // Real S3 cleanup is not implemented in tests
+        return Ok(());
+    }
+    cleanup_old_files_local(Path::new(root), retention)
+}
+
 #[derive(Serialize, Deserialize, Default)]
 pub struct IcebergSnapshot {
-    pub snapshot_id: u64,
     pub id: u64,
-    pub timestamp_ms: i64,
     pub files: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Default)]
-pub struct IcebergTable {
-    pub format_version: u32,
+pub struct IcebergMeta {
+    pub table_location: String,
+    pub schema_version: u32,
     pub current_snapshot_id: u64,
     pub snapshots: Vec<IcebergSnapshot>,
 }
 
-/// Register a new data file with the Iceberg table metadata.
+/// Append a new file path to the Iceberg metadata file if it is not already present.
 pub fn register_with_iceberg(metadata_path: &Path, file_path: &str) -> io::Result<()> {
-    let mut table: IcebergTable = if metadata_path.exists() {
+    let mut meta: IcebergMeta = if metadata_path.exists() {
         let data = fs::read_to_string(metadata_path)?;
         serde_json::from_str(&data).unwrap_or_default()
     } else {
-        IcebergTable {
-            format_version: 2,
+        IcebergMeta {
+            schema_version: 1,
             current_snapshot_id: 0,
             snapshots: Vec::new(),
         }
     };
-
-    let new_id = table.current_snapshot_id + 1;
-    table.current_snapshot_id = new_id;
-    table.snapshots.push(IcebergSnapshot {
-        snapshot_id: new_id,
-        id: new_id,
-        timestamp_ms: chrono::Utc::now().timestamp_millis(),
+    let snapshot_id = chrono::Utc::now().timestamp_millis() as u64;
+    let snapshot = IcebergSnapshot {
+        id: snapshot_id,
         files: vec![file_path.to_string()],
-    });
-
-    fs::write(metadata_path, serde_json::to_string(&table)?)
+    };
+    meta.current_snapshot_id = snapshot_id;
+    meta.snapshots.push(snapshot);
+    fs::write(metadata_path, serde_json::to_string(&meta)?)
 }
 
-/// Configuration for how often snapshots are taken and how long they are kept.
 #[derive(Clone)]
 pub struct SnapshotConfig {
     pub interval: Duration,
     pub retention: Duration,
 }
 
-/// Periodically persists Redis data to S3 and registers files with Iceberg.
 pub struct SnapshotScheduler {
     redis: Arc<FakeRedis>,
     store: Arc<dyn ObjectStore>,
@@ -293,7 +292,6 @@ impl SnapshotScheduler {
         }
     }
 
-    /// Persist all Redis records to a single Parquet file and register it.
     pub async fn snapshot_once(&self) -> io::Result<()> {
         let records = self.redis.get_all().await;
         if records.is_empty() {
@@ -316,7 +314,6 @@ impl SnapshotScheduler {
         Ok(())
     }
 
-    /// Continuously take snapshots according to the configured interval.
     pub async fn start(&self) {
         let mut interval = time::interval(self.config.interval);
         loop {
@@ -336,7 +333,6 @@ mod tests {
     #[tokio::test]
     async fn test_snapshot_once() {
         let redis = Arc::new(FakeRedis::default());
-
         redis
             .insert(DataRecord {
                 exchange: "exch".into(),
@@ -358,7 +354,7 @@ mod tests {
         let scheduler = SnapshotScheduler::new(redis, store, meta.clone(), cfg);
         scheduler.snapshot_once().await.unwrap();
         assert!(
-            fs::read_dir(local_root.join("exch/btc-usd"))
+            fs::read_dir(PathBuf::from(&s3_root).join("exch/btc-usd"))
                 .unwrap()
                 .next()
                 .is_some()
@@ -383,7 +379,7 @@ mod tests {
         let store = Arc::new(LocalStore::new(local_root.clone()));
         let scheduler = SnapshotScheduler::new(redis, store, meta.clone(), cfg);
         scheduler.snapshot_once().await.unwrap();
-        assert!(!local_root.exists());
+        assert!(!Path::new(&s3_root).exists());
         assert!(!meta.exists());
     }
 }

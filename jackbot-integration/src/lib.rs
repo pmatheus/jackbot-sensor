@@ -60,6 +60,9 @@ pub mod stream;
 
 pub mod snapshot;
 
+/// Simple circuit breaker for stream reconnections.
+pub mod circuit_breaker;
+
 /// API rate limiting utilities with adaptive backoff and priority queueing.
 pub mod rate_limit;
 

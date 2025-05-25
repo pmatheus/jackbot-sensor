@@ -5,7 +5,7 @@ use self::{
 };
 use crate::{
     ExchangeWsStream, NoInitialSnapshots,
-    exchange::{Connector, ExchangeServer, ExchangeSub, StreamSelector},
+    exchange::{Connector, ExchangeServer, ExchangeSub, PingInterval, StreamSelector},
     instrument::InstrumentData,
     subscriber::{WebSocketSubscriber, validator::WebSocketSubValidator},
     subscription::{Map, trade::PublicTrades},
@@ -14,6 +14,7 @@ use crate::{
 use jackbot_instrument::exchange::ExchangeId;
 use jackbot_integration::{error::SocketError, protocol::websocket::WsMessage};
 use std::{fmt::Debug, marker::PhantomData, time::Duration};
+use crate::exchange::PingInterval;
 use url::Url;
 
 /// OrderBook types common to both [`BinanceSpot`](spot::BinanceSpot) and

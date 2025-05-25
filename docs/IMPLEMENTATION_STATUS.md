@@ -36,6 +36,10 @@
 - If a feature is not supported by an exchange, explicitly document it here
 - Keep the feature matrix and TODOs current for team visibility
 
+### Pending Workspace Tasks
+- [ ] Resolve formatting errors in `jackbot` and `jackbot-execution` crates preventing `cargo fmt --all` from completing successfully.
+- [ ] Address clippy warnings in `jackbot-integration` (deprecated `rand` APIs and large error variants) so `cargo clippy --all-targets --all-features -- -D warnings` passes.
+
 ## Canonical Order Book Representation
 
 We've implemented a new framework for standardizing all exchange-specific orderbook formats into a canonical representation:
@@ -150,6 +154,9 @@ Exchanges currently implementing the `Canonicalizer` trait:
 **Final Steps:**
 - [x] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
+- [ ] Resolve clippy warnings in `jackbot-integration` (deprecated rand APIs, result_large_err, missing debug implementations).
+- [ ] Fix formatting issues preventing `cargo fmt` from running (exposure.rs, cryptocom client module, TA tests).
+- [ ] Address failing `jackbot-data` tests (missing SubscriptionId, tokio time test utilities).
 - [x] Document any API quirks, limitations, or unsupported features.
 
 
@@ -295,6 +302,9 @@ paper trading. The full table also lives in
 - Added `USER_WS_QUIRKS.md` summarising user WebSocket quirks and limitations.
 - Scaffolding baseline trade WebSocket modules across exchanges.
 - Implemented Gate.io trade WebSocket modules with event normalization.
+- Fixed compile error in `jackbot-risk` by removing an invalid `Constructor` derive.
+- Clippy warnings in `jackbot-integration` (deprecated rand usage, large error variants) need resolving.
+- Unit tests for `jackbot-strategy` fail to compile due to issues in `jackbot-execution` dependencies.
 
 ## Current Features
 
@@ -804,7 +814,6 @@ Only the paper and mock engines support automatic liquidation.
 - [x] Gate.io: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [x] Crypto.com: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 
-
 **Final Steps:**
 - [x] Update feature matrix and exchange-by-exchange status in this file.
 - [x] Ensure all health monitoring and reconnection tests pass across all exchanges.
@@ -951,6 +960,7 @@ Some exchanges use slightly different heartbeat mechanisms:
 
 - [x] Strategy Interface Definition (inputs, outputs, events, lifecycle)
  - [x] Technical Analysis Library (indicators, patterns, signals)
+- [x] `CrossOverSignal` now implements `Default` for easier initialization
 - [x] ML Integration Framework (feature extraction, model loading, inference)
 - [x] Strategy Configuration and Parameter Management
 - [x] Backtest Runner and Performance Evaluation
@@ -993,7 +1003,8 @@ Some exchanges use slightly different heartbeat mechanisms:
 
  - [x] Real-time Risk Monitoring and Dashboards
  - [x] Alerting and Notification System
- - [x] Stress Testing and Scenario Analysis
+- [x] Stress Testing and Scenario Analysis
+- [x] Fixed VecAlertHook Default implementation and added missing `rust_decimal_macros` dev dependency for tests
 
 **Final Steps:**
 - [x] Update feature matrix and exchange-by-exchange status in this file.
@@ -1036,9 +1047,26 @@ Some exchanges use slightly different heartbeat mechanisms:
 - [x] Ensure all market making components function correctly with test configurations.
 - [x] Document the market making framework, parameters, and strategy examples. See [MARKET_MAKING_ENGINE.md](MARKET_MAKING_ENGINE.md) for details.
 
-#
+## Outstanding Tasks
+
+- [ ] Fix clippy warnings in `jackbot-integration` caused by deprecated `rand` functions and large `SocketError` variants.
+
 ---
 
 **This file is the single source of truth for the implementation status of all features and components in the jackbot project. All contributors must update this file when making changes to the codebase.**
 
 ---
+
+## Outstanding Build Issues
+
+- [ ] Resolve syntax errors preventing `cargo fmt --all` from succeeding:
+  - `jackbot/src/risk/exposure.rs` has a mismatched closing brace.
+  - `jackbot-execution/src/client/cryptocom.rs` conflicts with `cryptocom/mod.rs`.
+  - `jackbot-execution/tests/advanced_orders_compile.rs` uses the reserved keyword `mod`.
+  - `jackbot-ta/tests/integration.rs` uses the reserved keyword `gen`.
+
+## Known Issues
+
+- `cargo fmt --all -- --check` fails due to syntax errors in `jackbot` and duplicate modules in `jackbot-execution`.
+- `cargo clippy --all-targets --all-features -- -D warnings` fails for crates other than `jackbot-ta`.
+

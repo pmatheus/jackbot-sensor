@@ -26,6 +26,7 @@ async fn test_scheduler_multiple_snapshots() {
     let store = Arc::new(LocalStore::new(local_root.clone()));
     let scheduler = SnapshotScheduler::new(redis, store, meta.clone(), cfg);
 
+
     // Take two snapshots manually
     scheduler.snapshot_once().await.unwrap();
     tokio::time::sleep(Duration::from_millis(1)).await;
