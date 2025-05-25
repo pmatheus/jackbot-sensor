@@ -12,6 +12,7 @@ use crate::{
     },
     transformer::ExchangeTransformer,
 };
+use crate::books::canonical::Canonicalizer;
 use async_trait::async_trait;
 use chrono::Utc;
 use futures_util::future::try_join_all;
