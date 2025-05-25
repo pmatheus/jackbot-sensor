@@ -1,6 +1,8 @@
 //! Jackpot order execution for Kucoin.
 //!
-//! This is currently a stub. API integration will be added in the future.
+//! Kucoin exposes leverage settings but no mechanism for enforcing a fixed
+//! ticket loss. Until such support exists this function always returns an
+//! error.
 #![allow(dead_code)]
 
 pub fn place_jackpot_order() -> Result<(), &'static str> {
