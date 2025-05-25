@@ -81,6 +81,7 @@ pub fn upload_to_s3(local_path: &Path, s3_root: &str) -> io::Result<String> {
             Err(io::Error::other("aws cli failed"))
         }
     }
+}
 
 #[async_trait]
 pub trait ObjectStore: Send + Sync {
@@ -112,7 +113,7 @@ impl ObjectStore for LocalStore {
 
     async fn cleanup(&self, prefix: &str, retention: Duration) -> io::Result<()> {
         let path = self.root.join(prefix);
-        cleanup_old_files(&path, retention)
+        cleanup_old_files(&format!("file://{}", path.display()), retention)
     }
 }
 
@@ -142,7 +143,7 @@ impl S3Store {
 #[async_trait]
 impl ObjectStore for S3Store {
     async fn put(&self, key: &str, local_path: &Path) -> io::Result<String> {
-        upload_to_s3(local_path, key, &self.cfg, &self.client).await?;
+        upload_object_to_s3(local_path, key, &self.cfg, &self.client).await?;
         Ok(format!("s3://{}/{}", self.cfg.bucket, key))
     }
 
@@ -152,7 +153,7 @@ impl ObjectStore for S3Store {
     }
 }
 
-async fn upload_to_s3(
+async fn upload_object_to_s3(
     local_path: &Path,
     key: &str,
     cfg: &AwsConfig,
@@ -282,6 +283,8 @@ pub fn register_with_iceberg(metadata_path: &Path, file_path: &str) -> io::Resul
     table.current_snapshot_id = new_id;
     table.snapshots.push(IcebergSnapshot {
         snapshot_id: new_id,
+        id: new_id,
+        timestamp_ms: chrono::Utc::now().timestamp_millis(),
         files: vec![file_path.to_string()],
     });
 
@@ -387,7 +390,8 @@ mod tests {
             interval: Duration::from_millis(1),
             retention: Duration::from_secs(1),
         };
-        let scheduler = SnapshotScheduler::new(redis, s3_root.clone(), meta.clone(), cfg);
+        let store = Arc::new(LocalStore::new(local_root.to_path_buf()));
+        let scheduler = SnapshotScheduler::new(redis, s3_root.clone(), store, meta.clone(), cfg);
         scheduler.snapshot_once().await.unwrap();
         assert!(
             fs::read_dir(local_root.join("exch/btc-usd"))
@@ -414,7 +418,8 @@ mod tests {
             interval: Duration::from_millis(1),
             retention: Duration::from_secs(1),
         };
-        let scheduler = SnapshotScheduler::new(redis, s3_root.clone(), meta.clone(), cfg);
+        let store = Arc::new(LocalStore::new(local_root.to_path_buf()));
+        let scheduler = SnapshotScheduler::new(redis, s3_root.clone(), store, meta.clone(), cfg);
         scheduler.snapshot_once().await.unwrap();
         assert!(!local_root.exists());
         assert!(!meta.exists());
