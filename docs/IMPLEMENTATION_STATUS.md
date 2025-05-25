@@ -272,6 +272,7 @@ paper trading. The full table also lives in
 - [ ] Ensure all tests pass for all exchanges after each change.
 - [x] Document any API quirks, limitations, or unsupported features.
 - Snapshot pipeline documented in `docs/SNAPSHOT_PIPELINE.md`.
+- `cargo fmt --all -- --check` and `cargo clippy --all-targets --all-features -- -D warnings` currently fail due to issues in other crates (`jackbot`, `jackbot-execution`, and `jackbot-ta`). These crates need syntax fixes before workspace checks can pass.
 
 **This matrix and TODO list must be kept up to date by all contributors.**
 

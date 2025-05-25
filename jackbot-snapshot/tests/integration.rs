@@ -1,9 +1,7 @@
 use jackbot_snapshot::{
     DataRecord, FakeRedis, IcebergTable, LocalStore, RecordType, SnapshotConfig, SnapshotScheduler,
 };
-use std::{path::Path, sync::Arc, time::Duration};
-
-
+use std::{sync::Arc, time::Duration};
 
 #[tokio::test]
 async fn test_scheduler_multiple_snapshots() {
@@ -17,17 +15,16 @@ async fn test_scheduler_multiple_snapshots() {
         })
         .await;
     let dir = std::env::temp_dir();
-    let s3_root = format!("file://{}", dir.join("s3_integration").display());
-    let local_root = Path::new(&s3_root[7..]);
+    let local_root = dir.join("s3_integration");
     let meta = dir.join("meta_integration.json");
-    let _ = std::fs::remove_dir_all(local_root);
+    let _ = std::fs::remove_dir_all(&local_root);
     let _ = std::fs::remove_file(&meta);
     let cfg = SnapshotConfig {
         interval: Duration::from_millis(1),
         retention: Duration::from_secs(1),
     };
-    let store = Arc::new(LocalStore::new(local_root.to_path_buf()));
-    let scheduler = SnapshotScheduler::new(redis, s3_root.clone(), store, meta.clone(), cfg);
+    let store = Arc::new(LocalStore::new(local_root.clone()));
+    let scheduler = SnapshotScheduler::new(redis, store, meta.clone(), cfg);
 
     // Take two snapshots manually
     scheduler.snapshot_once().await.unwrap();
@@ -35,12 +32,10 @@ async fn test_scheduler_multiple_snapshots() {
     scheduler.snapshot_once().await.unwrap();
 
     let files: Vec<_> = std::fs::read_dir(local_root.join("exch/eth-usd"))
-
         .unwrap()
         .collect();
     assert_eq!(files.len(), 2);
     let meta_contents = std::fs::read_to_string(meta).unwrap();
     let meta: IcebergTable = serde_json::from_str(&meta_contents).unwrap();
     assert_eq!(meta.current_snapshot_id, 2);
-
 }
