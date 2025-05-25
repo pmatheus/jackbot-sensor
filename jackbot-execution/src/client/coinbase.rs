@@ -1,3 +1,5 @@
+//! Coinbase spot markets lack native trailing stop orders. Advanced smart trade
+//! features will be implemented by client-side order management.
 use url::Url;
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::UnboundedReceiverStream;

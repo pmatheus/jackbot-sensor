@@ -1,3 +1,6 @@
+//! Binance futures API does not natively expose trailing stop or multi-level
+//! order types. Smart trade behaviour will be emulated through order
+//! management in a future implementation.
 use crate::{
     client::ExecutionClient,
     UnindexedAccountEvent, UnindexedAccountSnapshot,
