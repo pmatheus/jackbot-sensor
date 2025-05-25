@@ -66,7 +66,7 @@ async fn run_connection(
     tx: &mpsc::UnboundedSender<UserWsEvent>,
     auth_payload: &str,
 ) -> Result<(), ()> {
-    if ws.send(WsMessage::Text(auth_payload.to_string())).await.is_err() {
+    if ws.send(WsMessage::text(auth_payload)).await.is_err() {
         return Err(());
     }
     while let Some(msg) = ws.next().await {

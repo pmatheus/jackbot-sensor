@@ -290,6 +290,7 @@ paper trading. The full table also lives in
 - All L1 types, subscription kinds, and references have been deleted from the codebase.
 - Example files dedicated to L1 streams have also been removed.
 - Added `TRADE_WS_ENDPOINTS.md` summarising trade WebSocket endpoints.
+- Added `USER_WS_AUTH.md` summarising authentication and user WebSocket endpoints.
 - Scaffolding baseline trade WebSocket modules across exchanges.
 - Implemented Gate.io trade WebSocket modules with event normalization.
 
@@ -654,14 +655,14 @@ paper and mock engines support automatic liquidation.
 > **Goal:** Implement user WebSocket connections for all supported exchanges and markets to enable real-time account balance updates and trading (order events, fills, etc.). Ensure secure authentication, robust event handling, and unified abstraction for downstream consumers.
 
 **General Steps:**
-- [ ] Research and document user WebSocket API support and authentication mechanisms for all supported exchanges (spot/futures).
+ - [x] Research and document user WebSocket API support and authentication mechanisms for all supported exchanges (spot/futures).
 - [x] Scaffold or refactor user WebSocket modules (e.g., `spot/user_ws.rs`, `futures/user_ws.rs`, and `mod.rs`).
 - [x] Implement secure authentication and connection management (API keys, signatures, session renewal, etc.).
 - [x] Implement event handlers for:
     - [x] Account balance updates (deposits, withdrawals, transfers, PnL, margin changes).
     - [x] Order events (new, filled, partially filled, canceled, rejected, etc.).
-    - [ ] Position updates (for futures/perpetuals).
-- [ ] Normalize and emit events for downstream consumers (internal APIs, Redis, etc.).
+    - [x] Position updates (for futures/perpetuals).
+ - [x] Normalize and emit events for downstream consumers (internal APIs, Redis, etc.).
 - [x] Add/extend integration and unit tests for all user WebSocket logic (including edge cases, reconnections, and error handling).
 - [x] Add/extend module-level and user-facing documentation.
 - [x] Update `docs/IMPLEMENTATION_STATUS.md` with status and links.
@@ -670,7 +671,7 @@ paper and mock engines support automatic liquidation.
 
 - **Binance**
   - [x] Implement authentication and connection management (spot/futures).
-  - [x] Implement event handling for balances and orders. Position updates pending.
+  - [x] Implement event handling for balances, orders and positions.
   - [x] Add/extend tests for all user WebSocket logic.
 
 - **Bitget**
