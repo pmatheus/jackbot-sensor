@@ -631,9 +631,8 @@ paper and mock engines support automatic liquidation.
 - [x] MEXC: Integrate snapshot logic for order book and trades
 - [x] Gate.io: Integrate snapshot logic for order book and trades
 - [x] Crypto.com: Integrate snapshot logic for order book and trades
-- [ ] Snapshot module uses a simplified metadata file and local S3 directories
-  for testing. Full AWS credential handling and production-grade Iceberg
-  table management remain future work.
+- [x] Snapshot module now supports real AWS credentials and full Iceberg table
+  management.
 
 **Final Steps:**
 - [ ] Update feature matrix and exchange-by-exchange status in this file.
