@@ -43,13 +43,13 @@ impl GateOrderBookL2 {
     /// Persist this order book snapshot to the provided [`RedisStore`].
     pub fn store_snapshot<Store: RedisStore>(&self, store: &Store) {
         let snapshot = self.canonicalize(self.time);
-        store.store_snapshot(ExchangeId::GateIo, self.subscription_id.as_ref(), &snapshot);
+        store.store_snapshot(ExchangeId::Gateio, self.subscription_id.as_ref(), &snapshot);
     }
 
     /// Persist this order book update to the provided [`RedisStore`].
     pub fn store_delta<Store: RedisStore>(&self, store: &Store) {
         let delta = OrderBookEvent::Update(self.canonicalize(self.time));
-        store.store_delta(ExchangeId::GateIo, self.subscription_id.as_ref(), &delta);
+        store.store_delta(ExchangeId::Gateio, self.subscription_id.as_ref(), &delta);
     }
 }
 
@@ -92,10 +92,10 @@ mod tests {
             asks: vec![(dec!(30010.0), dec!(2.0))],
         };
         book.store_snapshot(&store);
-        assert!(store.get_snapshot(ExchangeId::GateIo, "BTC_USDT").is_some());
+        assert!(store.get_snapshot(ExchangeId::Gateio, "BTC_USDT").is_some());
 
         let delta_book = GateOrderBookL2 { time: Utc::now(), ..book };
         delta_book.store_delta(&store);
-        assert_eq!(store.delta_len(ExchangeId::GateIo, "BTC_USDT"), 1);
+        assert_eq!(store.delta_len(ExchangeId::Gateio, "BTC_USDT"), 1);
     }
 }
