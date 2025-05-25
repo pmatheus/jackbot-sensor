@@ -26,7 +26,8 @@ async fn test_scheduler_multiple_snapshots() {
         interval: Duration::from_millis(1),
         retention: Duration::from_secs(1),
     };
-    let scheduler = SnapshotScheduler::new(redis, s3_root.clone(), meta.clone(), cfg);
+    let store = Arc::new(LocalStore::new(local_root.to_path_buf()));
+    let scheduler = SnapshotScheduler::new(redis, s3_root.clone(), store, meta.clone(), cfg);
 
     // Take two snapshots manually
     scheduler.snapshot_once().await.unwrap();
