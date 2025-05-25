@@ -193,11 +193,11 @@ fn test_gateio_store_methods() {
         asks: vec![(dec!(30010.0), dec!(2.0))],
     };
     spot_book.store_snapshot(&store);
-    assert!(store.get_snapshot(ExchangeId::GateIo, "BTC_USDT").is_some());
+    assert!(store.get_snapshot(ExchangeId::Gateio, "BTC_USDT").is_some());
 
     let delta_book = GateioOrderBookL2 { time: Utc::now(), ..spot_book };
     delta_book.store_delta(&store);
-    assert_eq!(store.delta_len(ExchangeId::GateIo, "BTC_USDT"), 1);
+    assert_eq!(store.delta_len(ExchangeId::Gateio, "BTC_USDT"), 1);
 
     let fut_book = GateioFuturesOrderBookL2 {
         subscription_id: "BTC_USDT".into(),
@@ -208,8 +208,8 @@ fn test_gateio_store_methods() {
     fut_book.store_snapshot(&store);
     fut_book.store_delta(&store);
 
-    assert!(store.get_snapshot(ExchangeId::GateIo, "BTC_USDT").is_some());
-    assert_eq!(store.delta_len(ExchangeId::GateIo, "BTC_USDT"), 2);
+    assert!(store.get_snapshot(ExchangeId::Gateio, "BTC_USDT").is_some());
+    assert_eq!(store.delta_len(ExchangeId::Gateio, "BTC_USDT"), 2);
 }
 
 #[test]

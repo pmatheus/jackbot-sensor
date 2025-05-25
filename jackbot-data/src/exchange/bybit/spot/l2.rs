@@ -1,6 +1,7 @@
 use super::super::book::{BybitOrderBookL2Data, BybitOrderBookLevel};
 use crate::{
     Identifier, SnapshotFetcher,
+    books::canonical::Canonicalizer,
     error::DataError,
     event::MarketEvent,
     exchange::bybit::{market::BybitMarket, message::BybitPayload, spot::BybitSpot},
@@ -86,6 +87,7 @@ impl SnapshotFetcher<BybitSpot, OrderBooksL2> for BybitSpotOrderBooksL2SnapshotF
 mod tests {
     use super::*;
     use chrono::{TimeZone, Utc};
+    use jackbot_integration::subscription::SubscriptionId;
     use fnv::FnvHashMap;
     use rust_decimal_macros::dec;
 

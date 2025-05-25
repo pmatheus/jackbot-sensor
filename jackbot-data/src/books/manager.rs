@@ -70,9 +70,11 @@ where
                     book_lock.update(OrderBookEvent::Snapshot(snap.clone()));
                 }
                 OrderBookEvent::Update(ref delta) => {
-                    self.store
-                        .store_delta(event.exchange, &event.instrument.to_string(), delta);
-                    book_lock.update(OrderBookEvent::Update(delta.clone()));
+                    let delta_event = OrderBookEvent::Update(delta.clone());
+                    self
+                        .store
+                        .store_delta(event.exchange, &event.instrument.to_string(), &delta_event);
+                    book_lock.update(delta_event);
                 }
             }
         }

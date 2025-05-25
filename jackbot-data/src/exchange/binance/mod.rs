@@ -14,6 +14,7 @@ use crate::{
 use jackbot_instrument::exchange::ExchangeId;
 use jackbot_integration::{error::SocketError, protocol::websocket::WsMessage};
 use std::{fmt::Debug, marker::PhantomData, time::Duration};
+use crate::exchange::PingInterval;
 use url::Url;
 
 /// OrderBook types common to both [`BinanceSpot`](spot::BinanceSpot) and
