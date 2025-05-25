@@ -1,3 +1,6 @@
+//! MEXC does not provide dedicated trailing or multi-level order endpoints.
+//! The current implementation stubs smart trade functionality pending API
+//! enhancements.
 use crate::{
     client::ExecutionClient,
     UnindexedAccountEvent, UnindexedAccountSnapshot,

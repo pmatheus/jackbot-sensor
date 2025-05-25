@@ -139,7 +139,8 @@ Exchanges currently implementing the `Canonicalizer` trait:
 **Final Steps:**
 - [x] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
- - [x] Document any API quirks, limitations, or unsupported features.
+- [x] Document any API quirks, limitations, or unsupported features.
+
 
 ### Verified Price Range Constraints
 
@@ -360,7 +361,8 @@ paper trading. The full table also lives in
 **Final Steps:**
 - [x] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
-- [ ] Document any API quirks, limitations, or unsupported features.
+- [x] Document any API quirks, limitations, or unsupported features.
+- [x] Exchange smart trade quirks documented in client stub comments.
 
 ---
 
@@ -399,7 +401,9 @@ paper trading. The full table also lives in
 - [x] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
 - [x] Document any API quirks, limitations, or unsupported features.
+- [x] Exchange smart trade quirks documented in client stub comments.
 - [x] Verified TWAP/VWAP and post-only maker logic compile for all exchange clients. Coinbase is spot-only and Hyperliquid provides futures only.
+
 
 ---
 

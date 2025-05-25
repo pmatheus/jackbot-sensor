@@ -1,3 +1,5 @@
+//! Gate.io exposes trailing orders inconsistently across spot and futures.
+//! Smart trade operations are stubbed until a unified wrapper is implemented.
 use crate::{
     client::ExecutionClient,
     UnindexedAccountEvent, UnindexedAccountSnapshot,

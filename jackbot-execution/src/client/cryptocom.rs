@@ -1,3 +1,5 @@
+//! Crypto.com API does not expose explicit trailing or multi-level order types.
+//! Smart trade support will therefore be emulated at the execution layer.
 use crate::{
     client::ExecutionClient,
     UnindexedAccountEvent, UnindexedAccountSnapshot,
