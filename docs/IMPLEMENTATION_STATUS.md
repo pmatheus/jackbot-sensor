@@ -1051,6 +1051,14 @@ Some exchanges use slightly different heartbeat mechanisms:
 
 ---
 
+## Outstanding Build Issues
+
+- [ ] Resolve syntax errors preventing `cargo fmt --all` from succeeding:
+  - `jackbot/src/risk/exposure.rs` has a mismatched closing brace.
+  - `jackbot-execution/src/client/cryptocom.rs` conflicts with `cryptocom/mod.rs`.
+  - `jackbot-execution/tests/advanced_orders_compile.rs` uses the reserved keyword `mod`.
+  - `jackbot-ta/tests/integration.rs` uses the reserved keyword `gen`.
+
 ## Known Issues
 
 - `cargo fmt --all -- --check` fails due to syntax errors in `jackbot` and duplicate modules in `jackbot-execution`.
