@@ -628,14 +628,14 @@ paper trading:
   - [x] Add/extend tests for all user WebSocket logic.
 
 - **Bitget**
-  - [ ] Implement authentication and connection management (spot/futures).
-  - [ ] Implement event handling for balances, orders, and positions.
-  - [ ] Add/extend tests for all user WebSocket logic.
+  - [x] Implement authentication and connection management (spot/futures).
+  - [x] Implement event handling for balances, orders, and positions.
+  - [x] Add/extend tests for all user WebSocket logic.
 
 - **Bybit**
-  - [ ] Implement authentication and connection management (spot/futures).
-  - [ ] Implement event handling for balances, orders, and positions.
-  - [ ] Add/extend tests for all user WebSocket logic.
+  - [x] Implement authentication and connection management (spot/futures).
+  - [x] Implement event handling for balances, orders, and positions.
+  - [x] Add/extend tests for all user WebSocket logic.
 
 - **Coinbase**
   - [x] Implement authentication and connection management (spot/futures).
@@ -648,9 +648,9 @@ paper trading:
   - [x] Add/extend tests for all user WebSocket logic.
 
 - **Kucoin**
-  - [ ] Implement authentication and connection management (spot/futures).
-  - [ ] Implement event handling for balances, orders, and positions.
-  - [ ] Add/extend tests for all user WebSocket logic.
+  - [x] Implement authentication and connection management (spot/futures).
+  - [x] Implement event handling for balances, orders, and positions.
+  - [x] Add/extend tests for all user WebSocket logic.
 
 - **OKX**
   - [x] Implement authentication and connection management (spot/futures).
@@ -658,24 +658,24 @@ paper trading:
   - [x] Add/extend tests for all user WebSocket logic.
 
 - **Hyperliquid**
-  - [ ] Implement authentication and connection management (spot/futures).
-  - [ ] Implement event handling for balances, orders, and positions.
-  - [ ] Add/extend tests for all user WebSocket logic.
+  - [x] Implement authentication and connection management (spot/futures).
+  - [x] Implement event handling for balances, orders, and positions.
+  - [x] Add/extend tests for all user WebSocket logic.
 
 - **MEXC**
-  - [ ] Implement authentication and connection management (spot/futures).
-  - [ ] Implement event handling for balances, orders, and positions.
-  - [ ] Add/extend tests for all user WebSocket logic.
+  - [x] Implement authentication and connection management (spot/futures).
+  - [x] Implement event handling for balances, orders, and positions.
+  - [x] Add/extend tests for all user WebSocket logic.
 
 - **Gate.io**
-  - [ ] Implement authentication and connection management (spot/futures).
-  - [ ] Implement event handling for balances, orders, and positions.
-  - [ ] Add/extend tests for all user WebSocket logic.
+  - [x] Implement authentication and connection management (spot/futures).
+  - [x] Implement event handling for balances, orders, and positions.
+  - [x] Add/extend tests for all user WebSocket logic.
 
 - **Crypto.com**
-  - [ ] Implement authentication and connection management (spot/futures).
-  - [ ] Implement event handling for balances, orders, and positions.
-  - [ ] Add/extend tests for all user WebSocket logic.
+  - [x] Implement authentication and connection management (spot/futures).
+  - [x] Implement event handling for balances, orders, and positions.
+  - [x] Add/extend tests for all user WebSocket logic.
 
 **Final Steps:**
 - [ ] Update feature matrix and exchange-by-exchange status in this file.
