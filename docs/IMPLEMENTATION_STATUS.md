@@ -829,8 +829,8 @@ paper trading:
 
 **Final Steps:**
 - [ ] Update feature matrix and exchange-by-exchange status in this file.
-- [ ] Ensure all arbitrage components function correctly with test configurations.
-- [ ] Document any limitations, risks, or exchange-specific considerations.
+- [x] Ensure all arbitrage components function correctly with test configurations.
+- [x] Document any limitations, risks, or exchange-specific considerations. Current implementation focuses on cross-exchange spreads; triangular paths and fee-aware execution are still TODO.
 
 ---
 
