@@ -1,3 +1,4 @@
+use crate::redis_store::RedisStore;
 use crate::{
     Identifier,
     books::{
@@ -23,7 +24,6 @@ use std::{
     sync::Arc,
 };
 use tracing::warn;
-use crate::redis_store::RedisStore;
 
 /// Maintains a set of local L2 [`OrderBook`]s by applying streamed [`OrderBookEvent`]s to the
 /// associated [`OrderBook`] in the [`OrderBookMap`].
@@ -70,8 +70,11 @@ where
                     book_lock.update(OrderBookEvent::Snapshot(snap.clone()));
                 }
                 OrderBookEvent::Update(ref delta) => {
-                    self.store
-                        .store_delta(event.exchange, &event.instrument.to_string(), delta);
+                    self.store.store_delta(
+                        event.exchange,
+                        &event.instrument.to_string(),
+                        &OrderBookEvent::Update(delta.clone()),
+                    );
                     book_lock.update(OrderBookEvent::Update(delta.clone()));
                 }
             }
@@ -83,7 +86,14 @@ where
 /// [`Subscription`]s.
 ///
 /// See `examples/order_books_l2_manager` for how to use this initialisation paradigm.
-pub async fn init_multi_order_book_l2_manager<SubBatchIter, SubIter, Sub, Exchange, Instrument, Store>(
+pub async fn init_multi_order_book_l2_manager<
+    SubBatchIter,
+    SubIter,
+    Sub,
+    Exchange,
+    Instrument,
+    Store,
+>(
     subscription_batches: SubBatchIter,
     store: Store,
 ) -> Result<
