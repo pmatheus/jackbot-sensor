@@ -8,6 +8,8 @@ use crate::{
     ExchangeWsStream, subscription::trade::PublicTrades,
     transformer::stateless::StatelessTransformer,
 };
+use super::super::Hyperliquid;
+
 
 pub use super::super::trade::HyperliquidTrades;
 

@@ -271,7 +271,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_reconnecting_stream_reconnects() {
-        tokio::time::pause();
+
 
         let attempts = Arc::new(AtomicUsize::new(0));
         let init = {
