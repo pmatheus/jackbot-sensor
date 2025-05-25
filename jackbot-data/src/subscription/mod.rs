@@ -15,14 +15,18 @@ use smol_str::{ToSmolStr, format_smolstr};
 use std::{borrow::Borrow, fmt::Debug, hash::Hash};
 
 /// OrderBook [`SubscriptionKind`]s and the associated Jackbot output data models.
+/// OrderBook [`SubscriptionKind`]s and the associated Jackbot output data models.
 pub mod book;
 
+/// Candle [`SubscriptionKind`] and the associated Jackbot output data model.
 /// Candle [`SubscriptionKind`] and the associated Jackbot output data model.
 pub mod candle;
 
 /// Liquidation [`SubscriptionKind`] and the associated Jackbot output data model.
+/// Liquidation [`SubscriptionKind`] and the associated Jackbot output data model.
 pub mod liquidation;
 
+/// Public trade [`SubscriptionKind`] and the associated Jackbot output data model.
 /// Public trade [`SubscriptionKind`] and the associated Jackbot output data model.
 pub mod trade;
 

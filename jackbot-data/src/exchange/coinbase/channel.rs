@@ -2,10 +2,15 @@ use super::Coinbase;
 use crate::subscription::book::OrderBooksL2;
 use crate::{
     Identifier,
-    subscription::{Subscription, trade::PublicTrades},
+    subscription::{
+        Subscription,
+        trade::PublicTrades,
+        book::OrderBooksL2,
+    },
 };
 use serde::Serialize;
 
+/// Type that defines how to translate a Jackbot [`Subscription`] into a
 /// Type that defines how to translate a Jackbot [`Subscription`] into a
 /// [`Coinbase`] channel to be subscribed to.
 ///

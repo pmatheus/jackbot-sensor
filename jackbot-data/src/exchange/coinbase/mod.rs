@@ -5,11 +5,12 @@ use self::{
 use crate::{
     ExchangeWsStream, NoInitialSnapshots,
     exchange::{
-        Connector, ExchangeSub, StreamSelector, PingInterval,
-        DEFAULT_PING_INTERVAL, DEFAULT_HEARTBEAT_INTERVAL,
+        Connector, DEFAULT_HEARTBEAT_INTERVAL, DEFAULT_PING_INTERVAL, ExchangeSub, PingInterval,
+        StreamSelector,
     },
     instrument::InstrumentData,
     subscriber::{WebSocketSubscriber, validator::WebSocketSubValidator},
+    subscription::{book::OrderBooksL2, trade::PublicTrades},
     subscription::{book::OrderBooksL2, trade::PublicTrades},
     transformer::stateless::StatelessTransformer,
 };

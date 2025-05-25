@@ -2,6 +2,9 @@ use super::{Bybit, ExchangeServer};
 use jackbot_instrument::exchange::ExchangeId;
 use std::fmt::Display;
 
+/// Level 2 OrderBook types.
+pub mod l2;
+
 /// [`BybitSpot`] WebSocket server base url.
 ///
 /// See docs: <https://bybit-exchange.github.io/docs/v5/ws/connect>
@@ -26,6 +29,14 @@ impl ExchangeServer for BybitServerSpot {
     fn websocket_url() -> &'static str {
         WEBSOCKET_BASE_URL_BYBIT_SPOT
     }
+}
+
+impl<Instrument> StreamSelector<Instrument, OrderBooksL2> for BybitSpot
+where
+    Instrument: InstrumentData,
+{
+    type SnapFetcher = BybitSpotOrderBooksL2SnapshotFetcher;
+    type Stream = ExchangeWsStream<BybitSpotOrderBooksL2Transformer<Instrument::Key>>;
 }
 
 impl Display for BybitSpot {

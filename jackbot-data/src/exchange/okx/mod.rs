@@ -15,12 +15,10 @@ use self::{
 };
 use crate::{
     ExchangeWsStream, NoInitialSnapshots,
-    exchange::{
-        Connector, ExchangeSub, PingInterval, StreamSelector,
-        DEFAULT_HEARTBEAT_INTERVAL,
-    },
+    exchange::{Connector, DEFAULT_HEARTBEAT_INTERVAL, ExchangeSub, PingInterval, StreamSelector},
     instrument::InstrumentData,
     subscriber::{WebSocketSubscriber, validator::WebSocketSubValidator},
+    subscription::{book::OrderBooksL2, trade::PublicTrades},
     subscription::{book::OrderBooksL2, trade::PublicTrades},
     transformer::stateless::StatelessTransformer,
 };
@@ -34,9 +32,11 @@ use std::time::Duration;
 use url::Url;
 
 /// Defines the type that translates a Jackbot [`Subscription`](crate::subscription::Subscription)
+/// Defines the type that translates a Jackbot [`Subscription`](crate::subscription::Subscription)
 /// into an execution [`Connector`] specific channel used for generating [`Connector::requests`].
 pub mod channel;
 
+/// Defines the type that translates a Jackbot [`Subscription`](crate::subscription::Subscription)
 /// Defines the type that translates a Jackbot [`Subscription`](crate::subscription::Subscription)
 /// into an execution [`Connector`] specific market used for generating [`Connector::requests`].
 pub mod market;

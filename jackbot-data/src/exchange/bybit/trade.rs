@@ -335,4 +335,39 @@ mod tests {
             }
         }
     }
+
+    #[test]
+    fn test_market_iter_conversion() {
+        let trade_json = r#"{
+            "topic": "publicTrade.BTCUSDT",
+            "type": "snapshot",
+            "ts": 1672304486868,
+            "data": [{
+                "T": 1672304486865,
+                "s": "BTCUSDT",
+                "S": "Buy",
+                "v": "0.001",
+                "p": "16578.50",
+                "L": "PlusTick",
+                "i": "id1",
+                "BT": false
+            }]
+        }"#;
+
+        let trades: BybitTrade = serde_json::from_str(trade_json).unwrap();
+        let events: MarketIter<&str, PublicTrade> =
+            (ExchangeId::Bybit, "BTCUSDT", trades).into();
+
+        assert_eq!(events.0.len(), 1);
+        let event = events.0.into_iter().next().unwrap().unwrap();
+        assert_eq!(event.exchange, ExchangeId::Bybit);
+        assert_eq!(event.instrument, "BTCUSDT");
+        assert_eq!(event.kind, PublicTrade {
+            id: "id1".to_string(),
+            price: 16578.50,
+            amount: 0.001,
+            side: Side::Buy,
+        });
+        assert!(event.time_received >= event.time_exchange);
+    }
 }

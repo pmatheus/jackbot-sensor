@@ -1,10 +1,15 @@
 use super::Okx;
 use crate::{
     Identifier,
-    subscription::{Subscription, trade::PublicTrades},
+    subscription::{
+        Subscription,
+        book::OrderBooksL2,
+        trade::PublicTrades,
+    },
 };
 use serde::Serialize;
 
+/// Type that defines how to translate a Jackbot [`Subscription`] into a
 /// Type that defines how to translate a Jackbot [`Subscription`] into a
 /// [`Okx`] channel to be subscribed to.
 ///
@@ -24,6 +29,12 @@ impl OkxChannel {
 impl<Instrument> Identifier<OkxChannel> for Subscription<Okx, Instrument, PublicTrades> {
     fn id(&self) -> OkxChannel {
         OkxChannel::TRADES
+    }
+}
+
+impl<Instrument> Identifier<OkxChannel> for Subscription<Okx, Instrument, OrderBooksL2> {
+    fn id(&self) -> OkxChannel {
+        OkxChannel::ORDER_BOOK_L2
     }
 }
 

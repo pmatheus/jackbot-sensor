@@ -5,8 +5,8 @@ use self::{
 use crate::{
     ExchangeWsStream, NoInitialSnapshots,
     exchange::{
-        Connector, ExchangeSub, StreamSelector, PingInterval,
-        DEFAULT_PING_INTERVAL, DEFAULT_HEARTBEAT_INTERVAL,
+        Connector, DEFAULT_HEARTBEAT_INTERVAL, DEFAULT_PING_INTERVAL, ExchangeSub, PingInterval,
+        StreamSelector,
     },
     instrument::InstrumentData,
     subscriber::{WebSocketSubscriber, validator::WebSocketSubValidator},
@@ -26,9 +26,11 @@ use url::Url;
 pub mod book;
 
 /// Defines the type that translates a Jackbot [`Subscription`](crate::subscription::Subscription)
+/// Defines the type that translates a Jackbot [`Subscription`](crate::subscription::Subscription)
 /// into an execution [`Connector`] specific channel used for generating [`Connector::requests`].
 pub mod channel;
 
+/// Defines the type that translates a Jackbot [`Subscription`](crate::subscription::Subscription)
 /// Defines the type that translates a Jackbot [`Subscription`](crate::subscription::Subscription)
 /// into an execution [`Connector`]  specific market used for generating [`Connector::requests`].
 pub mod market;
