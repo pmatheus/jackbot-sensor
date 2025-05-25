@@ -160,7 +160,7 @@ mod tests {
             exchange_asset(ExchangeId::BinanceSpot, "usdt"),
         );
 
-        // Very instrument indexes
+        // Verify instrument indexes
         assert_eq!(
             indexed.instruments()[0].value,
             Instrument {
