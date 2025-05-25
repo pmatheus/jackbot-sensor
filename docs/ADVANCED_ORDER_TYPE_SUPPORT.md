@@ -37,6 +37,11 @@ All exchanges expose the same trait-based interface in `jackbot-execution`. Stub
 - Kraken trailing semantics differ from other venues and require mapping.
 - OKX exposes advanced features via algorithmic order endpoints that are not yet integrated.
 - Gate.io, Crypto.com, MEXC, Bitget, Bybit and Kucoin clients are currently stubs with placeholder implementations.
+- `PropheticOrderManager` treats `range_percent` as an absolute value. Negative
+  inputs behave the same as positive ones.
+- Prophetic orders with duplicate client order IDs are ignored to prevent
+  accidental double placement.
+
 
 ## Maker-Only (Post-Only) Support
 

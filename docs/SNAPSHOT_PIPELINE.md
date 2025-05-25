@@ -16,3 +16,7 @@ This document describes how Jackbot persists order book and trade data from Redi
 The scheduler interval and retention are specified via `SnapshotConfig`. Running `SnapshotScheduler::start` will continuously persist snapshots according to this configuration.
 
 This pipeline allows efficient, queryable storage of historical market data while keeping Redis memory usage under control.
+
+## Limitations
+
+SnapshotScheduler currently shells out to the `aws` CLI for uploads instead of using the internal `S3Store`. The CLI must be installed and available in PATH. Cleanup of expired objects in S3 is not implemented, so only local paths benefit from retention pruning. Each snapshot writes all Redis records and may grow large on busy systems.
