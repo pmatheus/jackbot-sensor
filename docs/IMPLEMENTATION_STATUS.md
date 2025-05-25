@@ -774,7 +774,7 @@ paper and mock engines support automatic liquidation.
 - [x] Kucoin: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [x] OKX: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [x] Hyperliquid: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
-- [ ] MEXC: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
+ - [x] MEXC: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [ ] Gate.io: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [ ] Crypto.com: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 
