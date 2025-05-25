@@ -1,4 +1,6 @@
-use jackbot_snapshot::{FakeRedis, SnapshotScheduler, DataRecord, RecordType, SnapshotConfig, IcebergMeta};
+use jackbot_snapshot::{
+    DataRecord, FakeRedis, IcebergMeta, RecordType, SnapshotConfig, SnapshotScheduler,
+};
 use std::{path::PathBuf, sync::Arc, time::Duration};
 
 #[tokio::test]
@@ -17,16 +19,26 @@ async fn test_scheduler_multiple_snapshots() {
     let meta = dir.join("meta_integration.json");
     let _ = std::fs::remove_dir_all(&s3_root);
     let _ = std::fs::remove_file(&meta);
-    let cfg = SnapshotConfig { interval: Duration::from_millis(1), retention: Duration::from_secs(1) };
-    let scheduler = SnapshotScheduler::new(redis, s3_root.clone(), meta.clone(), cfg);
+    let cfg = SnapshotConfig {
+        interval: Duration::from_millis(1),
+        retention: Duration::from_secs(1),
+    };
+    let scheduler = SnapshotScheduler::new(
+        redis,
+        s3_root.to_string_lossy().to_string(),
+        meta.clone(),
+        cfg,
+    );
     // Take two snapshots manually
     scheduler.snapshot_once().await.unwrap();
     tokio::time::sleep(Duration::from_millis(1)).await;
     scheduler.snapshot_once().await.unwrap();
 
-    let files: Vec<_> = std::fs::read_dir(s3_root.join("exch/eth-usd")).unwrap().collect();
+    let files: Vec<_> = std::fs::read_dir(PathBuf::from(&s3_root).join("exch/eth-usd"))
+        .unwrap()
+        .collect();
     assert_eq!(files.len(), 2);
     let meta_contents = std::fs::read_to_string(meta).unwrap();
     let meta: IcebergMeta = serde_json::from_str(&meta_contents).unwrap();
-    assert_eq!(meta.files.len(), 2);
+    assert_eq!(meta.snapshots.len(), 2);
 }
