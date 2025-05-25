@@ -63,4 +63,3 @@ chrono = { workspace = true, features = ["serde"] }
 itertools = { workspace = true }
 bytes = { workspace = true }
 derive_more = { workspace = true, features = ["display", "constructor"] }
-rand = { workspace = true }
