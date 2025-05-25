@@ -296,8 +296,8 @@ paper trading:
 - [x] Implement or refactor exchange adapters for live trading (real orders via authenticated API/WebSocket).
 - [x] Implement a robust paper trading engine (simulated fills, order book emulation, event emission, etc.).
 - [x] Add/extend integration tests for both live and paper trading (with mocks/sandboxes where possible).
-- [ ] Add/extend module-level and user-facing documentation.
-- [ ] Update `docs/IMPLEMENTATION_STATUS.md` with status and links.
+- [x] Add/extend module-level and user-facing documentation.
+- [x] Update `docs/IMPLEMENTATION_STATUS.md` with status and links.
 
 **Exchange-Specific TODOs:**
 

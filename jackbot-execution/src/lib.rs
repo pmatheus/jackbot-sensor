@@ -22,6 +22,20 @@
 //! * **Extensible**: Jackbot-Execution is highly extensible, making it easy to contribute by adding new exchange integrations!
 //!
 //! See `README.md` for more information and examples.
+//!
+//! ## Trading Modes
+//!
+//! Jackbot-Execution supports two runtime modes:
+//! - **Live**: orders are submitted to real exchanges using an
+//!   [`ExecutionClient`] implementation. Account snapshots and updates stream
+//!   directly from the venue APIs.
+//! - **Paper**: orders are routed through the in-memory [`exchange::paper`]
+//!   engine which simulates fills via [`PaperBook`] order books. This mode
+//!   mirrors the live API and is ideal for dry-runs or strategy development
+//!   without placing real trades.
+//!
+//! Both modes expose the same trait interfaces, allowing strategies to switch
+//! between live and paper with only configuration changes.
 
 use crate::{
     balance::AssetBalance,
