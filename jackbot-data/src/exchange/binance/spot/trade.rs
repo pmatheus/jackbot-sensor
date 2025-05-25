@@ -33,6 +33,7 @@ mod tests {
         subscription::Map,
         transformer::ExchangeTransformer,
     };
+    use jackbot_integration::Transformer;
     use fnv::FnvHashMap;
     use jackbot_instrument::Side;
     use jackbot_integration::subscription::SubscriptionId;

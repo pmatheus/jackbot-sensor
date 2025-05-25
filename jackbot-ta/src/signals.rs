@@ -19,7 +19,10 @@ pub struct CrossOverSignal {
 impl CrossOverSignal {
     /// Create a new crossover signal generator.
     pub fn new() -> Self {
-        Self { prev_fast: None, prev_slow: None }
+        Self {
+            prev_fast: None,
+            prev_slow: None,
+        }
     }
 
     /// Update with the latest fast and slow values and return a signal if a
@@ -37,5 +40,11 @@ impl CrossOverSignal {
         self.prev_fast = Some(fast);
         self.prev_slow = Some(slow);
         out
+    }
+}
+
+impl Default for CrossOverSignal {
+    fn default() -> Self {
+        Self::new()
     }
 }
