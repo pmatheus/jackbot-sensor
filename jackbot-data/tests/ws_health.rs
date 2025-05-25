@@ -3,6 +3,7 @@ use jackbot_data::exchange::{
     coinbase::Coinbase,
     kraken::Kraken,
     kucoin::Kucoin,
+    mexc::Mexc,
     okx::Okx,
     hyperliquid::Hyperliquid,
     Connector,
@@ -15,6 +16,7 @@ fn test_exchange_heartbeat_intervals() {
     assert_eq!(Coinbase::heartbeat_interval(), Some(DEFAULT_HEARTBEAT_INTERVAL));
     assert_eq!(Kraken::heartbeat_interval(), Some(DEFAULT_HEARTBEAT_INTERVAL));
     assert_eq!(Kucoin::heartbeat_interval(), Some(DEFAULT_HEARTBEAT_INTERVAL));
+    assert_eq!(Mexc::heartbeat_interval(), Some(DEFAULT_HEARTBEAT_INTERVAL));
     assert_eq!(Okx::heartbeat_interval(), Some(DEFAULT_HEARTBEAT_INTERVAL));
     assert_eq!(Hyperliquid::heartbeat_interval(), Some(DEFAULT_HEARTBEAT_INTERVAL));
 }

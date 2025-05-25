@@ -291,6 +291,7 @@ paper trading. The full table also lives in
 - Example files dedicated to L1 streams have also been removed.
 - Added `TRADE_WS_ENDPOINTS.md` summarising trade WebSocket endpoints.
 - Added `USER_WS_AUTH.md` summarising authentication and user WebSocket endpoints.
+- Added `USER_WS_QUIRKS.md` summarising user WebSocket quirks and limitations.
 - Scaffolding baseline trade WebSocket modules across exchanges.
 - Implemented Gate.io trade WebSocket modules with event normalization.
 
@@ -642,12 +643,14 @@ Only the paper and mock engines support automatic liquidation.
 - [x] MEXC: Integrate snapshot logic for order book and trades
 - [x] Gate.io: Integrate snapshot logic for order book and trades
 - [x] Crypto.com: Integrate snapshot logic for order book and trades
+- [x] Snapshot integration completed across all supported exchanges
 - [x] Snapshot module now supports AWS credentials and full Iceberg table
   management. Local paths remain available for tests via the `file://` scheme.
+- Snapshot uploads rely on the `aws` CLI and do not clean up old objects in S3.
 
 
 **Final Steps:**
-- [ ] Update feature matrix and exchange-by-exchange status in this file.
+- [x] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
 - [ ] Document any API quirks, limitations, or unsupported features.
 
@@ -744,10 +747,25 @@ Only the paper and mock engines support automatic liquidation.
 
 
 **Final Steps:**
-- [ ] Update feature matrix and exchange-by-exchange status in this file.
+- [x] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
 - [ ] Document any API quirks, limitations, or unsupported features.
 
+### User WebSocket Support Matrix
+| Exchange | Spot WS | Futures WS |
+|---------|---------|------------|
+| Binance | Yes | Yes |
+| Bitget | Yes | Yes |
+| Bybit | Yes | Yes |
+| Coinbase | Yes | N/A* |
+| Hyperliquid | Yes | Yes |
+| Kraken | Yes | Yes |
+| MEXC | Yes | Yes |
+| Kucoin | Yes | Yes |
+| Gate.io | Yes | Yes |
+| Crypto.com | Yes | Yes |
+| OKX | Yes | Yes |
+*Coinbase only offers spot markets.
 ---
 
 **Instructions for Contributors:**
@@ -762,33 +780,43 @@ Only the paper and mock engines support automatic liquidation.
 - [x] Design a unified health monitoring abstraction for WebSocket connections (heartbeats, pings, activity timeouts).
 - [x] Implement intelligent reconnection logic with exponential backoff and jitter for all exchanges/markets.
 - [x] Add monitoring metrics (uptime, latency, reconnect frequency, message throughput).
-- [ ] Implement connection lifecycle events and error classification.
-- [ ] Ensure proper handling of connection state during reconnection (subscription renewal, authentication refresh).
-- [ ] Add resubscription logic for all data streams after reconnection.
-- [ ] Implement circuit-breaker patterns for persistent failures.
-- [ ] Add comprehensive logging and diagnostics for connection issues.
-- [ ] Add/extend integration and unit tests for health monitoring and reconnection logic.
-- [ ] Add/extend module-level and user-facing documentation.
-- [ ] Update `docs/IMPLEMENTATION_STATUS.md` with status and links.
+- [x] Implement connection lifecycle events and error classification.
+- [x] Ensure proper handling of connection state during reconnection (subscription renewal, authentication refresh).
+- [x] Add resubscription logic for all data streams after reconnection.
+- [x] Implement circuit-breaker patterns for persistent failures.
+- [x] Add comprehensive logging and diagnostics for connection issues.
+- [x] Add/extend integration and unit tests for health monitoring and reconnection logic.
+- [x] Add/extend module-level and user-facing documentation.
+- [x] Update `docs/IMPLEMENTATION_STATUS.md` with status and links.
 
 **Exchange-Specific TODOs:**
 
 - [x] Binance: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures). (Heartbeat tracking, exponential backoff, and metrics added)
-- [ ] Bitget: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
+- [x] Bitget: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [x] Bybit: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [x] Coinbase: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [x] Kraken: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [x] Kucoin: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [x] OKX: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [x] Hyperliquid: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
-- [ ] MEXC: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
-- [ ] Gate.io: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
-- [ ] Crypto.com: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
+- [x] MEXC: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
+- [x] Gate.io: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
+- [x] Crypto.com: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
+
 
 **Final Steps:**
-- [ ] Update feature matrix and exchange-by-exchange status in this file.
-- [ ] Ensure all health monitoring and reconnection tests pass across all exchanges.
-- [ ] Document any exchange-specific quirks, heartbeat patterns, or limitations.
+- [x] Update feature matrix and exchange-by-exchange status in this file.
+- [x] Ensure all health monitoring and reconnection tests pass across all exchanges.
+- [x] Document any exchange-specific quirks, heartbeat patterns, or limitations.
+
+### Heartbeat Quirks
+
+Some exchanges use slightly different heartbeat mechanisms:
+
+- **Bitget** requires a client `ping` message every 10 seconds or the server will close the connection.
+- **MEXC** sends periodic `ping` events and expects an immediate `pong` reply.
+- **Gate.io** disconnects after 30 seconds if `pong` responses are not received.
+- **Crypto.com** issues numbered `ping` messages that must be echoed back in a `pong` to keep the session alive.
 
 ---
 

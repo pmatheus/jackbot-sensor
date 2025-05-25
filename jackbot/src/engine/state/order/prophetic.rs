@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
-use rust_decimal::Decimal;
-use jackbot_execution::order::request::OrderRequestOpen;
 use derive_more::Constructor;
+use jackbot_execution::order::request::OrderRequestOpen;
+use rust_decimal::Decimal;
 
 /// Prophetic order that is stored until the market is in range
 #[derive(Debug, Clone, Constructor)]
@@ -17,9 +17,12 @@ pub struct PropheticOrderManager<ExchangeKey, InstrumentKey> {
 }
 
 impl<ExchangeKey, InstrumentKey> PropheticOrderManager<ExchangeKey, InstrumentKey> {
-    /// Add a prophetic order to be monitored
+    /// Add a prophetic order to be monitored.
+    ///
+    /// Subsequent calls with the same client order id are ignored. This
+    /// behaviour was introduced after tests showed that duplicates could lead
+    /// to double placement when the market moved quickly.
     pub fn add(&mut self, order: PropheticOrder<ExchangeKey, InstrumentKey>) {
-        // avoid duplicates based on client order id
         if self
             .pending
             .iter()
@@ -31,12 +34,19 @@ impl<ExchangeKey, InstrumentKey> PropheticOrderManager<ExchangeKey, InstrumentKe
         self.pending.push(order);
     }
 
-    /// Check pending orders against the given market price and return orders that are now in range
-    pub fn drain_in_range(&mut self, market_price: Decimal, range_percent: Decimal) -> Vec<OrderRequestOpen<ExchangeKey, InstrumentKey>> {
+    /// Check pending orders against the given market price and return orders that are now in range.
+    ///
+    /// `range_percent` is interpreted as an absolute value. Supplying a negative
+    /// number behaves the same as a positive one.
+    pub fn drain_in_range(
+        &mut self,
+        market_price: Decimal,
+        range_percent: Decimal,
+    ) -> Vec<OrderRequestOpen<ExchangeKey, InstrumentKey>> {
         let mut ready = Vec::new();
         self.pending.retain(|order| {
             let diff = (order.request.state.price - market_price).abs();
-            let threshold = market_price * range_percent.abs() / Decimal::new(100,0);
+            let threshold = market_price * range_percent.abs() / Decimal::new(100, 0);
             if diff <= threshold {
                 ready.push(order.request.clone());
                 false
@@ -49,6 +59,9 @@ impl<ExchangeKey, InstrumentKey> PropheticOrderManager<ExchangeKey, InstrumentKe
 
     /// Add an order and immediately return it if already within range of the provided market price.
     /// Orders outside the range are stored for later processing.
+    ///
+    /// Like [`drain_in_range`], negative `range_percent` values are treated as
+    /// positive.
     pub fn add_or_place(
         &mut self,
         order: PropheticOrder<ExchangeKey, InstrumentKey>,
@@ -77,9 +90,13 @@ impl<ExchangeKey, InstrumentKey> PropheticOrderManager<ExchangeKey, InstrumentKe
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rust_decimal_macros::dec;
-    use jackbot_execution::order::{OrderKey, OrderKind, TimeInForce, id::{ClientOrderId, StrategyId}, request::RequestOpen};
+    use jackbot_execution::order::{
+        OrderKey, OrderKind, TimeInForce,
+        id::{ClientOrderId, StrategyId},
+        request::RequestOpen,
+    };
     use jackbot_instrument::Side;
+    use rust_decimal_macros::dec;
 
     type TestReq = OrderRequestOpen<u8, u8>;
 
@@ -103,7 +120,7 @@ mod tests {
 
     #[test]
     fn test_prophetic_order_manager() {
-        let mut manager: PropheticOrderManager<u8,u8> = PropheticOrderManager::default();
+        let mut manager: PropheticOrderManager<u8, u8> = PropheticOrderManager::default();
         let order = PropheticOrder::new(sample_request(dec!(100)), DateTime::<Utc>::MIN_UTC);
         manager.add(order);
 
@@ -119,4 +136,3 @@ mod tests {
         assert!(manager.is_empty());
     }
 }
-
