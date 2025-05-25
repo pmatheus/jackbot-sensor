@@ -1,3 +1,9 @@
+//! Binance paper trading client.
+//!
+//! `BinancePaperClient` wraps [`PaperEngine`] to emulate Binance Spot trading
+//! while exposing the [`ExecutionClient`] interface. This allows switching
+//! between live and paper modes by swapping the client implementation in a
+//! strategy's configuration.
 use crate::{
     client::ExecutionClient,
     exchange::paper::{PaperBook, PaperEngine},

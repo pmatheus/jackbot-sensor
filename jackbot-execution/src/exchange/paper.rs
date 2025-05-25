@@ -1,3 +1,9 @@
+//! Simulated exchange engine used for paper trading.
+//!
+//! [`PaperEngine`] tracks balances, open orders and trade fills using provided
+//! [`PaperBook`] order books. It exposes the same behavior as a real
+//! [`ExecutionClient`], allowing strategies to evaluate performance without
+//! interacting with live venues.
 use crate::{
     exchange::mock::account::AccountState,
     exchange::mock::OpenOrderNotifications,
