@@ -150,6 +150,9 @@ Exchanges currently implementing the `Canonicalizer` trait:
 **Final Steps:**
 - [x] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
+- [ ] Resolve clippy warnings in `jackbot-integration` (deprecated rand APIs, result_large_err, missing debug implementations).
+- [ ] Fix formatting issues preventing `cargo fmt` from running (exposure.rs, cryptocom client module, TA tests).
+- [ ] Address failing `jackbot-data` tests (missing SubscriptionId, tokio time test utilities).
 - [x] Document any API quirks, limitations, or unsupported features.
 
 
