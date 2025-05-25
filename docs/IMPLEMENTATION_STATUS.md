@@ -776,7 +776,7 @@ paper and mock engines support automatic liquidation.
 - [x] Hyperliquid: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [ ] MEXC: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [ ] Gate.io: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
-- [ ] Crypto.com: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
+ - [x] Crypto.com: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 
 **Final Steps:**
 - [ ] Update feature matrix and exchange-by-exchange status in this file.
