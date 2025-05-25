@@ -1,3 +1,8 @@
+//! Exchange connector traits and implementations.
+//!
+//! Each connector defines a [`Connector::heartbeat_interval`] which works with
+//! [`with_heartbeat`](jackbot_integration::protocol::websocket::with_heartbeat)
+//! to monitor WebSocket health and automatically reconnect when messages stall.
 use self::subscription::ExchangeSub;
 use crate::{
     MarketStream, SnapshotFetcher,
