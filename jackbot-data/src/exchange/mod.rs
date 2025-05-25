@@ -38,6 +38,9 @@ pub mod hyperliquid;
 /// `MEXC` [`Connector`] modules.
 pub mod mexc;
 
+/// Common user WebSocket utilities shared across exchanges.
+pub mod user_ws_common;
+
 /// Defines the generic [`ExchangeSub`] containing a market and channel combination used by an
 /// exchange [`Connector`] to build [`WsMessage`] subscription payloads.
 pub mod subscription;

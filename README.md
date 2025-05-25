@@ -46,6 +46,12 @@ The setup script installs:
 - **Development libraries**: Required for building Rust dependencies
 - **Apache Arrow dependencies**: For Parquet file format support
 
+### Redis Caveats
+
+- Only the last 1000 deltas and trades are retained per instrument. Older entries are dropped.
+- Connection errors are ignored, so ensure Redis is reachable to avoid data loss.
+- All keys default to the `jb` prefix. Use a custom prefix if sharing a Redis instance.
+
 ## Post-Installation
 
 After installing the dependencies:
@@ -97,5 +103,7 @@ Please read our contribution guidelines before submitting pull requests.
 [Include your license information here] 
 ## Snapshotting Redis Data to S3
 
-The `jackbot-snapshot` crate demonstrates extracting multi-exchange order book and trade data from Redis and persisting it to an S3 data lake managed with Apache Iceberg. Snapshots are written in Parquet format and uploaded to partitioned paths organised by exchange and market. Duplicate files are avoided and stale snapshots are pruned based on a configurable retention period. See [SNAPSHOT_PIPELINE.md](docs/SNAPSHOT_PIPELINE.md) for details on how the scheduler works and how to configure it.
+The `jackbot-snapshot` crate demonstrates extracting multi-exchange order book and trade data from Redis and persisting it to an S3 data lake managed with Apache Iceberg. Snapshots are written in Parquet format and uploaded to partitioned paths organised by exchange and market using AWS credentials. A `file://` path can be used for local testing. Duplicate files are avoided and stale snapshots are pruned based on a configurable retention period. See [SNAPSHOT_PIPELINE.md](docs/SNAPSHOT_PIPELINE.md) for details on how the scheduler works and how to configure it.
 
+
+Note: uploads currently rely on the `aws` CLI. Ensure it is installed and configured. Cleanup of old objects in S3 is not implemented; only local paths are pruned. Every snapshot writes the full set of Redis records.

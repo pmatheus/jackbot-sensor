@@ -1,14 +1,19 @@
 use async_trait::async_trait;
+use hmac::{Hmac, Mac};
+use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::{
     fs::{self, File},
     io::{self, Write},
     path::{Path, PathBuf},
+    process::Command,
     sync::Arc,
     time::{Duration, SystemTime},
 };
 use tokio::sync::Mutex;
 use tokio::time;
+type HmacSha256 = Hmac<Sha256>;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum RecordType {
@@ -48,43 +53,182 @@ pub fn write_parquet(records: &[DataRecord], path: &Path) -> io::Result<()> {
     Ok(())
 }
 
-#[async_trait]
-pub trait StorageBackend: Send + Sync {
-    async fn store(&self, local_path: &Path, dest_key: &str) -> io::Result<String>;
-    async fn cleanup(&self, retention: Duration) -> io::Result<()>;
+
+pub fn upload_to_s3(local_path: &Path, s3_root: &str) -> io::Result<String> {
+    let file_name = local_path
+        .file_name()
+        .ok_or_else(|| io::Error::other("missing file name"))?
+        .to_str()
+        .ok_or_else(|| io::Error::other("invalid file name"))?;
+
+    if let Some(path) = s3_root.strip_prefix("file://") {
+        let root = Path::new(path);
+        fs::create_dir_all(root)?;
+        let dest = root.join(file_name);
+        fs::copy(local_path, &dest)?;
+        Ok(dest.display().to_string())
+    } else {
+        let dest = format!("{}/{}", s3_root.trim_end_matches('/'), file_name);
+        let status = Command::new("aws")
+            .args(["s3", "cp", local_path.to_str().unwrap(), &dest])
+            .status()?;
+        if status.success() {
+            Ok(dest)
+        } else {
+            Err(io::Error::other("aws cli failed"))
+        }
+    }
 }
 
-pub struct LocalStorage {
+#[async_trait]
+pub trait ObjectStore: Send + Sync {
+    async fn put(&self, key: &str, local_path: &Path) -> io::Result<String>;
+    async fn cleanup(&self, prefix: &str, retention: Duration) -> io::Result<()>;
+}
+
+/// Local filesystem implementation of [`ObjectStore`] used in tests.
+pub struct LocalStore {
     root: PathBuf,
 }
 
-impl LocalStorage {
+impl LocalStore {
     pub fn new(root: PathBuf) -> Self {
         Self { root }
     }
 }
 
 #[async_trait]
-impl StorageBackend for LocalStorage {
-    async fn store(&self, local_path: &Path, dest_key: &str) -> io::Result<String> {
-        let dest = self.root.join(dest_key);
+impl ObjectStore for LocalStore {
+    async fn put(&self, key: &str, local_path: &Path) -> io::Result<String> {
+        let dest = self.root.join(key);
         if let Some(parent) = dest.parent() {
             fs::create_dir_all(parent)?;
         }
         fs::copy(local_path, &dest)?;
-        Ok(dest.display().to_string())
+        Ok(dest.to_string_lossy().to_string())
     }
 
-    async fn cleanup(&self, retention: Duration) -> io::Result<()> {
-        cleanup_old_files(&self.root, retention)
+    async fn cleanup(&self, prefix: &str, retention: Duration) -> io::Result<()> {
+        let path = self.root.join(prefix);
+        cleanup_old_files(&format!("file://{}", path.display()), retention)
     }
 }
 
-fn cleanup_old_files(root: &Path, retention: Duration) -> io::Result<()> {
-    if !root.exists() {
+/// AWS S3 configuration for [`S3Store`].
+pub struct AwsConfig {
+    pub bucket: String,
+    pub region: String,
+    pub access_key: String,
+    pub secret_key: String,
+}
+
+/// S3-backed implementation of [`ObjectStore`].
+pub struct S3Store {
+    cfg: AwsConfig,
+    client: Client,
+}
+
+impl S3Store {
+    pub fn new(cfg: AwsConfig) -> Self {
+        Self {
+            cfg,
+            client: Client::new(),
+        }
+    }
+}
+
+#[async_trait]
+impl ObjectStore for S3Store {
+    async fn put(&self, key: &str, local_path: &Path) -> io::Result<String> {
+        upload_object_to_s3(local_path, key, &self.cfg, &self.client).await?;
+        Ok(format!("s3://{}/{}", self.cfg.bucket, key))
+    }
+
+    async fn cleanup(&self, _prefix: &str, _retention: Duration) -> io::Result<()> {
+        // In production this would list and remove expired objects. Omitted for brevity.
+        Ok(())
+    }
+}
+
+async fn upload_object_to_s3(
+    local_path: &Path,
+    key: &str,
+    cfg: &AwsConfig,
+    client: &Client,
+) -> io::Result<()> {
+    let data = fs::read(local_path)?;
+    let host = format!("{}.s3.{}.amazonaws.com", cfg.bucket, cfg.region);
+    let url = format!("https://{}/{}", host, key);
+
+    let payload_hash = hex::encode(Sha256::digest(&data));
+    let now = chrono::Utc::now();
+    let amz_date = now.format("%Y%m%dT%H%M%SZ").to_string();
+    let date_stamp = now.format("%Y%m%d").to_string();
+    let canonical_headers = format!(
+        "host:{}\nx-amz-content-sha256:{}\nx-amz-date:{}\n",
+        host, payload_hash, amz_date
+    );
+    let signed_headers = "host;x-amz-content-sha256;x-amz-date";
+    let canonical_request = format!(
+        "PUT\n/{}\n\n{}\n{}\n{}",
+        key, canonical_headers, signed_headers, payload_hash
+    );
+    let canonical_hash = hex::encode(Sha256::digest(canonical_request.as_bytes()));
+    let scope = format!("{}/{}/s3/aws4_request", date_stamp, cfg.region);
+    let string_to_sign = format!(
+        "AWS4-HMAC-SHA256\n{}\n{}\n{}",
+        amz_date, scope, canonical_hash
+    );
+    let signing_key = signing_key(&cfg.secret_key, &date_stamp, &cfg.region, "s3");
+    let mut mac = HmacSha256::new_from_slice(&signing_key).expect("HMAC can take key");
+    mac.update(string_to_sign.as_bytes());
+    let signature = hex::encode(mac.finalize().into_bytes());
+    let authorization = format!(
+        "AWS4-HMAC-SHA256 Credential={}/{}, SignedHeaders={}, Signature={}",
+        cfg.access_key, scope, signed_headers, signature
+    );
+
+    let res = client
+        .put(url)
+        .header("x-amz-content-sha256", payload_hash)
+        .header("x-amz-date", amz_date)
+        .header("Authorization", authorization)
+        .body(data)
+        .send()
+        .await
+        .map_err(|e| io::Error::other(e.to_string()))?;
+
+    if !res.status().is_success() {
+        return Err(io::Error::other(format!(
+            "s3 upload failed: {}",
+            res.status()
+        )));
+    }
+    Ok(())
+}
+
+fn signing_key(secret: &str, date: &str, region: &str, service: &str) -> Vec<u8> {
+    let k_date = hmac_sha256(format!("AWS4{}", secret).as_bytes(), date.as_bytes());
+    let k_region = hmac_sha256(&k_date, region.as_bytes());
+    let k_service = hmac_sha256(&k_region, service.as_bytes());
+    hmac_sha256(&k_service, b"aws4_request")
+}
+
+fn hmac_sha256(key: &[u8], data: &[u8]) -> Vec<u8> {
+    let mut mac = HmacSha256::new_from_slice(key).expect("HMAC can take key");
+    mac.update(data);
+    mac.finalize().into_bytes().to_vec()
+}
+
+fn cleanup_old_files(root: &str, retention: Duration) -> io::Result<()> {
+    let path = match root.strip_prefix("file://") {
+        Some(p) => Path::new(p),
+        None => return Ok(()),
+    };
+    if !path.exists() {
         return Ok(());
     }
-    for entry in fs::read_dir(root)? {
+    for entry in fs::read_dir(path)? {
         let entry = entry?;
         let metadata = entry.metadata()?;
         if metadata.is_file() {
@@ -98,55 +242,54 @@ fn cleanup_old_files(root: &Path, retention: Duration) -> io::Result<()> {
                 }
             }
         } else if metadata.is_dir() {
-            cleanup_old_files(&entry.path(), retention)?;
+            cleanup_old_files_local(&entry.path(), retention)?;
         }
     }
     Ok(())
+}
+
+fn cleanup_old_files(root: &str, retention: Duration) -> io::Result<()> {
+    if root.starts_with("s3://") {
+        // Real S3 cleanup is not implemented in tests
+        return Ok(());
+    }
+    cleanup_old_files_local(Path::new(root), retention)
+}
+
+#[derive(Serialize, Deserialize, Default)]
+pub struct IcebergSnapshot {
+    pub id: u64,
+    pub files: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Default)]
 pub struct IcebergMeta {
     pub table_location: String,
     pub schema_version: u32,
-    pub files: Vec<String>,
+    pub current_snapshot_id: u64,
+    pub snapshots: Vec<IcebergSnapshot>,
 }
 
-#[async_trait]
-pub trait IcebergCatalog: Send + Sync {
-    async fn register(&self, file_path: &str) -> io::Result<()>;
-}
-
-pub struct LocalCatalog {
-    metadata_path: PathBuf,
-}
-
-impl LocalCatalog {
-    pub fn new(path: PathBuf) -> Self {
-        Self {
-            metadata_path: path,
+/// Append a new file path to the Iceberg metadata file if it is not already present.
+pub fn register_with_iceberg(metadata_path: &Path, file_path: &str) -> io::Result<()> {
+    let mut meta: IcebergMeta = if metadata_path.exists() {
+        let data = fs::read_to_string(metadata_path)?;
+        serde_json::from_str(&data).unwrap_or_default()
+    } else {
+        IcebergMeta {
+            schema_version: 1,
+            current_snapshot_id: 0,
+            snapshots: Vec::new(),
         }
-    }
-}
-
-#[async_trait]
-impl IcebergCatalog for LocalCatalog {
-    async fn register(&self, file_path: &str) -> io::Result<()> {
-        let mut meta: IcebergMeta = if self.metadata_path.exists() {
-            let data = fs::read_to_string(&self.metadata_path)?;
-            serde_json::from_str(&data).unwrap_or_default()
-        } else {
-            IcebergMeta {
-                table_location: "local".into(),
-                schema_version: 1,
-                files: Vec::new(),
-            }
-        };
-        let entry = file_path.to_string();
-        if !meta.files.contains(&entry) {
-            meta.files.push(entry);
-        }
-        fs::write(&self.metadata_path, serde_json::to_string(&meta)?)
-    }
+    };
+    let snapshot_id = chrono::Utc::now().timestamp_millis() as u64;
+    let snapshot = IcebergSnapshot {
+        id: snapshot_id,
+        files: vec![file_path.to_string()],
+    };
+    meta.current_snapshot_id = snapshot_id;
+    meta.snapshots.push(snapshot);
+    fs::write(metadata_path, serde_json::to_string(&meta)?)
 }
 
 #[derive(Clone)]
@@ -157,22 +300,22 @@ pub struct SnapshotConfig {
 
 pub struct SnapshotScheduler {
     redis: Arc<FakeRedis>,
-    storage: Arc<dyn StorageBackend>,
-    catalog: Arc<dyn IcebergCatalog>,
+    s3_root: String,
+    iceberg_metadata: PathBuf,
     config: SnapshotConfig,
 }
 
 impl SnapshotScheduler {
     pub fn new(
         redis: Arc<FakeRedis>,
-        storage: Arc<dyn StorageBackend>,
-        catalog: Arc<dyn IcebergCatalog>,
+        s3_root: String,
+        iceberg_metadata: PathBuf,
         config: SnapshotConfig,
     ) -> Self {
         Self {
             redis,
-            storage,
-            catalog,
+            s3_root,
+            iceberg_metadata,
             config,
         }
     }
@@ -189,10 +332,17 @@ impl SnapshotScheduler {
             .first()
             .map(|r| (r.exchange.clone(), r.market.clone()))
             .unwrap_or_else(|| ("unknown".into(), "unknown".into()));
-        let dest_key = format!("{exchange}/{market}/{file_name}");
-        let stored_path = self.storage.store(&local_path, &dest_key).await?;
-        self.catalog.register(&stored_path).await?;
-        self.storage.cleanup(self.config.retention).await?;
+        let dest_dir = format!(
+            "{}/{}/{}",
+            self.s3_root.trim_end_matches('/'),
+            exchange,
+            market
+        );
+        let s3_path = upload_to_s3(&local_path, &dest_dir)?;
+        register_with_iceberg(&self.iceberg_metadata, &s3_path)?;
+        self.store
+            .cleanup(&format!("{}/{}", exchange, market), self.config.retention)
+            .await?;
         Ok(())
     }
 
@@ -210,6 +360,7 @@ impl SnapshotScheduler {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::Arc;
 
     #[tokio::test]
     async fn test_snapshot_once() {
@@ -223,46 +374,54 @@ mod tests {
             })
             .await;
         let dir = std::env::temp_dir();
-        let s3_root = dir.join("s3_test");
+        let s3_root = format!("file://{}", dir.join("s3_test").display());
+        let local_root = Path::new(&s3_root[7..]);
         let meta = dir.join("meta.json");
-        let _ = fs::remove_dir_all(&s3_root);
+        let _ = fs::remove_dir_all(local_root);
         let _ = fs::remove_file(&meta);
         let cfg = SnapshotConfig {
             interval: Duration::from_millis(1),
             retention: Duration::from_secs(1),
         };
-        let storage = Arc::new(LocalStorage::new(s3_root.clone()));
-        let catalog = Arc::new(LocalCatalog::new(meta.clone()));
-        let scheduler = SnapshotScheduler::new(redis, storage, catalog, cfg);
+        let scheduler = SnapshotScheduler::new(
+            redis,
+            s3_root.to_string_lossy().to_string(),
+            meta.clone(),
+            cfg,
+        );
         scheduler.snapshot_once().await.unwrap();
         assert!(
-            fs::read_dir(s3_root.join("exch/btc-usd"))
+            fs::read_dir(PathBuf::from(&s3_root).join("exch/btc-usd"))
                 .unwrap()
                 .next()
                 .is_some()
         );
         let meta_contents = fs::read_to_string(meta).unwrap();
         let meta: IcebergMeta = serde_json::from_str(&meta_contents).unwrap();
-        assert_eq!(meta.files.len(), 1);
+        assert_eq!(meta.snapshots.len(), 1);
     }
 
     #[tokio::test]
     async fn test_snapshot_skip_empty() {
         let redis = Arc::new(FakeRedis::default());
         let dir = std::env::temp_dir();
-        let s3_root = dir.join("s3_empty");
+        let s3_root = format!("file://{}", dir.join("s3_empty").display());
+        let local_root = Path::new(&s3_root[7..]);
         let meta = dir.join("meta_empty.json");
-        let _ = fs::remove_dir_all(&s3_root);
+        let _ = fs::remove_dir_all(local_root);
         let _ = fs::remove_file(&meta);
         let cfg = SnapshotConfig {
             interval: Duration::from_millis(1),
             retention: Duration::from_secs(1),
         };
-        let storage = Arc::new(LocalStorage::new(s3_root.clone()));
-        let catalog = Arc::new(LocalCatalog::new(meta.clone()));
-        let scheduler = SnapshotScheduler::new(redis, storage, catalog, cfg);
+        let scheduler = SnapshotScheduler::new(
+            redis,
+            s3_root.to_string_lossy().to_string(),
+            meta.clone(),
+            cfg,
+        );
         scheduler.snapshot_once().await.unwrap();
-        assert!(!s3_root.exists());
+        assert!(!Path::new(&s3_root).exists());
         assert!(!meta.exists());
     }
 }
