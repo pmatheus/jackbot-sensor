@@ -15,14 +15,12 @@ use tokio::sync::Mutex;
 use tokio::time;
 type HmacSha256 = Hmac<Sha256>;
 
-/// Type of record stored in Redis and persisted to snapshots.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum RecordType {
     OrderBook,
     Trade,
 }
 
-/// A single order book or trade record stored in Redis.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct DataRecord {
     pub exchange: String,
@@ -31,7 +29,6 @@ pub struct DataRecord {
     pub value: String,
 }
 
-/// Minimal in-memory stand in for Redis used in tests.
 #[derive(Debug, Default)]
 pub struct FakeRedis {
     data: Mutex<Vec<DataRecord>>,
@@ -55,7 +52,6 @@ pub fn write_parquet(records: &[DataRecord], path: &Path) -> io::Result<()> {
     }
     Ok(())
 }
-
 
 
 pub fn upload_to_s3(local_path: &Path, s3_root: &str) -> io::Result<String> {
@@ -268,6 +264,7 @@ pub struct IcebergSnapshot {
 
 #[derive(Serialize, Deserialize, Default)]
 pub struct IcebergMeta {
+    pub table_location: String,
     pub schema_version: u32,
     pub current_snapshot_id: u64,
     pub snapshots: Vec<IcebergSnapshot>,
@@ -295,14 +292,12 @@ pub fn register_with_iceberg(metadata_path: &Path, file_path: &str) -> io::Resul
     fs::write(metadata_path, serde_json::to_string(&meta)?)
 }
 
-/// Configuration for how often snapshots are taken and how long they are kept.
 #[derive(Clone)]
 pub struct SnapshotConfig {
     pub interval: Duration,
     pub retention: Duration,
 }
 
-/// Periodically persists Redis data to S3 and registers files with Iceberg.
 pub struct SnapshotScheduler {
     redis: Arc<FakeRedis>,
     s3_root: String,
@@ -325,7 +320,6 @@ impl SnapshotScheduler {
         }
     }
 
-    /// Persist all Redis records to a single Parquet file and register it.
     pub async fn snapshot_once(&self) -> io::Result<()> {
         let records = self.redis.get_all().await;
         if records.is_empty() {
@@ -352,7 +346,6 @@ impl SnapshotScheduler {
         Ok(())
     }
 
-    /// Continuously take snapshots according to the configured interval.
     pub async fn start(&self) {
         let mut interval = time::interval(self.config.interval);
         loop {
@@ -372,7 +365,6 @@ mod tests {
     #[tokio::test]
     async fn test_snapshot_once() {
         let redis = Arc::new(FakeRedis::default());
-
         redis
             .insert(DataRecord {
                 exchange: "exch".into(),

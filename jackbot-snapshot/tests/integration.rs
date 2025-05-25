@@ -34,9 +34,7 @@ async fn test_scheduler_multiple_snapshots() {
     tokio::time::sleep(Duration::from_millis(1)).await;
     scheduler.snapshot_once().await.unwrap();
 
-
     let files: Vec<_> = std::fs::read_dir(local_root.join("exch/eth-usd"))
-
         .unwrap()
         .collect();
     assert_eq!(files.len(), 2);
