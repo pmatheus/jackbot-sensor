@@ -554,6 +554,7 @@ paper trading:
 - [x] Downstream Consumer API (pub/sub, streams, etc.)
 - [x] MEXC: Integrate Redis for order book and trades
 - [x] Gate.io: Integrate Redis for order book and trades
+- Gate.io now uses a single `ExchangeId::Gateio` variant across all crates.
 - [x] Crypto.com: Integrate Redis for order book and trades
 
 **Final Steps:**
