@@ -636,13 +636,14 @@ paper and mock engines support automatic liquidation.
 - [x] MEXC: Integrate snapshot logic for order book and trades
 - [x] Gate.io: Integrate snapshot logic for order book and trades
 - [x] Crypto.com: Integrate snapshot logic for order book and trades
+- [x] Snapshot integration completed across all supported exchanges
 - [x] Snapshot module now supports AWS credentials and full Iceberg table
   management. Local paths remain available for tests via the `file://` scheme.
 - Snapshot uploads rely on the `aws` CLI and do not clean up old objects in S3.
 
 
 **Final Steps:**
-- [ ] Update feature matrix and exchange-by-exchange status in this file.
+- [x] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
 - [ ] Document any API quirks, limitations, or unsupported features.
 
