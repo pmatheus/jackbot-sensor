@@ -806,7 +806,6 @@ Only the paper and mock engines support automatic liquidation.
 - [x] Gate.io: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [x] Crypto.com: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 
-
 **Final Steps:**
 - [x] Update feature matrix and exchange-by-exchange status in this file.
 - [x] Ensure all health monitoring and reconnection tests pass across all exchanges.
@@ -953,6 +952,7 @@ Some exchanges use slightly different heartbeat mechanisms:
 
 - [x] Strategy Interface Definition (inputs, outputs, events, lifecycle)
  - [x] Technical Analysis Library (indicators, patterns, signals)
+- [x] `CrossOverSignal` now implements `Default` for easier initialization
 - [x] ML Integration Framework (feature extraction, model loading, inference)
 - [x] Strategy Configuration and Parameter Management
 - [x] Backtest Runner and Performance Evaluation
@@ -1038,9 +1038,18 @@ Some exchanges use slightly different heartbeat mechanisms:
 - [x] Ensure all market making components function correctly with test configurations.
 - [x] Document the market making framework, parameters, and strategy examples. See [MARKET_MAKING_ENGINE.md](MARKET_MAKING_ENGINE.md) for details.
 
-#
+## Outstanding Tasks
+
+- [ ] Fix clippy warnings in `jackbot-integration` caused by deprecated `rand` functions and large `SocketError` variants.
+
 ---
 
 **This file is the single source of truth for the implementation status of all features and components in the jackbot project. All contributors must update this file when making changes to the codebase.**
 
 ---
+
+## Known Issues
+
+- `cargo fmt --all -- --check` fails due to syntax errors in `jackbot` and duplicate modules in `jackbot-execution`.
+- `cargo clippy --all-targets --all-features -- -D warnings` fails for crates other than `jackbot-ta`.
+

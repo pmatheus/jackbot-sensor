@@ -1,3 +1,9 @@
+//! WebSocket protocol utilities.
+//!
+//! This module provides helper functions for parsing WebSocket messages and
+//! monitoring connection health. The [`with_heartbeat`] wrapper emits a timeout
+//! error when messages are not received within a configured interval, enabling
+//! higher layers to trigger reconnection.
 use crate::{error::SocketError, protocol::StreamParser};
 use bytes::Bytes;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
