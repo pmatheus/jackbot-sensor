@@ -4,10 +4,12 @@ use tokio::sync::mpsc;
 use tokio_stream::wrappers::UnboundedReceiverStream;
 use tokio_tungstenite::tungstenite::Message as WsMessage;
 use futures::{StreamExt, SinkExt};
+use tracing::{error, warn};
 use url::Url;
 use jackbot_integration::{
     protocol::websocket::{connect, WebSocket},
     error::SocketError,
+    circuit_breaker::CircuitBreaker,
 };
 
 /// Generic user WebSocket event used across exchanges.
@@ -67,12 +69,16 @@ async fn run_connection(
     auth_payload: &str,
 ) -> Result<(), ()> {
     if ws.send(WsMessage::text(auth_payload)).await.is_err() {
+        error!("failed to send auth payload over WebSocket");
         return Err(());
     }
     while let Some(msg) = ws.next().await {
         let msg = match msg {
             Ok(m) => m,
-            Err(_) => return Err(()),
+            Err(err) => {
+                error!(?err, "WebSocket stream error");
+                return Err(());
+            }
         };
         match msg {
             WsMessage::Text(text) => {
@@ -80,7 +86,10 @@ async fn run_connection(
                     let _ = tx.send(event);
                 }
             }
-            WsMessage::Close(_) => return Err(()),
+            WsMessage::Close(_) => {
+                warn!("received close frame from server");
+                return Err(());
+            }
             _ => {}
         }
     }
@@ -94,17 +103,29 @@ pub async fn user_stream(
 ) -> Result<UnboundedReceiverStream<UserWsEvent>, SocketError> {
     let (tx, rx) = mpsc::unbounded_channel();
     tokio::spawn(async move {
+        let mut breaker = CircuitBreaker::new(5, Duration::from_secs(5));
         loop {
+            if breaker.is_open() {
+                if let Some(wait) = breaker.remaining() {
+                    warn!(?wait, "circuit breaker open, waiting before reconnect");
+                    tokio::time::sleep(wait).await;
+                    continue;
+                }
+            }
             match connect(url.clone()).await {
                 Ok(ws) => {
+                    breaker.reset();
                     if run_connection(ws, &tx, &auth_payload).await.is_err() {
+                        breaker.record_failure();
                         tokio::time::sleep(Duration::from_millis(50)).await;
                         continue;
                     } else {
                         break;
                     }
                 }
-                Err(_) => {
+                Err(err) => {
+                    breaker.record_failure();
+                    warn!(?err, "failed to connect to WebSocket");
                     tokio::time::sleep(Duration::from_millis(50)).await;
                 }
             }
