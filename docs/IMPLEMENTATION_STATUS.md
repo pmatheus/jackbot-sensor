@@ -1041,3 +1041,11 @@ Some exchanges use slightly different heartbeat mechanisms:
 **This file is the single source of truth for the implementation status of all features and components in the jackbot project. All contributors must update this file when making changes to the codebase.**
 
 ---
+
+## Outstanding Build Issues
+
+- [ ] Resolve syntax errors preventing `cargo fmt --all` from succeeding:
+  - `jackbot/src/risk/exposure.rs` has a mismatched closing brace.
+  - `jackbot-execution/src/client/cryptocom.rs` conflicts with `cryptocom/mod.rs`.
+  - `jackbot-execution/tests/advanced_orders_compile.rs` uses the reserved keyword `mod`.
+  - `jackbot-ta/tests/integration.rs` uses the reserved keyword `gen`.
