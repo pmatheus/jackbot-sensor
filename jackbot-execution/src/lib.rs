@@ -68,6 +68,9 @@ pub mod twap;
 /// Volume-weighted average price execution.
 pub mod vwap;
 
+/// Jackpot order monitoring helpers.
+pub mod jackpot_orders;
+
 
 /// Convenient type alias for an [`AccountEvent`] keyed with [`ExchangeId`],
 /// [`AssetNameExchange`], and [`InstrumentNameExchange`].
