@@ -16,6 +16,9 @@
 //! This crate provides simple indicators, pattern detection and
 //! signal generation helpers that can be reused across strategies.
 
+#[cfg(test)]
+use rust_decimal_macros as _;
+
 pub mod indicators;
 pub mod patterns;
 pub mod signals;
