@@ -514,7 +514,10 @@ paper trading:
 - [x] Risk Control & Monitoring (auto-close, ticket enforcement, all exchanges)
  - [x] MEXC: Implement all jackpot order logic and risk control (futures/perpetuals, live/paper)
  - [x] Gate.io: Implement all jackpot order logic and risk control (futures/perpetuals, live/paper)
- - [x] Crypto.com: Implement all jackpot order logic and risk control (futures/perpetuals, live/paper)
+- [x] Crypto.com: Implement all jackpot order logic and risk control (futures/perpetuals, live/paper)
+
+**Limitations:** Real exchange APIs for jackpot orders are currently stubbed. Only the
+paper and mock engines support automatic liquidation.
 
 
 **Final Steps:**
