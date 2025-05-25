@@ -803,7 +803,6 @@ Only the paper and mock engines support automatic liquidation.
 - [x] Gate.io: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 - [x] Crypto.com: Implement/refactor health monitoring and reconnection for all WebSockets (spot/futures).
 
-
 **Final Steps:**
 - [x] Update feature matrix and exchange-by-exchange status in this file.
 - [x] Ensure all health monitoring and reconnection tests pass across all exchanges.
