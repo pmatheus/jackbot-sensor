@@ -1035,7 +1035,10 @@ Some exchanges use slightly different heartbeat mechanisms:
 - [x] Ensure all market making components function correctly with test configurations.
 - [x] Document the market making framework, parameters, and strategy examples. See [MARKET_MAKING_ENGINE.md](MARKET_MAKING_ENGINE.md) for details.
 
-#
+## Outstanding Tasks
+
+- [ ] Fix clippy warnings in `jackbot-integration` caused by deprecated `rand` functions and large `SocketError` variants.
+
 ---
 
 **This file is the single source of truth for the implementation status of all features and components in the jackbot project. All contributors must update this file when making changes to the codebase.**
