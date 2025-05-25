@@ -1,6 +1,7 @@
 use super::super::book::{BybitOrderBookL2Data, BybitOrderBookLevel};
 use crate::{
     Identifier, SnapshotFetcher,
+    books::canonical::Canonicalizer,
     error::DataError,
     event::MarketEvent,
     exchange::bybit::{market::BybitMarket, message::BybitPayload, spot::BybitSpot},

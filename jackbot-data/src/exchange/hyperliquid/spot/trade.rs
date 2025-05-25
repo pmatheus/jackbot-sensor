@@ -1,6 +1,6 @@
 //! Trade event types for Hyperliquid Spot.
 //!
-//! Provides convenient aliases for [`Hyperliquid`](super::super::super::Hyperliquid)
+//! Provides convenient aliases for [`Hyperliquid`](super::super::Hyperliquid)
 //! trade streams.
 
 use crate::{
@@ -8,7 +8,7 @@ use crate::{
     subscription::trade::PublicTrades,
     ExchangeWsStream,
 };
-use super::super::super::Hyperliquid;
+use super::super::Hyperliquid;
 
 pub use super::super::trade::HyperliquidTrades;
 
