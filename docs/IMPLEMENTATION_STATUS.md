@@ -755,14 +755,14 @@ paper and mock engines support automatic liquidation.
 - [x] Design a unified health monitoring abstraction for WebSocket connections (heartbeats, pings, activity timeouts).
 - [x] Implement intelligent reconnection logic with exponential backoff and jitter for all exchanges/markets.
 - [x] Add monitoring metrics (uptime, latency, reconnect frequency, message throughput).
-- [ ] Implement connection lifecycle events and error classification.
-- [ ] Ensure proper handling of connection state during reconnection (subscription renewal, authentication refresh).
-- [ ] Add resubscription logic for all data streams after reconnection.
+- [x] Implement connection lifecycle events and error classification.
+- [x] Ensure proper handling of connection state during reconnection (subscription renewal, authentication refresh).
+- [x] Add resubscription logic for all data streams after reconnection.
 - [ ] Implement circuit-breaker patterns for persistent failures.
-- [ ] Add comprehensive logging and diagnostics for connection issues.
-- [ ] Add/extend integration and unit tests for health monitoring and reconnection logic.
-- [ ] Add/extend module-level and user-facing documentation.
-- [ ] Update `docs/IMPLEMENTATION_STATUS.md` with status and links.
+- [x] Add comprehensive logging and diagnostics for connection issues.
+- [x] Add/extend integration and unit tests for health monitoring and reconnection logic.
+- [x] Add/extend module-level and user-facing documentation.
+- [x] Update `docs/IMPLEMENTATION_STATUS.md` with status and links.
 
 **Exchange-Specific TODOs:**
 
