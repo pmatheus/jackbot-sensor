@@ -71,7 +71,7 @@ where
                 }
                 OrderBookEvent::Update(ref delta) => {
                     self.store
-                        .store_delta(event.exchange, &event.instrument.to_string(), delta);
+                        .store_delta(event.exchange, &event.instrument.to_string(), &OrderBookEvent::Update(delta.clone()));
                     book_lock.update(OrderBookEvent::Update(delta.clone()));
                 }
             }

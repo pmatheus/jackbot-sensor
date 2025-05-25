@@ -66,6 +66,8 @@ pub enum ExchangeId {
     Mexc,
     Okx,
     Poloniex,
+    #[serde(alias = "gateio")]
+    GateIo,
     Hyperliquid,
 }
 
@@ -107,6 +109,7 @@ impl ExchangeId {
             ExchangeId::Mexc => "mexc",
             ExchangeId::Okx => "okx",
             ExchangeId::Poloniex => "poloniex",
+            ExchangeId::GateIo => "gateio",
             ExchangeId::Hyperliquid => "hyperliquid",
         }
     }

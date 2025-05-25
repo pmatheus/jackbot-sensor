@@ -14,7 +14,7 @@ use crate::{
 };
 use jackbot_instrument::exchange::ExchangeId;
 use derive_more::Constructor;
-use futures::Stream;
+use futures::{Stream, StreamExt};
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 use tracing::info;
