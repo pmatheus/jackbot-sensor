@@ -7,8 +7,9 @@ This document describes how Jackbot persists order book and trade data from Redi
 1. **Collect Data**: Exchange modules store normalized `DataRecord` items in Redis. Each record contains the exchange, market, record type, and a serialized value.
 2. **Snapshot Scheduler**: `SnapshotScheduler` periodically fetches all records from Redis. If no data is present, the scheduler skips creating a snapshot.
 3. **Parquet Serialization**: Records are serialized to a temporary Parquet file.
-4. **Upload to S3**: Using AWS credentials, the file is uploaded to `s3://<bucket>/<exchange>/<market>/` with a unique timestamped name. Older files are pruned according to the configured retention period.
-5. **Iceberg Registration**: Uploaded files are committed to the Iceberg table metadata as individual snapshots, enabling full schema evolution and query support.
+4. **Upload to S3**: The file is uploaded to `s3://<bucket>/<exchange>/<market>/` using AWS credentials from the environment. A `file://` prefix may be used to store snapshots locally during testing. Older files are removed based on the configured retention period for local paths.
+5. **Iceberg Registration**: The uploaded file is recorded as a new snapshot in the Iceberg table metadata, incrementing the `current_snapshot_id`.
+
 
 ## Configuration
 
