@@ -1,6 +1,6 @@
 use jackbot_ta::{
     indicators::{ExponentialMovingAverage, SimpleMovingAverage},
-    patterns::{crossover, Cross},
+    patterns::{Cross, crossover},
     signals::{CrossOverSignal, Signal},
 };
 use rust_decimal_macros::dec;
@@ -27,9 +27,9 @@ fn test_crossover_pattern() {
 
 #[test]
 fn test_signal_generation() {
-    let mut gen = CrossOverSignal::new();
-    assert_eq!(gen.update(dec!(1), dec!(2)), None);
-    assert_eq!(gen.update(dec!(2), dec!(2)), None);
-    assert_eq!(gen.update(dec!(3), dec!(2)), Some(Signal::Buy));
-    assert_eq!(gen.update(dec!(2), dec!(3)), Some(Signal::Sell));
+    let mut signal_gen = CrossOverSignal::new();
+    assert_eq!(signal_gen.update(dec!(1), dec!(2)), None);
+    assert_eq!(signal_gen.update(dec!(2), dec!(2)), None);
+    assert_eq!(signal_gen.update(dec!(3), dec!(2)), Some(Signal::Buy));
+    assert_eq!(signal_gen.update(dec!(2), dec!(3)), Some(Signal::Sell));
 }

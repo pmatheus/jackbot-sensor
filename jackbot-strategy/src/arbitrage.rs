@@ -1,6 +1,6 @@
 use crate::{Strategy, StrategyConfig};
 use jackbot_data::books::aggregator::{ArbitrageOpportunity, OrderBookAggregator};
-use jackbot_instrument::{exchange::ExchangeId, instrument::InstrumentIndex};
+use jackbot_instrument::instrument::InstrumentIndex;
 use jackbot_risk::position_tracker::PositionTracker;
 use rust_decimal::Decimal;
 use rust_decimal::prelude::FromPrimitive;
@@ -74,8 +74,13 @@ impl Strategy<()> for ArbitrageStrategy {
         if let Some(opp) = self.aggregator.monitor_and_detect(self.threshold) {
             // In a real implementation we would send orders here. For this
             // example we simply record the opportunity as executed.
-            self.position_tracker.update(opp.buy_exchange, InstrumentIndex(0), Decimal::ONE);
-            self.position_tracker.update(opp.sell_exchange, InstrumentIndex(0), Decimal::NEG_ONE);
+            self.position_tracker
+                .update(opp.buy_exchange, InstrumentIndex(0), Decimal::ONE);
+            self.position_tracker.update(
+                opp.sell_exchange,
+                InstrumentIndex(0),
+                Decimal::NEGATIVE_ONE,
+            );
             self.metrics.record(&opp, true);
         }
     }

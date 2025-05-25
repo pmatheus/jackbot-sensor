@@ -22,12 +22,16 @@ use jackbot_instrument::{
 };
 use chrono::{DateTime, Utc};
 use futures::{stream, SinkExt, Stream, StreamExt};
+use tracing::{error, warn};
 use std::future::Future;
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::UnboundedReceiverStream;
 use tokio_tungstenite::tungstenite::Message as WsMessage;
 use url::Url;
-use jackbot_integration::protocol::websocket::WebSocket;
+use jackbot_integration::{
+    protocol::websocket::WebSocket,
+    circuit_breaker::CircuitBreaker,
+};
 use jackbot_integration::snapshot::Snapshot;
 use rust_decimal::Decimal;
 use std::str::FromStr;
@@ -73,17 +77,29 @@ impl ExecutionClient for OkxWsClient {
         let url = self.config.url.clone();
         let auth = self.config.auth_payload.clone();
         tokio::spawn(async move {
+            let mut breaker = CircuitBreaker::new(5, std::time::Duration::from_secs(5));
             loop {
+                if breaker.is_open() {
+                    if let Some(wait) = breaker.remaining() {
+                        warn!(?wait, "circuit breaker open, waiting before reconnect");
+                        tokio::time::sleep(wait).await;
+                        continue;
+                    }
+                }
                 match jackbot_integration::protocol::websocket::connect(url.clone()).await {
                     Ok(ws) => {
+                        breaker.reset();
                         if run_connection(ws, &tx, &auth).await.is_err() {
+                            breaker.record_failure();
                             tokio::time::sleep(std::time::Duration::from_millis(50)).await;
                             continue;
                         } else {
                             break;
                         }
                     }
-                    Err(_) => {
+                    Err(err) => {
+                        breaker.record_failure();
+                        warn!(?err, "failed to connect to WebSocket");
                         tokio::time::sleep(std::time::Duration::from_millis(50)).await;
                     }
                 }
@@ -130,12 +146,16 @@ async fn run_connection(
     auth: &str,
 ) -> Result<(), ()> {
     if ws.send(WsMessage::Text(auth.to_string())).await.is_err() {
+        error!("failed to send auth payload over WebSocket");
         return Err(());
     }
     while let Some(msg) = ws.next().await {
         let msg = match msg {
             Ok(m) => m,
-            Err(_) => return Err(()),
+            Err(err) => {
+                error!(?err, "WebSocket stream error");
+                return Err(());
+            }
         };
         match msg {
             WsMessage::Text(text) => {
@@ -145,7 +165,10 @@ async fn run_connection(
                     }
                 }
             }
-            WsMessage::Close(_) => return Err(()),
+            WsMessage::Close(_) => {
+                warn!("received close frame from server");
+                return Err(());
+            }
             _ => {}
         }
     }

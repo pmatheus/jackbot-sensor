@@ -4,7 +4,6 @@ use jackbot_snapshot::{
 use std::{path::Path, sync::Arc, time::Duration};
 
 
-
 #[tokio::test]
 async fn test_scheduler_multiple_snapshots() {
     let redis = Arc::new(FakeRedis::default());
@@ -26,6 +25,7 @@ async fn test_scheduler_multiple_snapshots() {
         interval: Duration::from_millis(1),
         retention: Duration::from_secs(1),
     };
+
     let store = Arc::new(LocalStore::new(local_root.to_path_buf()));
     let scheduler = SnapshotScheduler::new(redis, s3_root.clone(), store, meta.clone(), cfg);
 
@@ -35,7 +35,6 @@ async fn test_scheduler_multiple_snapshots() {
     scheduler.snapshot_once().await.unwrap();
 
     let files: Vec<_> = std::fs::read_dir(local_root.join("exch/eth-usd"))
-
         .unwrap()
         .collect();
     assert_eq!(files.len(), 2);

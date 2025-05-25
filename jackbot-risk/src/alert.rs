@@ -1,7 +1,8 @@
 use rust_decimal::Decimal;
 use jackbot_instrument::instrument::InstrumentIndex;
-use serde::{Deserialize, Serialize};
 use parking_lot::Mutex;
+use rust_decimal::Decimal;
+use serde::{Deserialize, Serialize};
 
 /// Enum describing various risk violations.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
