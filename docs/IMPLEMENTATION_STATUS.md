@@ -949,6 +949,7 @@ Some exchanges use slightly different heartbeat mechanisms:
 
 - [x] Strategy Interface Definition (inputs, outputs, events, lifecycle)
  - [x] Technical Analysis Library (indicators, patterns, signals)
+- [x] `CrossOverSignal` now implements `Default` for easier initialization
 - [x] ML Integration Framework (feature extraction, model loading, inference)
 - [x] Strategy Configuration and Parameter Management
 - [x] Backtest Runner and Performance Evaluation
@@ -1040,3 +1041,9 @@ Some exchanges use slightly different heartbeat mechanisms:
 **This file is the single source of truth for the implementation status of all features and components in the jackbot project. All contributors must update this file when making changes to the codebase.**
 
 ---
+
+## Known Issues
+
+- `cargo fmt --all -- --check` fails due to syntax errors in `jackbot` and duplicate modules in `jackbot-execution`.
+- `cargo clippy --all-targets --all-features -- -D warnings` fails for crates other than `jackbot-ta`.
+
