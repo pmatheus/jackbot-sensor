@@ -1,3 +1,6 @@
+//! OKX requires algorithmic order endpoints for trailing orders and other
+//! advanced features. These smart trade behaviours are stubbed until those
+//! endpoints are integrated.
 use crate::{
     client::ExecutionClient,
     AccountEvent, AccountEventKind, UnindexedAccountEvent, UnindexedAccountSnapshot,

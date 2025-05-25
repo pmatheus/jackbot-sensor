@@ -1,3 +1,6 @@
+//! Kraken's API offers advanced orders but trailing semantics differ from
+//! other venues. Further mapping is required before smart trades are fully
+//! supported.
 use url::Url;
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::UnboundedReceiverStream;

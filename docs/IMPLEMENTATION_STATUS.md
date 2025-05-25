@@ -139,7 +139,7 @@ Exchanges currently implementing the `Canonicalizer` trait:
 **Final Steps:**
 - [x] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
-- [ ] Document any API quirks, limitations, or unsupported features.
+- [x] Document any API quirks, limitations, or unsupported features.
 
 ### Verified Price Range Constraints
 
@@ -359,7 +359,8 @@ paper trading:
 **Final Steps:**
 - [x] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
-- [ ] Document any API quirks, limitations, or unsupported features.
+- [x] Document any API quirks, limitations, or unsupported features.
+- [x] Exchange smart trade quirks documented in client stub comments.
 
 ---
 
@@ -397,7 +398,8 @@ paper trading:
 - **Final Steps:**
 - [x] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
-- [ ] Document any API quirks, limitations, or unsupported features.
+- [x] Document any API quirks, limitations, or unsupported features.
+- [x] Exchange smart trade quirks documented in client stub comments.
 
 ---
 
