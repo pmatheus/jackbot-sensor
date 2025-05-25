@@ -16,6 +16,8 @@ Run these commands from the repository root **before committing any code changes
 2. `cargo clippy --all-targets --all-features -- -D warnings`
 3. `cargo test --workspace`
 
+If any of those fail please check the errors and fix then before proceeding with the commit.
+
 If your changes only modify documentation (`*.md` files) or comments, running `cargo fmt --all -- --check` is sufficient.
 
 ## Additional Conventions

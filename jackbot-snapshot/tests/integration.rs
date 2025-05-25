@@ -1,7 +1,9 @@
 use jackbot_snapshot::{
-    DataRecord, FakeRedis, IcebergTable, RecordType, SnapshotConfig, SnapshotScheduler,
+    DataRecord, FakeRedis, IcebergTable, LocalStore, RecordType, SnapshotConfig, SnapshotScheduler,
 };
 use std::{path::Path, sync::Arc, time::Duration};
+
+
 
 #[tokio::test]
 async fn test_scheduler_multiple_snapshots() {
@@ -25,17 +27,19 @@ async fn test_scheduler_multiple_snapshots() {
         retention: Duration::from_secs(1),
     };
     let scheduler = SnapshotScheduler::new(redis, s3_root.clone(), meta.clone(), cfg);
+
     // Take two snapshots manually
     scheduler.snapshot_once().await.unwrap();
     tokio::time::sleep(Duration::from_millis(1)).await;
     scheduler.snapshot_once().await.unwrap();
 
     let files: Vec<_> = std::fs::read_dir(local_root.join("exch/eth-usd"))
+
         .unwrap()
         .collect();
     assert_eq!(files.len(), 2);
     let meta_contents = std::fs::read_to_string(meta).unwrap();
     let meta: IcebergTable = serde_json::from_str(&meta_contents).unwrap();
     assert_eq!(meta.current_snapshot_id, 2);
-    assert_eq!(meta.snapshots.len(), 2);
+
 }

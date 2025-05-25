@@ -39,6 +39,17 @@ pub enum BinanceUserEvent {
         #[serde(rename = "X")]
         status: String,
     },
+    #[serde(rename = "position")]
+    Position {
+        #[serde(rename = "E")]
+        time: u64,
+        #[serde(rename = "s")]
+        symbol: String,
+        #[serde(rename = "pa")]
+        qty: String,
+        #[serde(rename = "ps")]
+        side: String,
+    },
 }
 
 impl BinanceUserEvent {
@@ -52,7 +63,7 @@ async fn run_connection(
     tx: &mpsc::UnboundedSender<BinanceUserEvent>,
     auth_payload: &str,
 ) -> Result<(), ()> {
-    if ws.send(WsMessage::Text(auth_payload.to_string())).await.is_err() {
+    if ws.send(WsMessage::text(auth_payload)).await.is_err() {
         return Err(());
     }
     while let Some(msg) = ws.next().await {
@@ -105,9 +116,9 @@ mod tests {
     use tokio::net::TcpListener;
     use tokio_tungstenite::{accept_async, tungstenite::Message};
 
-    async fn run_server(addr: &str, first: String, second: String) {
+    async fn run_server(addr: &str, first: String, second: String, third: String) {
         let listener = TcpListener::bind(addr).await.unwrap();
-        for payload in [first, second] {
+        for payload in [first, second, third] {
             let (stream, _) = listener.accept().await.unwrap();
             let mut ws = accept_async(stream).await.unwrap();
             ws.next().await.unwrap().unwrap();
@@ -121,12 +132,15 @@ mod tests {
         let addr = "127.0.0.1:18100";
         let first = r#"{\"e\":\"balance\",\"E\":1,\"asset\":\"BTC\",\"free\":\"0.5\",\"total\":\"1.0\"}"#.to_string();
         let second = r#"{\"e\":\"order\",\"E\":2,\"s\":\"BTCUSDT\",\"S\":\"BUY\",\"p\":\"100\",\"q\":\"0.1\",\"i\":1,\"X\":\"NEW\"}"#.to_string();
-        tokio::spawn(run_server(addr, first.clone(), second.clone()));
+        let third = r#"{\"e\":\"position\",\"E\":3,\"s\":\"BTCUSDT\",\"pa\":\"0.2\",\"ps\":\"LONG\"}"#.to_string();
+        tokio::spawn(run_server(addr, first.clone(), second.clone(), third.clone()));
 
         let mut stream = user_stream(Url::parse(&format!("ws://{}", addr)).unwrap(), "{}".to_string()).await.unwrap();
         let ev1 = stream.next().await.unwrap();
         assert!(matches!(ev1, BinanceUserEvent::Balance{..}));
         let ev2 = stream.next().await.unwrap();
         assert!(matches!(ev2, BinanceUserEvent::Order{..}));
+        let ev3 = stream.next().await.unwrap();
+        assert!(matches!(ev3, BinanceUserEvent::Position{..}));
     }
 }

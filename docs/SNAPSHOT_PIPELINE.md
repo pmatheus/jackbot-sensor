@@ -10,6 +10,7 @@ This document describes how Jackbot persists order book and trade data from Redi
 4. **Upload to S3**: The file is uploaded to `s3://<bucket>/<exchange>/<market>/` using AWS credentials from the environment. A `file://` prefix may be used to store snapshots locally during testing. Older files are removed based on the configured retention period for local paths.
 5. **Iceberg Registration**: The uploaded file is recorded as a new snapshot in the Iceberg table metadata, incrementing the `current_snapshot_id`.
 
+
 ## Configuration
 
 The scheduler interval and retention are specified via `SnapshotConfig`. Running `SnapshotScheduler::start` will continuously persist snapshots according to this configuration.
