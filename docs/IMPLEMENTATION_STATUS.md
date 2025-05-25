@@ -738,10 +738,25 @@ paper and mock engines support automatic liquidation.
 
 
 **Final Steps:**
-- [ ] Update feature matrix and exchange-by-exchange status in this file.
+- [x] Update feature matrix and exchange-by-exchange status in this file.
 - [ ] Ensure all tests pass for all exchanges after each change.
 - [ ] Document any API quirks, limitations, or unsupported features.
 
+### User WebSocket Support Matrix
+| Exchange | Spot WS | Futures WS |
+|---------|---------|------------|
+| Binance | Yes | Yes |
+| Bitget | Yes | Yes |
+| Bybit | Yes | Yes |
+| Coinbase | Yes | N/A* |
+| Hyperliquid | Yes | Yes |
+| Kraken | Yes | Yes |
+| MEXC | Yes | Yes |
+| Kucoin | Yes | Yes |
+| Gate.io | Yes | Yes |
+| Crypto.com | Yes | Yes |
+| OKX | Yes | Yes |
+*Coinbase only offers spot markets.
 ---
 
 **Instructions for Contributors:**
