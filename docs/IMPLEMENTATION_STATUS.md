@@ -294,6 +294,9 @@ paper trading. The full table also lives in
 - Added `USER_WS_QUIRKS.md` summarising user WebSocket quirks and limitations.
 - Scaffolding baseline trade WebSocket modules across exchanges.
 - Implemented Gate.io trade WebSocket modules with event normalization.
+- Fixed compile error in `jackbot-risk` by removing an invalid `Constructor` derive.
+- Clippy warnings in `jackbot-integration` (deprecated rand usage, large error variants) need resolving.
+- Unit tests for `jackbot-strategy` fail to compile due to issues in `jackbot-execution` dependencies.
 
 ## Current Features
 

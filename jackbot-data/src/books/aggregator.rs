@@ -5,7 +5,7 @@ use rust_decimal::Decimal;
 use std::sync::Arc;
 use tracing::info;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct ExchangeBook {
     /// Exchange identifier for this book.
     pub exchange: ExchangeId,
@@ -15,7 +15,7 @@ pub struct ExchangeBook {
     pub weight: Decimal,
 }
 
-#[derive(Clone, Default)]
+#[derive(Debug, Clone, Default)]
 pub struct OrderBookAggregator {
     books: Vec<ExchangeBook>,
 }
@@ -31,7 +31,9 @@ pub struct ArbitrageOpportunity {
 
 impl OrderBookAggregator {
     pub fn new(books: impl IntoIterator<Item = ExchangeBook>) -> Self {
-        Self { books: books.into_iter().collect() }
+        Self {
+            books: books.into_iter().collect(),
+        }
     }
 
     pub fn add_book(&mut self, book: ExchangeBook) {
@@ -48,15 +50,13 @@ impl OrderBookAggregator {
         for eb in &self.books {
             let book = eb.book.read();
             bids.extend(
-                book
-                    .bids()
+                book.bids()
                     .levels()
                     .iter()
                     .map(|lvl| (lvl.price, lvl.amount * eb.weight)),
             );
             asks.extend(
-                book
-                    .asks()
+                book.asks()
                     .levels()
                     .iter()
                     .map(|lvl| (lvl.price, lvl.amount * eb.weight)),
@@ -171,8 +171,16 @@ mod tests {
         let book_b = build_book(dec!(12), dec!(13));
 
         let agg = OrderBookAggregator::new([
-            ExchangeBook { exchange: ExchangeId::BinanceSpot, book: book_a, weight: Decimal::ONE },
-            ExchangeBook { exchange: ExchangeId::Coinbase, book: book_b, weight: Decimal::ONE },
+            ExchangeBook {
+                exchange: ExchangeId::BinanceSpot,
+                book: book_a,
+                weight: Decimal::ONE,
+            },
+            ExchangeBook {
+                exchange: ExchangeId::Coinbase,
+                book: book_b,
+                weight: Decimal::ONE,
+            },
         ]);
 
         let opp = agg.detect_arbitrage(dec!(0)).expect("should detect");
@@ -188,8 +196,16 @@ mod tests {
         let book_b = build_book(dec!(11.4), dec!(12));
 
         let agg = OrderBookAggregator::new([
-            ExchangeBook { exchange: ExchangeId::BinanceSpot, book: book_a, weight: Decimal::ONE },
-            ExchangeBook { exchange: ExchangeId::Coinbase, book: book_b, weight: Decimal::ONE },
+            ExchangeBook {
+                exchange: ExchangeId::BinanceSpot,
+                book: book_a,
+                weight: Decimal::ONE,
+            },
+            ExchangeBook {
+                exchange: ExchangeId::Coinbase,
+                book: book_b,
+                weight: Decimal::ONE,
+            },
         ]);
 
         assert!(agg.detect_arbitrage(dec!(0.5)).is_none());
@@ -201,8 +217,16 @@ mod tests {
         let book_b = build_book(dec!(12), dec!(13));
 
         let agg = OrderBookAggregator::new([
-            ExchangeBook { exchange: ExchangeId::BinanceSpot, book: book_a, weight: dec!(2) },
-            ExchangeBook { exchange: ExchangeId::Coinbase, book: book_b, weight: Decimal::ONE },
+            ExchangeBook {
+                exchange: ExchangeId::BinanceSpot,
+                book: book_a,
+                weight: dec!(2),
+            },
+            ExchangeBook {
+                exchange: ExchangeId::Coinbase,
+                book: book_b,
+                weight: Decimal::ONE,
+            },
         ]);
 
         let merged = agg.aggregate(1);
@@ -217,9 +241,21 @@ mod tests {
         let book_c = build_book(dec!(13), dec!(14));
 
         let agg = OrderBookAggregator::new([
-            ExchangeBook { exchange: ExchangeId::BinanceSpot, book: book_a, weight: Decimal::ONE },
-            ExchangeBook { exchange: ExchangeId::Coinbase, book: book_b, weight: Decimal::ONE },
-            ExchangeBook { exchange: ExchangeId::Kraken, book: book_c, weight: Decimal::ONE },
+            ExchangeBook {
+                exchange: ExchangeId::BinanceSpot,
+                book: book_a,
+                weight: Decimal::ONE,
+            },
+            ExchangeBook {
+                exchange: ExchangeId::Coinbase,
+                book: book_b,
+                weight: Decimal::ONE,
+            },
+            ExchangeBook {
+                exchange: ExchangeId::Kraken,
+                book: book_c,
+                weight: Decimal::ONE,
+            },
         ]);
 
         let opp = agg.detect_arbitrage(dec!(0)).expect("should detect");

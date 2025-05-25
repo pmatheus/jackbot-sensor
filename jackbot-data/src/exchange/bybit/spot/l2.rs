@@ -1,6 +1,7 @@
 use super::super::book::{BybitOrderBookL2Data, BybitOrderBookLevel};
 use crate::{
     Identifier, SnapshotFetcher,
+    books::canonical::Canonicalizer,
     error::DataError,
     event::MarketEvent,
     exchange::bybit::{market::BybitMarket, message::BybitPayload, spot::BybitSpot},
@@ -139,8 +140,7 @@ mod tests {
             }
         }"#;
 
-        let update: BybitPayload<BybitOrderBookL2Data> =
-            serde_json::from_str(update_json).unwrap();
+        let update: BybitPayload<BybitOrderBookL2Data> = serde_json::from_str(update_json).unwrap();
         let events = transformer.transform(update);
         assert_eq!(events.len(), 1);
         let event = events.into_iter().next().unwrap().unwrap();
@@ -183,7 +183,10 @@ mod tests {
         // Simulate reconnect by reinitialising transformer
         let mut transformer = init_transformer().await;
         let events = transformer.transform(u2);
-        assert!(matches!(events[0].as_ref().unwrap().kind, OrderBookEvent::Update(_)));
+        assert!(matches!(
+            events[0].as_ref().unwrap().kind,
+            OrderBookEvent::Update(_)
+        ));
     }
 }
 
