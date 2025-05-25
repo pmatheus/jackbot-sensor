@@ -7,7 +7,6 @@ use std::{
     fs::{self, File},
     io::{self, Write},
     path::{Path, PathBuf},
-    process::Command,
     sync::Arc,
     time::{Duration, SystemTime},
 };
@@ -51,33 +50,6 @@ pub fn write_parquet(records: &[DataRecord], path: &Path) -> io::Result<()> {
         file.write_all(b"\n")?;
     }
     Ok(())
-}
-
-
-pub fn upload_to_s3(local_path: &Path, s3_root: &str) -> io::Result<String> {
-    let file_name = local_path
-        .file_name()
-        .ok_or_else(|| io::Error::other("missing file name"))?
-        .to_str()
-        .ok_or_else(|| io::Error::other("invalid file name"))?;
-
-    if let Some(path) = s3_root.strip_prefix("file://") {
-        let root = Path::new(path);
-        fs::create_dir_all(root)?;
-        let dest = root.join(file_name);
-        fs::copy(local_path, &dest)?;
-        Ok(dest.display().to_string())
-    } else {
-        let dest = format!("{}/{}", s3_root.trim_end_matches('/'), file_name);
-        let status = Command::new("aws")
-            .args(["s3", "cp", local_path.to_str().unwrap(), &dest])
-            .status()?;
-        if status.success() {
-            Ok(dest)
-        } else {
-            Err(io::Error::other("aws cli failed"))
-        }
-    }
 }
 
 #[async_trait]
@@ -300,7 +272,7 @@ pub struct SnapshotConfig {
 
 pub struct SnapshotScheduler {
     redis: Arc<FakeRedis>,
-    s3_root: String,
+    store: Arc<dyn ObjectStore>,
     iceberg_metadata: PathBuf,
     config: SnapshotConfig,
 }
@@ -308,13 +280,13 @@ pub struct SnapshotScheduler {
 impl SnapshotScheduler {
     pub fn new(
         redis: Arc<FakeRedis>,
-        s3_root: String,
+        store: Arc<dyn ObjectStore>,
         iceberg_metadata: PathBuf,
         config: SnapshotConfig,
     ) -> Self {
         Self {
             redis,
-            s3_root,
+            store,
             iceberg_metadata,
             config,
         }
@@ -332,16 +304,12 @@ impl SnapshotScheduler {
             .first()
             .map(|r| (r.exchange.clone(), r.market.clone()))
             .unwrap_or_else(|| ("unknown".into(), "unknown".into()));
-        let dest_dir = format!(
-            "{}/{}/{}",
-            self.s3_root.trim_end_matches('/'),
-            exchange,
-            market
-        );
-        let s3_path = upload_to_s3(&local_path, &dest_dir)?;
+        let key_prefix = format!("{}/{}", exchange, market);
+        let key = format!("{}/{}", key_prefix, file_name);
+        let s3_path = self.store.put(&key, &local_path).await?;
         register_with_iceberg(&self.iceberg_metadata, &s3_path)?;
         self.store
-            .cleanup(&format!("{}/{}", exchange, market), self.config.retention)
+            .cleanup(&key_prefix, self.config.retention)
             .await?;
         Ok(())
     }
@@ -374,21 +342,16 @@ mod tests {
             })
             .await;
         let dir = std::env::temp_dir();
-        let s3_root = format!("file://{}", dir.join("s3_test").display());
-        let local_root = Path::new(&s3_root[7..]);
+        let local_root = dir.join("s3_test");
         let meta = dir.join("meta.json");
-        let _ = fs::remove_dir_all(local_root);
+        let _ = fs::remove_dir_all(&local_root);
         let _ = fs::remove_file(&meta);
         let cfg = SnapshotConfig {
             interval: Duration::from_millis(1),
             retention: Duration::from_secs(1),
         };
-        let scheduler = SnapshotScheduler::new(
-            redis,
-            s3_root.to_string_lossy().to_string(),
-            meta.clone(),
-            cfg,
-        );
+        let store = Arc::new(LocalStore::new(local_root.clone()));
+        let scheduler = SnapshotScheduler::new(redis, store, meta.clone(), cfg);
         scheduler.snapshot_once().await.unwrap();
         assert!(
             fs::read_dir(PathBuf::from(&s3_root).join("exch/btc-usd"))
@@ -397,29 +360,24 @@ mod tests {
                 .is_some()
         );
         let meta_contents = fs::read_to_string(meta).unwrap();
-        let meta: IcebergMeta = serde_json::from_str(&meta_contents).unwrap();
-        assert_eq!(meta.snapshots.len(), 1);
+        let meta: IcebergTable = serde_json::from_str(&meta_contents).unwrap();
+        assert_eq!(meta.current_snapshot_id, 1);
     }
 
     #[tokio::test]
     async fn test_snapshot_skip_empty() {
         let redis = Arc::new(FakeRedis::default());
         let dir = std::env::temp_dir();
-        let s3_root = format!("file://{}", dir.join("s3_empty").display());
-        let local_root = Path::new(&s3_root[7..]);
+        let local_root = dir.join("s3_empty");
         let meta = dir.join("meta_empty.json");
-        let _ = fs::remove_dir_all(local_root);
+        let _ = fs::remove_dir_all(&local_root);
         let _ = fs::remove_file(&meta);
         let cfg = SnapshotConfig {
             interval: Duration::from_millis(1),
             retention: Duration::from_secs(1),
         };
-        let scheduler = SnapshotScheduler::new(
-            redis,
-            s3_root.to_string_lossy().to_string(),
-            meta.clone(),
-            cfg,
-        );
+        let store = Arc::new(LocalStore::new(local_root.clone()));
+        let scheduler = SnapshotScheduler::new(redis, store, meta.clone(), cfg);
         scheduler.snapshot_once().await.unwrap();
         assert!(!Path::new(&s3_root).exists());
         assert!(!meta.exists());
