@@ -15,25 +15,28 @@ This document summarises the current support for advanced order types across all
 
 | Exchange | Always Maker | TWAP/VWAP | Smart Trades | Prophetic Orders | Jackpot Orders | Notes |
 |---------|--------------|-----------|--------------|------------------|----------------|-------|
-| Binance | Yes | Yes | Yes | Yes | Yes | |
-| Bitget | Yes | Yes | Yes | Yes | Yes | |
-| Bybit | Yes | Yes | Yes | Yes | Yes | |
-| Coinbase | Yes | Yes | Yes | Yes | N/A | Spot only |
-| Hyperliquid | Yes | Yes | Yes | Yes | Yes | |
-| Kraken | Yes | Yes | Yes | Yes | Yes | |
-| MEXC | Yes | Yes | Yes | Yes | Yes | |
-| Kucoin | Yes | Yes | Yes | Yes | Yes | |
-| Gate.io | Yes | Yes | Yes | Yes | Yes | |
-| Crypto.com | Yes | Yes | Yes | Yes | Yes | |
-| OKX | Yes | Yes | Yes | Yes | Yes | |
+| Binance | Yes | Yes | Yes | Yes | Yes | Futures trailing stops emulated |
+| Bitget | Yes | Yes | Yes | Yes | Yes | Integration pending |
+| Bybit | Yes | Yes | Yes | Yes | Yes | Integration pending |
+| Coinbase | Yes | Yes | Yes | Yes | N/A | Spot only; trailing emulated |
+| Hyperliquid | Yes | Yes | Yes | Yes | Yes | Perpetual markets only |
+| Kraken | Yes | Yes | Yes | Yes | Yes | Trailing semantics differ |
+| MEXC | Yes | Yes | Yes | Yes | Yes | Client stub |
+| Kucoin | Yes | Yes | Yes | Yes | Yes | Client stub |
+| Gate.io | Yes | Yes | Yes | Yes | Yes | Trailing APIs inconsistent |
+| Crypto.com | Yes | Yes | Yes | Yes | Yes | Trailing not provided |
+| OKX | Yes | Yes | Yes | Yes | Yes | Algorithmic endpoints required |
 
 All exchanges expose the same trait-based interface in `jackbot-execution`. Stubs indicate planned integration where the exchange API does not yet offer an equivalent feature.
 
 **Limitations**
 
-- Coinbase only supports spot trading. Advanced orders operate on spot markets only.
+- Coinbase only supports spot trading and trailing stops are emulated client-side.
 - Hyperliquid offers perpetual futures exclusively.
-- Gate.io, Crypto.com and MEXC clients are currently stubs with placeholder implementations.
+- Binance futures lack native trailing or multi-level order endpoints and rely on emulation.
+- Kraken trailing semantics differ from other venues and require mapping.
+- OKX exposes advanced features via algorithmic order endpoints that are not yet integrated.
+- Gate.io, Crypto.com, MEXC, Bitget, Bybit and Kucoin clients are currently stubs with placeholder implementations.
 
 ## Maker-Only (Post-Only) Support
 
