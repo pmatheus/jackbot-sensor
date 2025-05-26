@@ -64,7 +64,6 @@ pub enum ExchangeId {
     Kraken,
     Kucoin,
     Liquid,
-    Gateio,
     Mexc,
     Okx,
     Poloniex,
