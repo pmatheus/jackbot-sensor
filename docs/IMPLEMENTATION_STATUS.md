@@ -303,6 +303,7 @@ paper trading. The full table also lives in
 - Scaffolding baseline trade WebSocket modules across exchanges.
 - Implemented Gate.io trade WebSocket modules with event normalization.
 - Fixed compile error in `jackbot-risk` by removing an invalid `Constructor` derive.
+- Fixed duplicate `Gateio` enum variant causing compile errors in `jackbot-instrument` when building `jackbot-integration`.
 - Clippy warnings in `jackbot-integration` (deprecated rand usage, large error variants) need resolving.
 - Unit tests for `jackbot-strategy` fail to compile due to issues in `jackbot-execution` dependencies.
 
