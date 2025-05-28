@@ -9,23 +9,26 @@ use crate::{
     },
     trade::Trade,
 };
+use chrono::{DateTime, Utc};
+use futures::Stream;
 use jackbot_instrument::{
     asset::{QuoteAsset, name::AssetNameExchange},
     exchange::ExchangeId,
     instrument::name::InstrumentNameExchange,
 };
-use chrono::{DateTime, Utc};
-use futures::Stream;
 use std::future::Future;
 
 pub mod binance;
 pub mod coinbase;
 pub mod cryptocom;
 pub mod gateio;
-pub mod mexc;
-pub mod okx;
-pub mod mock;
 pub mod kraken;
+pub mod mexc;
+pub mod mock;
+pub mod okx;
+// pub mod trading; // Moved to lib.rs as trading.rs is in src/
+
+// pub use trading::TradingClient; // Moved to lib.rs or handled differently
 
 pub trait ExecutionClient
 where
@@ -52,12 +55,12 @@ where
 
     fn cancel_order(
         &self,
-        request: OrderRequestCancel<ExchangeId, &InstrumentNameExchange>,
+        request: OrderRequestCancel<ExchangeId, InstrumentNameExchange>,
     ) -> impl Future<Output = UnindexedOrderResponseCancel> + Send;
 
-    fn cancel_orders<'a>(
+    fn cancel_orders(
         &self,
-        requests: impl IntoIterator<Item = OrderRequestCancel<ExchangeId, &'a InstrumentNameExchange>>,
+        requests: impl IntoIterator<Item = OrderRequestCancel<ExchangeId, InstrumentNameExchange>>,
     ) -> impl Stream<Item = UnindexedOrderResponseCancel> {
         futures::stream::FuturesUnordered::from_iter(
             requests
@@ -68,14 +71,14 @@ where
 
     fn open_order(
         &self,
-        request: OrderRequestOpen<ExchangeId, &InstrumentNameExchange>,
+        request: OrderRequestOpen<ExchangeId, InstrumentNameExchange>,
     ) -> impl Future<
         Output = Order<ExchangeId, InstrumentNameExchange, Result<Open, UnindexedOrderError>>,
     > + Send;
 
-    fn open_orders<'a>(
+    fn open_orders(
         &self,
-        requests: impl IntoIterator<Item = OrderRequestOpen<ExchangeId, &'a InstrumentNameExchange>>,
+        requests: impl IntoIterator<Item = OrderRequestOpen<ExchangeId, InstrumentNameExchange>>,
     ) -> impl Stream<Item = Order<ExchangeId, InstrumentNameExchange, Result<Open, UnindexedOrderError>>>
     {
         futures::stream::FuturesUnordered::from_iter(
@@ -85,16 +88,18 @@ where
 
     fn fetch_balances(
         &self,
-    ) -> impl Future<Output = Result<Vec<AssetBalance<AssetNameExchange>>, UnindexedClientError>>;
+    ) -> impl Future<Output = Result<Vec<AssetBalance<AssetNameExchange>>, UnindexedClientError>> + Send;
 
     fn fetch_open_orders(
         &self,
     ) -> impl Future<
         Output = Result<Vec<Order<ExchangeId, InstrumentNameExchange, Open>>, UnindexedClientError>,
-    >;
+    > + Send;
 
     fn fetch_trades(
         &self,
         time_since: DateTime<Utc>,
-    ) -> impl Future<Output = Result<Vec<Trade<QuoteAsset, InstrumentNameExchange>>, UnindexedClientError>>;
+    ) -> impl Future<
+        Output = Result<Vec<Trade<QuoteAsset, InstrumentNameExchange>>, UnindexedClientError>,
+    > + Send;
 }

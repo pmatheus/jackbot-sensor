@@ -2,12 +2,11 @@ use crate::{
     Identifier, SnapshotFetcher,
     books::{
         Level, OrderBook,
-        l2_sequencer::{HasUpdateIds, L2Sequencer},
+        l2_sequencer::{L2Sequencer},
     },
     error::DataError,
     event::{MarketEvent, MarketIter},
     exchange::{
-        Connector,
         okx::{Okx, channel::OkxChannel, market::OkxMarket},
         subscription::ExchangeSub,
     },

@@ -1,16 +1,16 @@
+use futures::{SinkExt, StreamExt};
+use jackbot_integration::{
+    circuit_breaker::CircuitBreaker,
+    error::SocketError,
+    protocol::websocket::{WebSocket, connect},
+};
 use serde::Deserialize;
 use std::time::Duration;
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::UnboundedReceiverStream;
 use tokio_tungstenite::tungstenite::Message as WsMessage;
-use futures::{StreamExt, SinkExt};
 use tracing::{error, warn};
 use url::Url;
-use jackbot_integration::{
-    protocol::websocket::{connect, WebSocket},
-    error::SocketError,
-    circuit_breaker::CircuitBreaker,
-};
 
 /// User WebSocket event sent by Binance Futures.
 #[derive(Debug, Deserialize, PartialEq)]
@@ -65,7 +65,11 @@ async fn run_connection(
     tx: &mpsc::UnboundedSender<BinanceUserEvent>,
     auth_payload: &str,
 ) -> Result<(), ()> {
-    if ws.send(WsMessage::text(auth_payload)).await.is_err() {
+    if ws
+        .send(WsMessage::text(auth_payload.to_string()))
+        .await
+        .is_err()
+    {
         error!("failed to send auth payload over WebSocket");
         return Err(());
     }
@@ -143,7 +147,7 @@ mod tests {
             let (stream, _) = listener.accept().await.unwrap();
             let mut ws = accept_async(stream).await.unwrap();
             ws.next().await.unwrap().unwrap();
-            ws.send(Message::Text(payload)).await.unwrap();
+            ws.send(Message::Text(payload.into())).await.unwrap();
             ws.close(None).await.unwrap();
         }
     }
@@ -151,17 +155,31 @@ mod tests {
     #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
     async fn test_user_stream_parse() {
         let addr = "127.0.0.1:18100";
-        let first = r#"{\"e\":\"balance\",\"E\":1,\"asset\":\"BTC\",\"free\":\"0.5\",\"total\":\"1.0\"}"#.to_string();
+        let first =
+            r#"{\"e\":\"balance\",\"E\":1,\"asset\":\"BTC\",\"free\":\"0.5\",\"total\":\"1.0\"}"#
+                .to_string();
         let second = r#"{\"e\":\"order\",\"E\":2,\"s\":\"BTCUSDT\",\"S\":\"BUY\",\"p\":\"100\",\"q\":\"0.1\",\"i\":1,\"X\":\"NEW\"}"#.to_string();
-        let third = r#"{\"e\":\"position\",\"E\":3,\"s\":\"BTCUSDT\",\"pa\":\"0.2\",\"ps\":\"LONG\"}"#.to_string();
-        tokio::spawn(run_server(addr, first.clone(), second.clone(), third.clone()));
+        let third =
+            r#"{\"e\":\"position\",\"E\":3,\"s\":\"BTCUSDT\",\"pa\":\"0.2\",\"ps\":\"LONG\"}"#
+                .to_string();
+        tokio::spawn(run_server(
+            addr,
+            first.clone(),
+            second.clone(),
+            third.clone(),
+        ));
 
-        let mut stream = user_stream(Url::parse(&format!("ws://{}", addr)).unwrap(), "{}".to_string()).await.unwrap();
+        let mut stream = user_stream(
+            Url::parse(&format!("ws://{}", addr)).unwrap(),
+            "{}".to_string(),
+        )
+        .await
+        .unwrap();
         let ev1 = stream.next().await.unwrap();
-        assert!(matches!(ev1, BinanceUserEvent::Balance{..}));
+        assert!(matches!(ev1, BinanceUserEvent::Balance { .. }));
         let ev2 = stream.next().await.unwrap();
-        assert!(matches!(ev2, BinanceUserEvent::Order{..}));
+        assert!(matches!(ev2, BinanceUserEvent::Order { .. }));
         let ev3 = stream.next().await.unwrap();
-        assert!(matches!(ev3, BinanceUserEvent::Position{..}));
+        assert!(matches!(ev3, BinanceUserEvent::Position { .. }));
     }
 }

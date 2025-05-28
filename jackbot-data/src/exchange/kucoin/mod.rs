@@ -66,7 +66,7 @@ impl Connector for Kucoin {
         exchange_subs
             .into_iter()
             .map(|sub| {
-                let (channel, market) = (sub.channel.as_str(), sub.market.normalize());
+                let (channel, market) = (sub.channel.0, sub.market.normalize());
                 WsMessage::text(
                     json!({
                         "id": "Jackbot-kucoin-subscribe",

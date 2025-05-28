@@ -1,7 +1,7 @@
 [package]
 name = "jackbot-macro"
 version = "0.2.0"
-authors = ["JustAStream"]
+authors = ["Jack"]
 edition = "2024"
 license = "MIT"
 documentation = "https://docs.rs/jackbot-macro/"

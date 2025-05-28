@@ -1,15 +1,15 @@
-use crate::engine::state::{EngineState, instrument::data::InstrumentDataState};
-use crate::risk::{RiskManager, RiskApproved, RiskRefused};
-use crate::engine::state::instrument::filter::InstrumentFilter;
 use crate::engine::command::Command;
+use crate::engine::state::instrument::filter::InstrumentFilter;
+use crate::engine::state::{EngineState, instrument::data::InstrumentDataState};
+use crate::risk::{RiskApproved, RiskManager, RiskRefused};
+use jackbot_execution::order::id::{ClientOrderId, StrategyId};
 use jackbot_execution::order::request::{OrderRequestCancel, OrderRequestOpen, RequestOpen};
-use jackbot_execution::order::id::{ClientOrderId, StrategyId, OrderKey};
-use jackbot_execution::order::{OrderKind, TimeInForce};
+use jackbot_execution::order::{OrderKey, OrderKind, TimeInForce};
+use jackbot_instrument::{
+    Side, asset::AssetIndex, exchange::ExchangeIndex, instrument::InstrumentIndex,
+};
 use jackbot_integration::collection::one_or_many::OneOrMany;
-use jackbot_instrument::{asset::AssetIndex, exchange::ExchangeIndex, instrument::InstrumentIndex, Side};
-use jackbot_instrument::{asset::AssetIndex, exchange::ExchangeIndex, instrument::InstrumentIndex};
 use rust_decimal::Decimal;
-use jackbot_risk::volatility::VolatilityScaler;
 use std::collections::HashMap;
 use std::marker::PhantomData;
 
@@ -40,7 +40,7 @@ impl Default for ExposureLimits {
 pub struct ExposureRiskManager<State> {
     pub limits: ExposureLimits,
     /// Optional volatility scaler used to adjust limits.
-    pub scaler: Option<jackbot_risk::volatility::VolatilityScaler>,
+    pub scaler: Option<()>,
     /// Per instrument volatility values.
     pub volatilities: HashMap<InstrumentIndex, Decimal>,
     phantom: PhantomData<State>,
@@ -79,30 +79,35 @@ where
         let mut approved_opens = Vec::new();
         let mut refused_opens = Vec::new();
 
-        for mut open in opens.into_iter() {
+        for open in opens.into_iter() {
             let inst_state = state.instruments.instrument_index(&open.key.instrument);
-            let price = open.state.price
-                .or_else(|| inst_state.data.price())
-                .unwrap_or(Decimal::ZERO);
+            let price = if open.state.price.is_sign_positive() {
+                open.state.price
+            } else {
+                inst_state.data.price().unwrap_or(Decimal::ZERO)
+            };
 
-            let mut limit = self.limits.max_notional_per_underlying;
-            let mut quantity = open.state.quantity;
+            let limit = self.limits.max_notional_per_underlying;
+            let quantity = open.state.quantity;
+            /* TODO: Implement proper VolatilityScaler
             if let Some(scaler) = &self.scaler {
                 let vol = self
                     .volatilities
                     .get(&open.key.instrument)
                     .copied()
-                    .unwrap_or(scaler.base_volatility);
+                    .unwrap_or(Decimal::ZERO);
                 limit = scaler.adjust_risk(limit, vol);
                 quantity = scaler.adjust_position(quantity, vol);
                 open.state.quantity = quantity;
             }
+            */
 
             let notional = crate::risk::check::util::calculate_quote_notional(
                 quantity,
                 price,
                 inst_state.instrument.kind.contract_size(),
-            ).unwrap_or(Decimal::ZERO);
+            )
+            .unwrap_or(Decimal::ZERO);
             let underlying = inst_state.instrument.underlying.base;
             let current = exposures.entry(underlying).or_insert(Decimal::ZERO);
 
@@ -110,7 +115,10 @@ where
                 refused_opens.push(RiskRefused::new(open, "exposure limit"));
                 continue;
             }
-            if exceeds_drawdown(inst_state.position.current.as_ref(), self.limits.max_drawdown_percent) {
+            if exceeds_drawdown(
+                inst_state.position.current.as_ref(),
+                self.limits.max_drawdown_percent,
+            ) {
                 refused_opens.push(RiskRefused::new(open, "drawdown limit"));
                 continue;
             }
@@ -143,8 +151,13 @@ where
 
     // Drawdown mitigation - fully close positions breaching the limit
     for inst_state in state.instruments.instruments(&InstrumentFilter::None) {
-        if exceeds_drawdown(inst_state.position.current.as_ref(), limits.max_drawdown_percent) {
-            actions.push(Command::ClosePositions(InstrumentFilter::Instruments(OneOrMany::One(inst_state.key))));
+        if exceeds_drawdown(
+            inst_state.position.current.as_ref(),
+            limits.max_drawdown_percent,
+        ) {
+            actions.push(Command::ClosePositions(InstrumentFilter::Instruments(
+                OneOrMany::One(inst_state.key),
+            )));
         }
     }
 
@@ -161,16 +174,24 @@ where
                 exposures_by_instrument
                     .get(&b.key)
                     .unwrap_or(&Decimal::ZERO)
-                    .cmp(exposures_by_instrument.get(&a.key).unwrap_or(&Decimal::ZERO))
+                    .cmp(
+                        exposures_by_instrument
+                            .get(&a.key)
+                            .unwrap_or(&Decimal::ZERO),
+                    )
             });
 
             for inst_state in instruments {
                 if excess <= Decimal::ZERO {
                     break;
                 }
-                let notional = *exposures_by_instrument.get(&inst_state.key).unwrap_or(&Decimal::ZERO);
+                let notional = *exposures_by_instrument
+                    .get(&inst_state.key)
+                    .unwrap_or(&Decimal::ZERO);
                 let reduce = if notional >= excess { excess } else { notional };
-                if let (Some(pos), Some(price)) = (&inst_state.position.current, inst_state.data.price()) {
+                if let (Some(pos), Some(price)) =
+                    (&inst_state.position.current, inst_state.data.price())
+                {
                     let qty = reduce / (price * inst_state.instrument.kind.contract_size());
                     if qty > Decimal::ZERO {
                         let side = match pos.side {
@@ -206,35 +227,43 @@ where
         let exp_b = signed_exposures.get(b).copied().unwrap_or(Decimal::ZERO);
         let combined = exp_a.abs() + exp_b.abs();
         if combined > *limit {
-            let (hedge_key, hedge_exp) = if exp_a.abs() >= exp_b.abs() { (*a, exp_a) } else { (*b, exp_b) };
+            let (hedge_key, hedge_exp) = if exp_a.abs() >= exp_b.abs() {
+                (*a, exp_a)
+            } else {
+                (*b, exp_b)
+            };
             let inst_state = state.instruments.instrument_index(&hedge_key);
-            if let (Some(pos), Some(price)) = (&inst_state.position.current, inst_state.data.price()) {
-                    let reduce = (combined - *limit).min(hedge_exp.abs());
-                    let qty = reduce / (price * inst_state.instrument.kind.contract_size());
-                    if qty > Decimal::ZERO {
-                        let side = if hedge_exp > Decimal::ZERO { Side::Sell } else { Side::Buy };
-                        let order = OrderRequestOpen {
-                            key: OrderKey {
-                                exchange: inst_state.instrument.exchange,
-                                instrument: inst_state.key,
-                                strategy: StrategyId::new("risk_mitigation"),
-                                cid: ClientOrderId::random(),
-                            },
-                            state: RequestOpen {
-                                side,
-                                price,
-                                quantity: qty,
-                                kind: OrderKind::Market,
-                                time_in_force: TimeInForce::ImmediateOrCancel,
-                            },
-                        };
-                        actions.push(Command::SendOpenRequests(OneOrMany::One(order)));
-                    }
+            if let (Some(pos), Some(price)) =
+                (&inst_state.position.current, inst_state.data.price())
+            {
+                let reduce = (combined - *limit).min(hedge_exp.abs());
+                let qty = reduce / (price * inst_state.instrument.kind.contract_size());
+                if qty > Decimal::ZERO {
+                    let side = if hedge_exp > Decimal::ZERO {
+                        Side::Sell
+                    } else {
+                        Side::Buy
+                    };
+                    let order = OrderRequestOpen {
+                        key: OrderKey {
+                            exchange: inst_state.instrument.exchange,
+                            instrument: inst_state.key,
+                            strategy: StrategyId::new("risk_mitigation"),
+                            cid: ClientOrderId::random(),
+                        },
+                        state: RequestOpen {
+                            side,
+                            price,
+                            quantity: qty,
+                            kind: OrderKind::Market,
+                            time_in_force: TimeInForce::ImmediateOrCancel,
+                        },
+                    };
+                    actions.push(Command::SendOpenRequests(OneOrMany::One(order)));
                 }
             }
         }
     }
-
     actions
 }
 
@@ -253,7 +282,9 @@ where
                     price,
                     inst_state.instrument.kind.contract_size(),
                 ) {
-                    let entry = map.entry(inst_state.instrument.underlying.base).or_insert(Decimal::ZERO);
+                    let entry = map
+                        .entry(inst_state.instrument.underlying.base)
+                        .or_insert(Decimal::ZERO);
                     *entry += notional;
                 }
             }
@@ -312,8 +343,18 @@ where
     map
 }
 
-fn exceeds_drawdown(pos: Option<&crate::engine::state::position::Position<jackbot_instrument::asset::QuoteAsset, InstrumentIndex>>, limit: Decimal) -> bool {
-    let Some(position) = pos else { return false; };
+fn exceeds_drawdown(
+    pos: Option<
+        &crate::engine::state::position::Position<
+            jackbot_instrument::asset::QuoteAsset,
+            InstrumentIndex,
+        >,
+    >,
+    limit: Decimal,
+) -> bool {
+    let Some(position) = pos else {
+        return false;
+    };
     let invested = position.quantity_abs_max * position.price_entry_average;
     if invested.is_zero() {
         return false;
@@ -349,7 +390,7 @@ where
 /// Generate a textual dashboard summarising positions, exposures, and alerts.
 pub fn generate_dashboard<GlobalData, InstrumentData>(
     state: &EngineState<GlobalData, InstrumentData>,
-    alerts: &[jackbot_risk::alert::RiskViolation<InstrumentIndex>],
+    alerts: &[()],
 ) -> String
 where
     InstrumentData: InstrumentDataState,
@@ -374,11 +415,10 @@ where
 
     if !alerts.is_empty() {
         lines.push("Alerts:".to_string());
-        for alert in alerts {
-            lines.push(format!("{alert:?}"));
+        for _ in alerts {
+            lines.push(format!("Alert"));
         }
     }
 
     lines.join("\n")
 }
-

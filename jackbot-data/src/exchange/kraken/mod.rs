@@ -13,11 +13,11 @@ use crate::{
     subscription::{book::OrderBooksL2, trade::PublicTrades},
     transformer::stateless::StatelessTransformer,
 };
-use derive_more::Display;
+
 use jackbot_instrument::exchange::ExchangeId;
 use jackbot_integration::{error::SocketError, protocol::websocket::WsMessage};
 use jackbot_macro::{DeExchange, SerExchange};
-use serde::{Deserialize, Serialize};
+
 use serde_json::json;
 use std::time::Duration;
 use url::Url;

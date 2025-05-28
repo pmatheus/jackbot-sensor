@@ -1,4 +1,3 @@
-use rust_decimal::Decimal;
 use jackbot_instrument::instrument::InstrumentIndex;
 use parking_lot::Mutex;
 use rust_decimal::Decimal;

@@ -1,9 +1,9 @@
 use super::SubscriptionKind;
-use crate::books::{Level, OrderBook, mid_price, volume_weighted_mid_price};
-use chrono::{DateTime, Utc};
-use derive_more::Constructor;
+use crate::books::OrderBook;
+
+
 use jackbot_macro::{DeSubKind, SerSubKind};
-use rust_decimal::Decimal;
+
 use serde::{Deserialize, Serialize};
 
 /// Jackbot [`Subscription`](super::Subscription) [`SubscriptionKind`] that yields [`OrderBookL1`]

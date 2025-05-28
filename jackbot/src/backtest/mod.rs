@@ -27,21 +27,26 @@ use crate::{
     execution::builder::{ExecutionBuild, ExecutionBuilder},
     system::builder::{AuditMode, SystemBuild},
 };
+use futures::future::try_join_all;
 use jackbot_data::event::MarketEvent;
 use jackbot_execution::AccountEvent;
 use jackbot_instrument::{index::IndexedInstruments, instrument::InstrumentIndex};
-use futures::future::try_join_all;
+use jackbot_integration::{
+    FeedEnded, Terminal,
+    channel::{Channel, ChannelTxDroppable, mpsc_unbounded},
+    snapshot::SnapUpdates,
+};
 use rust_decimal::Decimal;
 use smol_str::SmolStr;
 use std::{fmt::Debug, sync::Arc};
 
+pub mod data_loader;
 /// Defines the interface and implementations for different types of market data sources
 /// that can be used in backtests.
 pub mod market_data;
-pub mod data_loader;
 pub mod order_book_replay;
-pub mod summary;
 pub mod simulation;
+pub mod summary;
 
 /// Configuration for constants used across all backtests in a batch.
 ///
@@ -203,9 +208,9 @@ where
 
     // Build Execution infrastructure
     let ExecutionBuild {
-        execution_tx_map,
-        account_channel,
-        futures,
+        execution_txs,
+        merged_channel,
+        execution_init_futures,
     } = args_constant
         .executions
         .clone()
@@ -213,10 +218,19 @@ where
         .try_fold(
             ExecutionBuilder::new(&args_constant.instruments),
             |builder, config| match config {
-                ExecutionConfig::Mock(mock_config) => builder.add_mock(mock_config, clock.clone()),
+                ExecutionConfig::Mock(mock_config) => {
+                    builder.add_mock(mock_config, std::time::Duration::from_secs(30))
+                }
+                ExecutionConfig::None => Ok(builder),
             },
         )?
         .build();
+
+    // Create MultiExchangeTxMap using its FromIterator implementation
+    let execution_tx_map = execution_txs
+        .into_iter()
+        .map(|(exchange_id, (exchange_index, tx))| (exchange_id, Some(tx)))
+        .collect::<MultiExchangeTxMap>();
 
     let engine = Engine::new(
         clock,
@@ -226,13 +240,21 @@ where
         args_dynamic.risk,
     );
 
+    // Create execution build for init
+    let execution_build = ExecutionBuild {
+        execution_txs: Default::default(),
+        merged_channel: Channel::default(),
+        execution_init_futures,
+    };
+
+    // Initialize the system
     let system = SystemBuild::new(
         engine,
         EngineFeedMode::Stream,
         AuditMode::Disabled,
         market_stream,
-        account_channel,
-        futures,
+        merged_channel,
+        execution_build,
     )
     .init()
     .await?;

@@ -1,44 +1,6 @@
-# Exchange Feature Implementation Status
+# Implementation Status
 
-**Supported Exchanges**
-* Binance
-* Bitget
-* Bybit
-* Coinbase
-* Hyperliquid
-* Kraken
-* MEXC
-* Kucoin
-* Gate.io
-* Crypto.com
-* OKX
-  - OKX does not provide a public liquidations WebSocket channel. The code
-    includes a stub at `jackbot-data/src/exchange/okx/liquidation.rs`.
-
-**Instructions for Contributors:**
-- Check off each box as you complete the step for each task.
-- If an exchange/market does not support intended functionality, document it here and in the code with comments.
-
-**Conventions:**
-- All public types and functions must be documented.
-- Each exchange must have a test module or file for each feature (unit or integration tests).
-- If a feature is not supported, a stub file with a doc comment must be present explaining why.
-
-**📈 Progress Tracking**
-- Use checkboxes above to track status
-- Tag PRs/issues with relevant exchange and feature (e.g., `[bybit][orderbook-l2]`)
-- Assign owners for each major task
-- Update this file on every merge
-
-**📝 Update Guidelines**
-- All contributors **must** update this file with each significant feature, bugfix, or doc change
-- Add new rows for new exchanges or features as needed
-- If a feature is not supported by an exchange, explicitly document it here
-- Keep the feature matrix and TODOs current for team visibility
-
-### Pending Workspace Tasks
-- [ ] Resolve formatting errors in `jackbot` and `jackbot-execution` crates preventing `cargo fmt --all` from completing successfully.
-- [ ] Address clippy warnings in `jackbot-integration` (deprecated `rand` APIs and large error variants) so `cargo clippy --all-targets --all-features -- -D warnings` passes.
+This document tracks the implementation status of various components within the Jackbot project.
 
 ## Canonical Order Book Representation
 

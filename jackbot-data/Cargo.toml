@@ -2,7 +2,7 @@
 name = "jackbot-data"
 version = "0.10.1"
 edition = "2024"
-authors = ["JustAStream <justastream.code@gmail.com>"]
+authors = ["Jack <mail@jackbot.app>"]
 license = "MIT"
 documentation = "https://docs.rs/jackbot-data"
 repository = "https://github.com/jackbot-rs/jackbot-rs"
@@ -25,7 +25,7 @@ jackbot-macro = { workspace = true }
 tracing = { workspace = true }
 
 # Async
-tokio = { workspace = true, features = ["sync", "macros", "rt-multi-thread"] }
+tokio = { workspace = true, features = ["sync", "macros", "rt-multi-thread", "test-util"] }
 tokio-stream = { workspace = true, features = ["sync"] }
 futures = { workspace = true }
 futures-util = { workspace = true }

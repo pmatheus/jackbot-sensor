@@ -10,9 +10,9 @@ use chrono::{DateTime, Utc};
 use derive_more::Constructor;
 use jackbot_instrument::exchange::ExchangeId;
 use jackbot_integration::subscription::SubscriptionId;
-use rust_decimal::Decimal;
+
 use serde::{Deserialize, Serialize};
-use std::str::FromStr;
+
 
 #[derive(Debug, Constructor)]
 pub struct BinanceOrderBookL2Meta<InstrumentKey, Sequencer> {

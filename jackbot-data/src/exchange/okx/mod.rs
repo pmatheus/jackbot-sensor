@@ -1,15 +1,8 @@
 //! Exchange module for OKX. Implements all required traits and re-exports submodules.
 use self::{
     channel::OkxChannel,
-    futures::l2::{
-        OkxFuturesOrderBooksL2SnapshotFetcher, OkxFuturesOrderBooksL2Transformer,
-        OkxOrderBookL2 as OkxFuturesOrderBookL2,
-    },
     market::OkxMarket,
-    spot::l2::{
-        OkxOrderBookL2 as OkxSpotOrderBookL2, OkxSpotOrderBooksL2SnapshotFetcher,
-        OkxSpotOrderBooksL2Transformer,
-    },
+    spot::l2::{OkxSpotOrderBooksL2SnapshotFetcher, OkxSpotOrderBooksL2Transformer},
     subscription::OkxSubResponse,
     trade::OkxTrades,
 };
@@ -19,14 +12,11 @@ use crate::{
     instrument::InstrumentData,
     subscriber::{WebSocketSubscriber, validator::WebSocketSubValidator},
     subscription::{book::OrderBooksL2, trade::PublicTrades},
-    subscription::{book::OrderBooksL2, trade::PublicTrades},
     transformer::stateless::StatelessTransformer,
 };
-use derive_more::Display;
 use jackbot_instrument::exchange::ExchangeId;
 use jackbot_integration::{error::SocketError, protocol::websocket::WsMessage};
 use jackbot_macro::{DeExchange, SerExchange};
-use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::time::Duration;
 use url::Url;

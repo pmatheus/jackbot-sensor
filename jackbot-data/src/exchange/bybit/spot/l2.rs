@@ -12,7 +12,6 @@ use crate::{
     },
     transformer::ExchangeTransformer,
 };
-use crate::books::canonical::Canonicalizer;
 use async_trait::async_trait;
 use chrono::Utc;
 use futures_util::future::try_join_all;
@@ -87,9 +86,8 @@ impl SnapshotFetcher<BybitSpot, OrderBooksL2> for BybitSpotOrderBooksL2SnapshotF
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chrono::{TimeZone, Utc};
-    use jackbot_integration::subscription::SubscriptionId;
     use fnv::FnvHashMap;
+    use jackbot_integration::subscription::SubscriptionId;
     use rust_decimal_macros::dec;
 
     /// Helper to create a transformer for a single BTCUSDT subscription
@@ -178,7 +176,10 @@ mod tests {
         let u2: BybitPayload<BybitOrderBookL2Data> = serde_json::from_str(update2_json).unwrap();
 
         let e1 = transformer.transform(u1)[0].as_ref().unwrap().time_exchange;
-        let e2 = transformer.transform(u2)[0].as_ref().unwrap().time_exchange;
+        let e2 = transformer.transform(u2.clone())[0]
+            .as_ref()
+            .unwrap()
+            .time_exchange;
 
         assert!(e1 > e2, "events should keep original timestamps");
 

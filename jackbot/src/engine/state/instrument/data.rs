@@ -2,16 +2,16 @@ use crate::{
     Timed,
     engine::{Processor, state::order::in_flight_recorder::InFlightRequestRecorder},
 };
+use derive_more::Constructor;
 use jackbot_data::{
+    books::OrderBook,
     event::{DataKind, MarketEvent},
-    subscription::book::OrderBookL1,
 };
 use jackbot_execution::{
     AccountEvent,
     order::request::{OrderRequestCancel, OrderRequestOpen},
 };
 use jackbot_instrument::{asset::AssetIndex, exchange::ExchangeIndex, instrument::InstrumentIndex};
-use derive_more::Constructor;
 use rust_decimal::{Decimal, prelude::FromPrimitive};
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
@@ -57,19 +57,28 @@ pub trait InstrumentDataState<
 /// This is a simple example of instrument level data. Trading strategies typically maintain more
 /// comprehensive data, such as candles, technical indicators, market depth (L2 book), volatility metrics,
 /// or strategy-specific state data.
-#[derive(
-    Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Default, Deserialize, Serialize, Constructor,
-)]
+#[derive(Debug, Clone, Eq, PartialEq, Default, Deserialize, Serialize, Constructor)]
 pub struct DefaultInstrumentMarketData {
-    pub l1: OrderBookL1,
+    pub book: OrderBook,
     pub last_traded_price: Option<Timed<Decimal>>,
+}
+
+impl DefaultInstrumentMarketData {
+    // Add a constructor if Default is not sufficient or if specific initialization is needed.
+    // For now, relying on Default and direct initialization.
+    // pub fn new() -> Self {
+    //     Self {
+    //         book: OrderBook::default(),
+    //         last_traded_price: None,
+    //     }
+    // }
 }
 
 impl InstrumentDataState for DefaultInstrumentMarketData {
     type MarketEventKind = DataKind;
 
     fn price(&self) -> Option<Decimal> {
-        self.l1
+        self.book
             .volume_weighed_mid_price()
             .or(self.last_traded_price.as_ref().map(|timed| timed.value))
     }
@@ -94,10 +103,8 @@ impl<InstrumentKey> Processor<&MarketEvent<InstrumentKey, DataKind>>
                     }
                 }
             }
-            DataKind::OrderBookL1(l1) => {
-                if self.l1.last_update_time < event.time_exchange {
-                    self.l1 = l1.clone()
-                }
+            DataKind::OrderBook(book_event) => {
+                self.book.update(book_event.clone());
             }
             _ => {}
         }

@@ -1,6 +1,11 @@
-use crate::backtest::{backtest, BacktestArgsConstant, BacktestArgsDynamic, BacktestSummary};
+use crate::backtest::summary::BacktestSummary;
+use crate::backtest::{BacktestArgsConstant, BacktestArgsDynamic, backtest};
+use crate::engine::execution_tx::MultiExchangeTxMap;
 use crate::engine::state::EngineState;
 use crate::error::JackbotError;
+use jackbot_data::event::MarketEvent;
+use jackbot_execution::AccountEvent;
+use jackbot_instrument::instrument::InstrumentIndex;
 use std::sync::Arc;
 
 pub async fn ab_test<MD, SI, SA, SB, Risk, GD, ID>(
@@ -16,27 +21,25 @@ where
         + crate::strategy::on_trading_disabled::OnTradingDisabled<
             crate::engine::clock::HistoricalClock,
             EngineState<GD, ID>,
-            crate::execution::execution_tx::MultiExchangeTxMap,
+            MultiExchangeTxMap,
             Risk,
-        >
-        + crate::strategy::on_disconnect::OnDisconnectStrategy<
+        > + crate::strategy::on_disconnect::OnDisconnectStrategy<
             crate::engine::clock::HistoricalClock,
             EngineState<GD, ID>,
-            crate::execution::execution_tx::MultiExchangeTxMap,
+            MultiExchangeTxMap,
             Risk,
-        >
-        + Send
+        > + Send
         + 'static,
     <SA as crate::strategy::on_trading_disabled::OnTradingDisabled<
         crate::engine::clock::HistoricalClock,
         EngineState<GD, ID>,
-        crate::execution::execution_tx::MultiExchangeTxMap,
+        MultiExchangeTxMap,
         Risk,
     >>::OnTradingDisabled: std::fmt::Debug + Clone + Send,
     <SA as crate::strategy::on_disconnect::OnDisconnectStrategy<
         crate::engine::clock::HistoricalClock,
         EngineState<GD, ID>,
-        crate::execution::execution_tx::MultiExchangeTxMap,
+        MultiExchangeTxMap,
         Risk,
     >>::OnDisconnect: std::fmt::Debug + Clone + Send,
     SB: crate::strategy::algo::AlgoStrategy<State = EngineState<GD, ID>>
@@ -44,32 +47,30 @@ where
         + crate::strategy::on_trading_disabled::OnTradingDisabled<
             crate::engine::clock::HistoricalClock,
             EngineState<GD, ID>,
-            crate::execution::execution_tx::MultiExchangeTxMap,
+            MultiExchangeTxMap,
             Risk,
-        >
-        + crate::strategy::on_disconnect::OnDisconnectStrategy<
+        > + crate::strategy::on_disconnect::OnDisconnectStrategy<
             crate::engine::clock::HistoricalClock,
             EngineState<GD, ID>,
-            crate::execution::execution_tx::MultiExchangeTxMap,
+            MultiExchangeTxMap,
             Risk,
-        >
-        + Send
+        > + Send
         + 'static,
     <SB as crate::strategy::on_trading_disabled::OnTradingDisabled<
         crate::engine::clock::HistoricalClock,
         EngineState<GD, ID>,
-        crate::execution::execution_tx::MultiExchangeTxMap,
+        MultiExchangeTxMap,
         Risk,
     >>::OnTradingDisabled: std::fmt::Debug + Clone + Send,
     <SB as crate::strategy::on_disconnect::OnDisconnectStrategy<
         crate::engine::clock::HistoricalClock,
         EngineState<GD, ID>,
-        crate::execution::execution_tx::MultiExchangeTxMap,
+        MultiExchangeTxMap,
         Risk,
     >>::OnDisconnect: std::fmt::Debug + Clone + Send,
     Risk: crate::risk::RiskManager<State = EngineState<GD, ID>> + Send + 'static,
-    GD: for<'a> crate::engine::Processor<&'a crate::data::event::MarketEvent<crate::instrument::instrument::InstrumentIndex, ID::MarketEventKind>>
-        + for<'a> crate::engine::Processor<&'a crate::execution::AccountEvent>
+    GD: for<'a> crate::engine::Processor<&'a MarketEvent<InstrumentIndex, ID::MarketEventKind>>
+        + for<'a> crate::engine::Processor<&'a AccountEvent>
         + std::fmt::Debug
         + Clone
         + Default

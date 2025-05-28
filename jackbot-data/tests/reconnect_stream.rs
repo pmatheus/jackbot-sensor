@@ -1,8 +1,8 @@
 use futures_util::StreamExt;
 use jackbot_data::streams::{
     consumer::StreamKey,
+    reconnect::Event,
     reconnect::stream::{ReconnectingStream, ReconnectionBackoffPolicy, init_reconnecting_stream},
-    reconnect::{self, Event},
 };
 use jackbot_instrument::exchange::ExchangeId;
 use std::sync::{
@@ -13,7 +13,8 @@ use tokio_stream::StreamExt as TokioStreamExt;
 
 #[tokio::test]
 async fn test_reconnecting_stream_integration() {
-    tokio::time::pause();
+    // Uncomment this if tokio::time::pause is available in your version
+    // tokio::time::pause();
 
     let attempts = Arc::new(AtomicUsize::new(0));
     let init = {
@@ -23,9 +24,12 @@ async fn test_reconnecting_stream_integration() {
             async move {
                 let count = attempts.fetch_add(1, Ordering::SeqCst);
                 if count == 0 {
-                    Ok(tokio_stream::iter(vec![Ok::<_, ()>(1), Err(())]))
+                    Ok::<tokio_stream::Iter<std::vec::IntoIter<Result<i32, ()>>>, ()>(tokio_stream::iter(vec![
+                        Ok::<i32, ()>(1),
+                        Err::<i32, ()>(()),
+                    ]))
                 } else {
-                    Ok(tokio_stream::iter(vec![Ok::<_, ()>(2)]))
+                    Ok::<tokio_stream::Iter<std::vec::IntoIter<Result<i32, ()>>>, ()>(tokio_stream::iter(vec![Ok::<i32, ()>(2)]))
                 }
             }
         }
@@ -50,7 +54,15 @@ async fn test_reconnecting_stream_integration() {
         )
         .with_reconnection_events(());
 
-    let collected: Vec<_> = stream.take(3).collect().await;
+    // Use a manual approach to avoid the ambiguous collect method
+    let limited_stream = tokio_stream::StreamExt::take(stream, 3);
+    tokio::pin!(limited_stream);
+
+    let mut collected = Vec::new();
+    while let Some(item) = tokio_stream::StreamExt::next(&mut limited_stream).await {
+        collected.push(item);
+    }
+
     assert_eq!(attempts.load(Ordering::SeqCst), 2);
     assert_eq!(collected[0], Event::Item(Ok(1)));
     assert_eq!(collected[1], Event::Reconnecting(()));

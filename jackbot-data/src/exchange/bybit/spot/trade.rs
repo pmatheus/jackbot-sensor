@@ -4,12 +4,13 @@
 //! implementation for converting raw Bybit WebSocket trade messages into
 //! normalised [`MarketEvent`](crate::event::MarketEvent)s.
 
-use crate::{
-    transformer::stateless::StatelessTransformer,
-    subscription::trade::PublicTrades,
-    ExchangeWsStream,
-};
 use super::BybitSpot;
+use crate::{
+    ExchangeWsStream, subscription::trade::PublicTrades,
+    transformer::stateless::StatelessTransformer,
+};
+
+use jackbot_integration::Transformer;
 
 pub use super::super::{message::BybitMessage, trade::BybitTrade};
 
@@ -26,11 +27,7 @@ pub type BybitSpotTradesStream<InstrumentKey> =
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        event::MarketEvent,
-        subscription::Map,
-        transformer::ExchangeTransformer,
-    };
+    use crate::{event::MarketEvent, subscription::Map, transformer::ExchangeTransformer};
     use fnv::FnvHashMap;
     use jackbot_instrument::Side;
     use jackbot_integration::subscription::SubscriptionId;
@@ -62,8 +59,9 @@ mod tests {
         let map = Map(map);
 
         let (tx, _rx) = mpsc::unbounded_channel();
-        let mut transformer =
-            BybitSpotTradesTransformer::init(map, &[], tx).await.unwrap();
+        let mut transformer = BybitSpotTradesTransformer::init(map, &[], tx)
+            .await
+            .unwrap();
 
         let msg: BybitMessage = serde_json::from_str(example_trade_json()).unwrap();
         let events = transformer.transform(msg);
@@ -79,8 +77,9 @@ mod tests {
     async fn test_transformer_unidentifiable() {
         let map = Map(FnvHashMap::<SubscriptionId, String>::default());
         let (tx, _rx) = mpsc::unbounded_channel();
-        let mut transformer =
-            BybitSpotTradesTransformer::init(map, &[], tx).await.unwrap();
+        let mut transformer = BybitSpotTradesTransformer::init(map, &[], tx)
+            .await
+            .unwrap();
 
         let msg: BybitMessage = serde_json::from_str(example_trade_json()).unwrap();
         let events = transformer.transform(msg);

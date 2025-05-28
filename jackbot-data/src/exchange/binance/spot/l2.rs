@@ -285,45 +285,75 @@ mod tests {
                 time_exchange: DateTime::from_timestamp_millis(1571889248277).unwrap(),
                 first_update_id: 157,
                 last_update_id: 160,
-                bids: vec![BinanceLevel { price: dec!(0.0024), amount: dec!(10) }],
-                asks: vec![BinanceLevel { price: dec!(0.0026), amount: dec!(100) }],
+                bids: vec![BinanceLevel {
+                    price: dec!(0.0024),
+                    amount: dec!(10)
+                }],
+                asks: vec![BinanceLevel {
+                    price: dec!(0.0026),
+                    amount: dec!(100)
+                }],
             }
         );
     }
 
     #[test]
     fn test_sequencer_is_first_update() {
-        let tests = vec![
-            (BinanceSpotOrderBookL2Sequencer::new(10), true),
-            (
-                BinanceSpotOrderBookL2Sequencer {
-                    updates_processed: 1,
-                    last_update_id: 100,
-                    prev_last_update_id: 99,
-                },
-                false,
-            ),
-        ];
+        let sequencer =
+            <BinanceSpotOrderBookL2Sequencer as L2Sequencer<BinanceSpotOrderBookL2Update>>::new(10);
+        let update = BinanceSpotOrderBookL2Update {
+            first_update_id: 10, // U <= lastUpdateId -> false
+            last_update_id: 11,  // u >= lastUpdateId -> true
+            subscription_id: SubscriptionId::from("ETHBTC@depth5"),
+            time_exchange: Utc::now(),
+            bids: vec![],
+            asks: vec![],
+        };
+        assert!(!<BinanceSpotOrderBookL2Sequencer as L2Sequencer<
+            BinanceSpotOrderBookL2Update,
+        >>::is_first_update(&sequencer));
 
-        for (seq, expected) in tests {
-            assert_eq!(seq.is_first_update(), expected);
-        }
+        let sequencer =
+            <BinanceSpotOrderBookL2Sequencer as L2Sequencer<BinanceSpotOrderBookL2Update>>::new(10);
+        let update = BinanceSpotOrderBookL2Update {
+            first_update_id: 11, // U <= lastUpdateId+1 -> true
+            last_update_id: 11,  // u >= lastUpdateId+1 -> true
+            subscription_id: SubscriptionId::from("ETHBTC@depth5"),
+            time_exchange: Utc::now(),
+            bids: vec![],
+            asks: vec![],
+        };
+        assert!(<BinanceSpotOrderBookL2Sequencer as L2Sequencer<
+            BinanceSpotOrderBookL2Update,
+        >>::is_first_update(&sequencer));
     }
 
     #[test]
     fn test_sequencer_validate_first_update() {
-        let mut sequencer = BinanceSpotOrderBookL2Sequencer::new(100);
-        let valid = BinanceSpotOrderBookL2Update {
-            subscription_id: SubscriptionId::from("id"),
-            time_exchange: Default::default(),
-            first_update_id: 100,
-            last_update_id: 101,
+        // Snapshot: last_update_id = 10
+        // Update:   first_update_id = 11, last_update_id = 11
+        let sequencer =
+            <BinanceSpotOrderBookL2Sequencer as L2Sequencer<BinanceSpotOrderBookL2Update>>::new(10);
+        let update = BinanceSpotOrderBookL2Update {
+            first_update_id: 11,
+            last_update_id: 11,
+            subscription_id: SubscriptionId::from("ETHBTC@depth5"),
+            time_exchange: Utc::now(),
             bids: vec![],
             asks: vec![],
         };
-        assert!(sequencer.validate_first_update(&valid).is_ok());
+        assert!(sequencer.validate_first_update(&update).is_ok());
 
-        let invalid = BinanceSpotOrderBookL2Update { last_update_id: 90, ..valid.clone() };
+        let sequencer =
+            <BinanceSpotOrderBookL2Sequencer as L2Sequencer<BinanceSpotOrderBookL2Update>>::new(10);
+        let invalid = BinanceSpotOrderBookL2Update {
+            first_update_id: 90,
+            last_update_id: 95,
+            subscription_id: SubscriptionId::from("ETHBTC@depth5"),
+            time_exchange: Utc::now(),
+            bids: vec![],
+            asks: vec![],
+        };
         assert!(sequencer.validate_first_update(&invalid).is_err());
     }
 
@@ -344,7 +374,14 @@ mod tests {
         };
         assert!(sequencer.validate_next_update(&ok_update).is_ok());
 
-        let bad_update = BinanceSpotOrderBookL2Update { first_update_id: 105, ..ok_update };
+        let bad_update = BinanceSpotOrderBookL2Update {
+            first_update_id: 105,
+            last_update_id: 110,
+            subscription_id: SubscriptionId::from("id"),
+            time_exchange: Default::default(),
+            bids: vec![],
+            asks: vec![],
+        };
         assert!(sequencer.validate_next_update(&bad_update).is_err());
     }
 
@@ -362,8 +399,14 @@ mod tests {
             time_exchange: Default::default(),
             first_update_id: 101,
             last_update_id: 110,
-            bids: vec![BinanceLevel { price: dec!(80), amount: dec!(0) }],
-            asks: vec![BinanceLevel { price: dec!(130), amount: dec!(1) }],
+            bids: vec![BinanceLevel {
+                price: dec!(80),
+                amount: dec!(0),
+            }],
+            asks: vec![BinanceLevel {
+                price: dec!(130),
+                amount: dec!(1),
+            }],
         };
 
         if let Some(valid_update) = sequencer.validate_sequence(update).unwrap() {

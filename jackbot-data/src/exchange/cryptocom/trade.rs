@@ -6,7 +6,7 @@ use crate::{
     event::{MarketEvent, MarketIter},
     subscription::trade::PublicTrade,
 };
-use chrono::{DateTime, Utc};
+use chrono::Utc;
 use jackbot_instrument::{Side, exchange::ExchangeId};
 use jackbot_integration::subscription::SubscriptionId;
 use serde::{Deserialize, Serialize};

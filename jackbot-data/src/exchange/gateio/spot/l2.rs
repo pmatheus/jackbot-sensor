@@ -3,7 +3,7 @@ use crate::{
     books::{Canonicalizer, Level, OrderBook},
     event::{MarketEvent, MarketIter},
     redis_store::RedisStore,
-    subscription::book::{OrderBookEvent, OrderBooksL2},
+    subscription::book::OrderBookEvent,
 };
 use chrono::{DateTime, Utc};
 use jackbot_instrument::exchange::ExchangeId;

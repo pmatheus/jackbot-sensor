@@ -1,4 +1,8 @@
 use super::{Bybit, ExchangeServer};
+use crate::ExchangeWsStream;
+use crate::exchange::StreamSelector;
+use crate::instrument::InstrumentData;
+use crate::subscription::book::OrderBooksL2;
 use jackbot_instrument::exchange::ExchangeId;
 use std::fmt::Display;
 
@@ -10,8 +14,6 @@ pub mod l2;
 /// See docs: <https://bybit-exchange.github.io/docs/v5/ws/connect>
 pub const WEBSOCKET_BASE_URL_BYBIT_SPOT: &str = "wss://stream.bybit.com/v5/public/spot";
 
-// L2 order book implementation
-pub mod l2;
 pub mod trade;
 /// User WebSocket utilities.
 pub mod user_ws;
@@ -35,8 +37,8 @@ impl<Instrument> StreamSelector<Instrument, OrderBooksL2> for BybitSpot
 where
     Instrument: InstrumentData,
 {
-    type SnapFetcher = BybitSpotOrderBooksL2SnapshotFetcher;
-    type Stream = ExchangeWsStream<BybitSpotOrderBooksL2Transformer<Instrument::Key>>;
+    type SnapFetcher = l2::BybitSpotOrderBooksL2SnapshotFetcher;
+    type Stream = ExchangeWsStream<l2::BybitSpotOrderBooksL2Transformer<Instrument::Key>>;
 }
 
 impl Display for BybitSpot {

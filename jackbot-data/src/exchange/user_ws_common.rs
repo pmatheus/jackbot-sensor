@@ -1,17 +1,17 @@
+use crate::exchange::DEFAULT_HEARTBEAT_INTERVAL;
+use futures::{SinkExt, StreamExt};
+use jackbot_integration::{
+    circuit_breaker::CircuitBreaker,
+    error::SocketError,
+    protocol::websocket::{WebSocket, connect},
+};
 use serde::Deserialize;
 use std::time::Duration;
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::UnboundedReceiverStream;
 use tokio_tungstenite::tungstenite::Message as WsMessage;
-use futures::{StreamExt, SinkExt};
 use tracing::{error, warn};
 use url::Url;
-use jackbot_integration::{
-    protocol::websocket::{connect, WebSocket},
-    error::SocketError,
-    circuit_breaker::CircuitBreaker,
-};
-use crate::exchange::DEFAULT_HEARTBEAT_INTERVAL;
 
 /// Generic user WebSocket event used across exchanges.
 #[derive(Debug, Deserialize, PartialEq)]
@@ -69,7 +69,11 @@ async fn run_connection(
     tx: &mpsc::UnboundedSender<UserWsEvent>,
     auth_payload: &str,
 ) -> Result<(), ()> {
-    if ws.send(WsMessage::text(auth_payload)).await.is_err() {
+    if ws
+        .send(WsMessage::text(auth_payload.to_string()))
+        .await
+        .is_err()
+    {
         error!("failed to send auth payload over WebSocket");
         return Err(());
     }
@@ -157,7 +161,7 @@ pub mod tests {
                 let (stream, _) = listener.accept().await.unwrap();
                 let mut ws = accept_async(stream).await.unwrap();
                 ws.next().await.unwrap().unwrap();
-                ws.send(Message::Text(payload)).await.unwrap();
+                ws.send(Message::Text(payload.into())).await.unwrap();
                 ws.close(None).await.unwrap();
             }
         });
@@ -166,18 +170,27 @@ pub mod tests {
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
     async fn test_user_stream_parse() {
-        let first = r#"{\"e\":\"balance\",\"E\":1,\"asset\":\"BTC\",\"free\":\"0.5\",\"total\":\"1.0\"}"#.to_string();
+        let first =
+            r#"{\"e\":\"balance\",\"E\":1,\"asset\":\"BTC\",\"free\":\"0.5\",\"total\":\"1.0\"}"#
+                .to_string();
         let second = r#"{\"e\":\"order\",\"E\":2,\"s\":\"BTCUSDT\",\"S\":\"BUY\",\"p\":\"100\",\"q\":\"0.1\",\"i\":1,\"X\":\"NEW\"}"#.to_string();
-        let third = r#"{\"e\":\"position\",\"E\":3,\"s\":\"BTCUSDT\",\"pa\":\"0.2\",\"ps\":\"LONG\"}"#.to_string();
+        let third =
+            r#"{\"e\":\"position\",\"E\":3,\"s\":\"BTCUSDT\",\"pa\":\"0.2\",\"ps\":\"LONG\"}"#
+                .to_string();
         let addr = run_server(vec![first.clone(), second.clone(), third.clone()]).await;
 
-        let mut stream = user_stream(Url::parse(&format!("ws://{}", addr)).unwrap(), "{}".to_string()).await.unwrap();
+        let mut stream = user_stream(
+            Url::parse(&format!("ws://{}", addr)).unwrap(),
+            "{}".to_string(),
+        )
+        .await
+        .unwrap();
         let ev1 = stream.next().await.unwrap();
-        assert!(matches!(ev1, UserWsEvent::Balance{..}));
+        assert!(matches!(ev1, UserWsEvent::Balance { .. }));
         let ev2 = stream.next().await.unwrap();
-        assert!(matches!(ev2, UserWsEvent::Order{..}));
+        assert!(matches!(ev2, UserWsEvent::Order { .. }));
         let ev3 = stream.next().await.unwrap();
-        assert!(matches!(ev3, UserWsEvent::Position{..}));
+        assert!(matches!(ev3, UserWsEvent::Position { .. }));
     }
 
     async fn run_timeout_server(first: String) -> String {
@@ -195,7 +208,7 @@ pub mod tests {
             let (stream2, _) = listener.accept().await.unwrap();
             let mut ws2 = accept_async(stream2).await.unwrap();
             ws2.next().await.unwrap().unwrap();
-            ws2.send(Message::Text(first)).await.unwrap();
+            ws2.send(Message::Text(first.into())).await.unwrap();
             ws2.close(None).await.unwrap();
         });
         format!("127.0.0.1:{}", addr.port())
@@ -204,12 +217,18 @@ pub mod tests {
     #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
     async fn test_user_stream_reconnect_on_timeout() {
         tokio::time::pause();
-        let first = r#"{\"e\":\"balance\",\"E\":1,\"asset\":\"BTC\",\"free\":\"0.5\",\"total\":\"1.0\"}"#.to_string();
+        let first =
+            r#"{\"e\":\"balance\",\"E\":1,\"asset\":\"BTC\",\"free\":\"0.5\",\"total\":\"1.0\"}"#
+                .to_string();
         let addr = run_timeout_server(first.clone()).await;
-        let mut stream = user_stream(Url::parse(&format!("ws://{}", addr)).unwrap(), "{}".to_string()).await.unwrap();
+        let mut stream = user_stream(
+            Url::parse(&format!("ws://{}", addr)).unwrap(),
+            "{}".to_string(),
+        )
+        .await
+        .unwrap();
         tokio::time::advance(DEFAULT_HEARTBEAT_INTERVAL + Duration::from_secs(2)).await;
         let ev1 = stream.next().await.unwrap();
-        assert!(matches!(ev1, UserWsEvent::Balance{..}));
+        assert!(matches!(ev1, UserWsEvent::Balance { .. }));
     }
 }
-

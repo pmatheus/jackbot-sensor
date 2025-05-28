@@ -3,7 +3,6 @@ use futures::StreamExt;
 use jackbot_data::{
     exchange::{
         binance::{futures::BinanceFuturesUsd, spot::BinanceSpot},
-        bitfinex::Bitfinex,
         bybit::{futures::BybitPerpetualsUsd, spot::BybitSpot},
         coinbase::Coinbase,
         kraken::Kraken,
@@ -47,16 +46,8 @@ async fn main() {
         ])
 
         .subscribe([
-            (Bitfinex, "btc", "usd", MarketDataInstrumentKind::Spot, PublicTrades),
-        ])
-
-        .subscribe([
             (Coinbase, "btc", "usd", MarketDataInstrumentKind::Spot, PublicTrades),
             (Coinbase, "eth", "usd", MarketDataInstrumentKind::Spot, PublicTrades),
-        ])
-
-        .subscribe([
-            (Kraken, "btc", "usd", MarketDataInstrumentKind::Spot, PublicTrades),
         ])
 
         .subscribe([

@@ -1,9 +1,10 @@
 use chrono::Utc;
-use futures::Stream;
+use rust_decimal::Decimal;
+use rust_decimal_macros::dec;
+
 use jackbot_data::{
-    Identifier,
-    books::{manager::OrderBookL2Manager, map::OrderBookMap},
-    redis_store::InMemoryStore,
+    books::{manager::OrderBookL2Manager},
+    redis_store::{InMemoryStore, RedisStore},
     streams::consumer::MarketStreamEvent,
     subscription::book::OrderBookEvent,
 };
@@ -11,8 +12,6 @@ use jackbot_instrument::{
     exchange::ExchangeId,
     instrument::market_data::{MarketDataInstrument, kind::MarketDataInstrumentKind},
 };
-use rust_decimal_macros::dec;
-use tokio_stream::StreamExt;
 
 #[tokio::test]
 async fn test_store_snapshot_and_delta() {
@@ -170,15 +169,14 @@ fn test_mexc_store_methods() {
 }
 
 #[test]
-
 fn test_query_methods() {
-    use jackbot_data::books::{Level, OrderBook};
+    use jackbot_data::books::OrderBook;
     use jackbot_data::subscription::book::OrderBookEvent;
 
     let store = InMemoryStore::new();
-    let snapshot = OrderBook::new(0, None, [Level::new(dec!(1), dec!(1))].into_iter(), []);
+    let snapshot = OrderBook::new(0, None, vec![(dec!(1), dec!(1))], []);
     store.store_snapshot(ExchangeId::BinanceSpot, "BTC_USDT", &snapshot);
-    let delta = OrderBookEvent::Update(OrderBook::new(0, None, [], []));
+    let delta = OrderBookEvent::Update(OrderBook::new(0, None, Vec::<(Decimal, Decimal)>::new(), Vec::<(Decimal, Decimal)>::new()));
     store.store_delta(ExchangeId::BinanceSpot, "BTC_USDT", &delta);
     store.store_trade(
         ExchangeId::BinanceSpot,

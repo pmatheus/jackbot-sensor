@@ -9,8 +9,8 @@ use crate::{
     event::{MarketEvent, MarketIter},
     exchange::{kucoin::channel::KucoinChannel, subscription::ExchangeSub},
     redis_store::RedisStore,
-    subscription::book::{OrderBookEvent, OrderBooksL2},
 };
+use crate::subscription::book::OrderBookEvent;
 use chrono::{DateTime, Utc};
 use jackbot_instrument::exchange::ExchangeId;
 use jackbot_integration::subscription::SubscriptionId;

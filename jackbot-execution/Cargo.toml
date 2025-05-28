@@ -2,7 +2,7 @@
 name = "jackbot-execution"
 version = "0.5.3"
 edition = "2024"
-authors = ["JustAStream <justastream.code@gmail.com>"]
+authors = ["Jack <mail@jackbot.app>"]
 license = "MIT"
 documentation = "https://docs.rs/jackbot-execution/"
 repository = "https://github.com/jackbot-rs/jackbot-rs"
@@ -39,6 +39,11 @@ thiserror = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 
 # Misc
+tungstenite = { workspace = true }
+url = "2"
+tokio-tungstenite = { workspace = true }
+serde_json = "1"
+futures-util = "0.3"
 rand = { workspace = true }
 chrono = { workspace = true, features = ["serde"]}
 itertools = { workspace = true }
@@ -47,4 +52,5 @@ derive_more = { workspace = true, features = ["constructor", "from", "display"]}
 
 [dev-dependencies]
 rust_decimal_macros = { workspace = true }
+parking_lot = "0.12"
 

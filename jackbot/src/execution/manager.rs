@@ -3,6 +3,8 @@ use crate::execution::{
     error::ExecutionError,
     request::{ExecutionRequest, RequestFuture},
 };
+use derive_more::Constructor;
+use futures::{Stream, StreamExt, future::Either, stream::FuturesUnordered};
 use jackbot_data::streams::{
     consumer::StreamKey,
     reconnect::stream::{ReconnectingStream, ReconnectionBackoffPolicy, init_reconnecting_stream},
@@ -32,8 +34,6 @@ use jackbot_integration::{
     snapshot::Snapshot,
     stream::merge::merge,
 };
-use derive_more::Constructor;
-use futures::{Stream, StreamExt, future::Either, stream::FuturesUnordered};
 use std::sync::Arc;
 use tracing::{error, info, warn};
 
@@ -243,30 +243,50 @@ where
                     }
                     Some(ExecutionRequest::Cancel(request)) => {
                         // Panic since the system is set up incorrectly, so it's foolish to continue
-                        let client_request = self
+                        let client_request_ref_instrument = self
                             .indexer
                             .order_request(&request)
                             .unwrap_or_else(|error| panic!(
                                 "ExecutionManager received cancel request for non-configured key: {error}"
                             ));
 
+                        let client_request_owned_instrument = jackbot_execution::order::request::OrderRequestCancel {
+                            key: jackbot_execution::order::OrderKey {
+                                exchange: client_request_ref_instrument.key.exchange,
+                                instrument: client_request_ref_instrument.key.instrument.clone(),
+                                strategy: client_request_ref_instrument.key.strategy.clone(),
+                                cid: client_request_ref_instrument.key.cid.clone(),
+                            },
+                            state: client_request_ref_instrument.state.clone(),
+                        };
+
                         in_flight_cancels.push(RequestFuture::new(
-                            self.client.cancel_order(client_request),
+                            self.client.cancel_order(client_request_owned_instrument),
                             self.request_timeout,
                             request,
                         ))
                     },
                     Some(ExecutionRequest::Open(request)) => {
                         // Panic since the system is set up incorrectly, so it's foolish to continue
-                        let client_request = self
+                        let client_request_ref_instrument = self
                             .indexer
                             .order_request(&request)
                             .unwrap_or_else(|error| panic!(
                                 "ExecutionManager received open request for non-configured key: {error}"
                             ));
 
+                        let client_request_owned_instrument = jackbot_execution::order::request::OrderRequestOpen {
+                            key: jackbot_execution::order::OrderKey {
+                                exchange: client_request_ref_instrument.key.exchange,
+                                instrument: client_request_ref_instrument.key.instrument.clone(),
+                                strategy: client_request_ref_instrument.key.strategy.clone(),
+                                cid: client_request_ref_instrument.key.cid.clone(),
+                            },
+                            state: client_request_ref_instrument.state.clone(),
+                        };
+
                         in_flight_opens.push(RequestFuture::new(
-                            self.client.open_order(client_request),
+                            self.client.open_order(client_request_owned_instrument),
                             self.request_timeout,
                             request,
                         ))

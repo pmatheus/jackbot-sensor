@@ -42,49 +42,37 @@ use crate::{
     order::{Order, OrderSnapshot, request::OrderResponseCancel},
     trade::Trade,
 };
+use chrono::{DateTime, Utc};
+use derive_more::{Constructor, From};
 use jackbot_instrument::{
     asset::{AssetIndex, QuoteAsset, name::AssetNameExchange},
     exchange::{ExchangeId, ExchangeIndex},
     instrument::{InstrumentIndex, name::InstrumentNameExchange},
 };
 use jackbot_integration::snapshot::Snapshot;
-use chrono::{DateTime, Utc};
-use derive_more::{Constructor, From};
 use order::state::OrderState;
 use serde::{Deserialize, Serialize};
 
 pub mod balance;
 pub mod client;
 pub mod error;
-pub mod exchange;
 pub mod indexer;
 pub mod map;
 pub mod order;
+pub mod paper;
 pub mod trade;
-/// Smart execution routing with basic exposure tracking.
-pub mod smart_router;
+
+/// Jackpot order monitoring and automatic liquidation.
+pub mod jackpot;
 
 /// Market making utilities including flow analysis and quote refresh logic.
 pub mod market_making;
 
-/// Unified trait for advanced order execution strategies.
-pub mod advanced;
-
-/// Always maker order execution.
-pub mod always_maker;
+/// Algorithmic trading strategies (TWAP, VWAP, etc.).
+pub mod strategy;
 
 /// Async wrappers over [`ExecutionClient`] providing a unified trading API.
 pub mod trading;
-
-/// Time-weighted average price execution.
-pub mod twap;
-
-/// Volume-weighted average price execution.
-pub mod vwap;
-
-/// Jackpot order monitoring helpers.
-pub mod jackpot_orders;
-
 
 /// Convenient type alias for an [`AccountEvent`] keyed with [`ExchangeId`],
 /// [`AssetNameExchange`], and [`InstrumentNameExchange`].

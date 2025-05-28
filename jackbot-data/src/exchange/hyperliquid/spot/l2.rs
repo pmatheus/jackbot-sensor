@@ -6,7 +6,7 @@ use crate::{
     event::{MarketEvent, MarketIter},
     exchange::{hyperliquid::channel::HyperliquidChannel, subscription::ExchangeSub},
     redis_store::RedisStore,
-    subscription::book::{OrderBookEvent, OrderBooksL2},
+    subscription::book::OrderBookEvent,
 };
 use chrono::{DateTime, Utc};
 use jackbot_instrument::exchange::ExchangeId;

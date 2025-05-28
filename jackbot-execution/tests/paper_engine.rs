@@ -1,10 +1,18 @@
-use jackbot_execution::{
-    exchange::paper::{PaperBook, PaperEngine},
-    order::{id::{ClientOrderId, StrategyId}, request::{OrderRequestOpen, RequestOpen}, OrderKey, OrderKind, TimeInForce},
-    UnindexedAccountSnapshot,
-};
-use jackbot_instrument::{exchange::ExchangeId, instrument::Instrument, instrument::name::InstrumentNameExchange, Underlying, asset::name::AssetNameExchange, Side};
 use fnv::FnvHashMap;
+use jackbot_data::books::Level;
+use jackbot_execution::{
+    UnindexedAccountSnapshot,
+    order::{
+        OrderKey, OrderKind, TimeInForce,
+        id::{ClientOrderId, StrategyId},
+        request::{OrderRequestOpen, RequestOpen},
+    },
+    paper::{PaperBook, PaperEngine},
+};
+use jackbot_instrument::{
+    Side, Underlying, asset::name::AssetNameExchange, exchange::ExchangeId, instrument::Instrument,
+    instrument::name::InstrumentNameExchange,
+};
 use rust_decimal_macros::dec;
 
 #[test]
@@ -20,7 +28,10 @@ fn test_paper_engine_market_fill() {
     let mut instruments = FnvHashMap::default();
     instruments.insert(instrument.name_exchange.clone(), instrument);
 
-    let book = PaperBook::new(vec![(dec!(99), dec!(1))], vec![(dec!(101), dec!(1))]);
+    let book = PaperBook::new(
+        vec![Level::new(dec!(99), dec!(1))],
+        vec![Level::new(dec!(101), dec!(1))],
+    );
     let mut books = FnvHashMap::default();
     books.insert(InstrumentNameExchange::from("BTC-USDT"), book);
 
@@ -35,7 +46,13 @@ fn test_paper_engine_market_fill() {
         instruments: Vec::new(),
     };
 
-    let mut engine = PaperEngine::new(ExchangeId::BinanceSpot, dec!(0), instruments, books, snapshot);
+    let mut engine = PaperEngine::new(
+        ExchangeId::BinanceSpot,
+        dec!(0),
+        instruments,
+        books,
+        snapshot,
+    );
 
     let request = OrderRequestOpen {
         key: OrderKey {

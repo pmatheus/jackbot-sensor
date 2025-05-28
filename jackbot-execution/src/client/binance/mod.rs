@@ -1,39 +1,40 @@
 pub mod futures;
 pub mod paper;
 
-use url::Url;
-use tokio::sync::mpsc;
-use tokio_stream::wrappers::UnboundedReceiverStream;
-use tokio_tungstenite::tungstenite::Message as WsMessage;
-use chrono::{DateTime, Utc};
-use rust_decimal::Decimal;
-use std::str::FromStr;
 use crate::{
-    client::ExecutionClient,
-    UnindexedAccountEvent, UnindexedAccountSnapshot,
+    AccountEvent, AccountEventKind, UnindexedAccountEvent, UnindexedAccountSnapshot,
     balance::{AssetBalance, Balance},
+    client::ExecutionClient,
     error::{UnindexedClientError, UnindexedOrderError},
     order::{
         Order, OrderKey, OrderKind, TimeInForce,
         id::{ClientOrderId, OrderId, StrategyId},
         request::{OrderRequestCancel, OrderRequestOpen, UnindexedOrderResponseCancel},
-        state::{Open, Cancelled, OrderState},
+        state::{ActiveOrderState, Cancelled, InactiveOrderState, Open, OrderState},
     },
-    trade::{Trade, AssetFees, TradeId},
+    trade::Trade,
 };
+use chrono::{DateTime, TimeZone, Utc};
+use futures_util::{SinkExt, StreamExt};
 use jackbot_instrument::{
     Side,
-    asset::{name::AssetNameExchange, QuoteAsset},
+    asset::{QuoteAsset, name::AssetNameExchange},
     exchange::ExchangeId,
     instrument::name::InstrumentNameExchange,
 };
-use jackbot_integration::{
-    protocol::websocket::{connect, WebSocket},
-    circuit_breaker::CircuitBreaker,
-};
 use jackbot_integration::snapshot::Snapshot;
+use jackbot_integration::{
+    circuit_breaker::CircuitBreaker,
+    protocol::websocket::{WebSocket, connect},
+};
+use rust_decimal::Decimal;
+use std::str::FromStr;
+use tokio::sync::mpsc;
 use tokio::time::Duration;
+use tokio_stream::wrappers::UnboundedReceiverStream;
+use tokio_tungstenite::tungstenite::Message as WsMessage;
 use tracing::{error, warn};
+use url::Url;
 
 #[derive(Clone, Debug)]
 pub struct BinanceWsConfig {
@@ -109,7 +110,7 @@ impl ExecutionClient for BinanceWsClient {
 
     async fn cancel_order(
         &self,
-        request: OrderRequestCancel<ExchangeId, &InstrumentNameExchange>,
+        request: OrderRequestCancel<ExchangeId, InstrumentNameExchange>,
     ) -> UnindexedOrderResponseCancel {
         UnindexedOrderResponseCancel {
             key: OrderKey {
@@ -119,7 +120,7 @@ impl ExecutionClient for BinanceWsClient {
                 cid: request.key.cid.clone(),
             },
             state: Ok(Cancelled {
-                id: request.state.id.unwrap_or(OrderId(String::new())),
+                id: request.state.id.unwrap_or(OrderId(String::new().into())),
                 time_exchange: Utc::now(),
             }),
         }
@@ -127,7 +128,7 @@ impl ExecutionClient for BinanceWsClient {
 
     async fn open_order(
         &self,
-        request: OrderRequestOpen<ExchangeId, &InstrumentNameExchange>,
+        request: OrderRequestOpen<ExchangeId, InstrumentNameExchange>,
     ) -> Order<ExchangeId, InstrumentNameExchange, Result<Open, UnindexedOrderError>> {
         Order {
             key: OrderKey {
@@ -142,7 +143,7 @@ impl ExecutionClient for BinanceWsClient {
             kind: request.state.kind,
             time_in_force: request.state.time_in_force,
             state: Ok(Open {
-                id: OrderId(Utc::now().timestamp_millis().to_string()),
+                id: OrderId(Utc::now().timestamp_millis().to_string().into()),
                 time_exchange: Utc::now(),
                 filled_quantity: Decimal::ZERO,
             }),
@@ -174,7 +175,11 @@ async fn run_connection(
     tx: &mpsc::UnboundedSender<UnindexedAccountEvent>,
     auth: &str,
 ) -> Result<(), ()> {
-    if ws.send(WsMessage::Text(auth.to_string())).await.is_err() {
+    if ws
+        .send(WsMessage::Text(auth.to_string().into()))
+        .await
+        .is_err()
+    {
         error!("failed to send auth payload over WebSocket");
         return Err(());
     }
@@ -204,7 +209,7 @@ async fn run_connection(
     Err(())
 }
 
-#[derive(Deserialize)]
+#[derive(serde::Deserialize)]
 #[serde(tag = "e")]
 enum BinanceEvent {
     #[serde(rename = "balance")]
@@ -236,12 +241,17 @@ enum BinanceEvent {
 
 fn to_account_event(event: BinanceEvent) -> Option<UnindexedAccountEvent> {
     match event {
-        BinanceEvent::Balance { time, asset, free, total } => {
+        BinanceEvent::Balance {
+            time,
+            asset,
+            free,
+            total,
+        } => {
             let time = Utc.timestamp_millis_opt(time as i64).single()?;
             let free = Decimal::from_str(&free).ok()?;
             let total = Decimal::from_str(&total).ok()?;
             let balance = AssetBalance {
-                asset: AssetNameExchange(asset),
+                asset: AssetNameExchange::new(asset),
                 balance: Balance { total, free },
                 time_exchange: time,
             };
@@ -250,32 +260,60 @@ fn to_account_event(event: BinanceEvent) -> Option<UnindexedAccountEvent> {
                 AccountEventKind::BalanceSnapshot(Snapshot(balance)),
             ))
         }
-        BinanceEvent::Order { time, symbol, side, price, quantity, order_id, .. } => {
+        BinanceEvent::Order {
+            time,
+            symbol,
+            side,
+            price,
+            quantity,
+            order_id,
+            status,
+        } => {
             let time = Utc.timestamp_millis_opt(time as i64).single()?;
+            let instrument = InstrumentNameExchange::new(symbol);
             let side = match side.as_str() {
                 "BUY" => Side::Buy,
                 "SELL" => Side::Sell,
                 _ => return None,
             };
-            let price = Decimal::from_str(&price).ok()?;
-            let quantity = Decimal::from_str(&quantity).ok()?;
+            let parsed_price = Decimal::from_str(&price).ok()?;
+            let parsed_quantity = Decimal::from_str(&quantity).ok()?;
+            let order_id_str = order_id.to_string();
+            let id = OrderId::new(&order_id_str);
+
+            let state: OrderState<AssetNameExchange, InstrumentNameExchange> = match status.as_str()
+            {
+                "NEW" => OrderState::Active(ActiveOrderState::Open(Open {
+                    id: id.clone(),
+                    time_exchange: time,
+                    filled_quantity: Decimal::ZERO,
+                })),
+                "FILLED" => OrderState::Active(ActiveOrderState::Open(Open {
+                    id: id.clone(),
+                    time_exchange: time,
+                    filled_quantity: parsed_quantity,
+                })),
+                "CANCELED" | "EXPIRED" | "REJECTED" => {
+                    OrderState::Inactive(InactiveOrderState::Cancelled(Cancelled {
+                        id: id.clone(),
+                        time_exchange: time,
+                    }))
+                }
+                _ => return None,
+            };
             let order = Order {
                 key: OrderKey {
                     exchange: ExchangeId::BinanceSpot,
-                    instrument: InstrumentNameExchange(symbol),
+                    instrument,
                     strategy: StrategyId::unknown(),
                     cid: ClientOrderId::default(),
                 },
                 side,
-                price,
-                quantity,
-                kind: OrderKind::Market,
+                price: parsed_price,
+                quantity: parsed_quantity,
+                kind: OrderKind::Limit,
                 time_in_force: TimeInForce::GoodUntilCancelled { post_only: false },
-                state: OrderState::active(Open {
-                    id: OrderId(order_id.to_string()),
-                    time_exchange: time,
-                    filled_quantity: quantity,
-                }),
+                state,
             };
             Some(AccountEvent::new(
                 ExchangeId::BinanceSpot,

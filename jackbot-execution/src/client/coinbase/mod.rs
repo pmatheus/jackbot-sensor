@@ -1,37 +1,38 @@
 //! Coinbase spot markets lack native trailing stop orders. Advanced smart trade
 //! features will be implemented by client-side order management.
-use url::Url;
-use tokio::sync::mpsc;
-use tokio_stream::wrappers::UnboundedReceiverStream;
-use tokio_tungstenite::tungstenite::Message as WsMessage;
-use chrono::{DateTime, Utc};
-use rust_decimal::Decimal;
-use std::str::FromStr;
 use crate::{
-    client::ExecutionClient,
-    UnindexedAccountEvent, UnindexedAccountSnapshot,
+    AccountEventKind, UnindexedAccountEvent, UnindexedAccountSnapshot,
     balance::{AssetBalance, Balance},
+    client::ExecutionClient,
     error::{UnindexedClientError, UnindexedOrderError},
     order::{
         Order, OrderKey, OrderKind, TimeInForce,
         id::{ClientOrderId, OrderId, StrategyId},
         request::{OrderRequestCancel, OrderRequestOpen, UnindexedOrderResponseCancel},
-        state::{Open, OrderState},
+        state::{ActiveOrderState, Cancelled, InactiveOrderState, Open, OrderState},
     },
-    trade::{Trade, AssetFees, TradeId},
+    trade::{AssetFees, Trade, TradeId},
 };
+use chrono::{DateTime, TimeZone, Utc};
+use futures::{SinkExt, StreamExt};
 use jackbot_instrument::{
     Side,
-    asset::{name::AssetNameExchange, QuoteAsset},
+    asset::{QuoteAsset, name::AssetNameExchange},
     exchange::ExchangeId,
     instrument::name::InstrumentNameExchange,
 };
-use jackbot_integration::{
-    protocol::websocket::{connect, WebSocket},
-    circuit_breaker::CircuitBreaker,
-};
 use jackbot_integration::snapshot::Snapshot;
+use jackbot_integration::{
+    circuit_breaker::CircuitBreaker,
+    protocol::websocket::{WebSocket, connect},
+};
+use rust_decimal::Decimal;
+use std::str::FromStr;
+use tokio::sync::mpsc;
+use tokio_stream::wrappers::UnboundedReceiverStream;
+use tokio_tungstenite::tungstenite::Message as WsMessage;
 use tracing::{error, warn};
+use url::Url;
 
 #[derive(Clone, Debug)]
 pub struct CoinbaseWsConfig {
@@ -107,23 +108,27 @@ impl ExecutionClient for CoinbaseWsClient {
 
     async fn cancel_order(
         &self,
-        _request: OrderRequestCancel<ExchangeId, &InstrumentNameExchange>,
+        _request: OrderRequestCancel<ExchangeId, InstrumentNameExchange>,
     ) -> UnindexedOrderResponseCancel {
         unimplemented!()
     }
 
     async fn open_order(
         &self,
-        _request: OrderRequestOpen<ExchangeId, &InstrumentNameExchange>,
+        _request: OrderRequestOpen<ExchangeId, InstrumentNameExchange>,
     ) -> Order<ExchangeId, InstrumentNameExchange, Result<Open, UnindexedOrderError>> {
         unimplemented!()
     }
 
-    async fn fetch_balances(&self) -> Result<Vec<AssetBalance<AssetNameExchange>>, UnindexedClientError> {
+    async fn fetch_balances(
+        &self,
+    ) -> Result<Vec<AssetBalance<AssetNameExchange>>, UnindexedClientError> {
         unimplemented!()
     }
 
-    async fn fetch_open_orders(&self) -> Result<Vec<Order<ExchangeId, InstrumentNameExchange, Open>>, UnindexedClientError> {
+    async fn fetch_open_orders(
+        &self,
+    ) -> Result<Vec<Order<ExchangeId, InstrumentNameExchange, Open>>, UnindexedClientError> {
         unimplemented!()
     }
 
@@ -140,7 +145,11 @@ async fn run_connection(
     tx: &mpsc::UnboundedSender<UnindexedAccountEvent>,
     auth: &str,
 ) -> Result<(), ()> {
-    if ws.send(WsMessage::Text(auth.to_string())).await.is_err() {
+    if ws
+        .send(WsMessage::Text(auth.to_string().into()))
+        .await
+        .is_err()
+    {
         error!("failed to send auth payload over WebSocket");
         return Err(());
     }
@@ -195,6 +204,8 @@ enum CoinbaseEvent {
         time: u64,
         trade_id: u64,
         product_id: String,
+        client_order_id: Option<String>,
+        order_id: String,
         side: String,
         price: String,
         size: String,
@@ -203,77 +214,123 @@ enum CoinbaseEvent {
 
 fn to_account_event(event: CoinbaseEvent) -> Option<UnindexedAccountEvent> {
     match event {
-        CoinbaseEvent::Balance { time, asset, free, total } => {
-            let time = Utc.timestamp_millis_opt(time as i64).single()?;
-            let free = Decimal::from_str(&free).ok()?;
-            let total = Decimal::from_str(&total).ok()?;
-            let balance = AssetBalance {
-                asset: AssetNameExchange(asset),
-                balance: Balance { total, free },
-                time_exchange: time,
-            };
-            Some(crate::AccountEvent::new(
+        CoinbaseEvent::Balance {
+            time,
+            asset,
+            free,
+            total,
+        } => {
+            let timestamp = Utc
+                .timestamp_opt((time / 1000) as i64, (time % 1000 * 1_000_000) as u32)
+                .single()?;
+            let exchange_asset_name = AssetNameExchange::new(asset);
+            let balance_details = Balance::new(
+                Decimal::from_str(&total).ok()?,
+                Decimal::from_str(&free).ok()?,
+            );
+            let asset_balance = AssetBalance::new(exchange_asset_name, balance_details, timestamp);
+            Some(UnindexedAccountEvent::new(
                 ExchangeId::Coinbase,
-                crate::AccountEventKind::BalanceSnapshot(Snapshot(balance)),
+                AccountEventKind::BalanceSnapshot(Snapshot::new(asset_balance)),
             ))
         }
-        CoinbaseEvent::Order { time, product_id, side, price, size, order_id, .. } => {
-            let time = Utc.timestamp_millis_opt(time as i64).single()?;
-            let side = match side.to_uppercase().as_str() {
-                "BUY" => Side::Buy,
-                "SELL" => Side::Sell,
+        CoinbaseEvent::Order {
+            time,
+            product_id,
+            side,
+            price,
+            size,
+            order_id,
+            status,
+        } => {
+            let timestamp = Utc
+                .timestamp_opt((time / 1000) as i64, (time % 1000 * 1_000_000) as u32)
+                .single()?;
+            let instrument = InstrumentNameExchange::new(product_id);
+            let order_id_str = order_id.clone();
+            let id = OrderId::new(order_id_str.clone());
+            let parsed_side = match side.as_str() {
+                "buy" => Side::Buy,
+                "sell" => Side::Sell,
                 _ => return None,
             };
-            let price = Decimal::from_str(&price).ok()?;
-            let quantity = Decimal::from_str(&size).ok()?;
-            let order = Order {
-                key: OrderKey {
-                    exchange: ExchangeId::Coinbase,
-                    instrument: InstrumentNameExchange(product_id),
-                    strategy: StrategyId::unknown(),
-                    cid: ClientOrderId::default(),
-                },
-                side,
-                price,
-                quantity,
-                kind: OrderKind::Market,
-                time_in_force: TimeInForce::GoodUntilCancelled { post_only: false },
-                state: OrderState::active(Open {
-                    id: OrderId(order_id),
-                    time_exchange: time,
-                    filled_quantity: quantity,
-                }),
-            };
-            Some(crate::AccountEvent::new(
-                ExchangeId::Coinbase,
-                crate::AccountEventKind::OrderSnapshot(Snapshot(order)),
-            ))
-        }
-        CoinbaseEvent::Fill { time, trade_id, product_id, side, price, size } => {
-            let time = Utc.timestamp_millis_opt(time as i64).single()?;
-            let side = match side.to_uppercase().as_str() {
-                "BUY" => Side::Buy,
-                "SELL" => Side::Sell,
-                _ => return None,
-            };
-            let price = Decimal::from_str(&price).ok()?;
-            let quantity = Decimal::from_str(&size).ok()?;
-            let trade = Trade {
-                id: TradeId(trade_id.to_string()),
-                order_id: OrderId(String::new()),
-                instrument: InstrumentNameExchange(product_id),
+            let parsed_price = Decimal::from_str(&price).ok()?;
+            let parsed_size = Decimal::from_str(&size).ok()?;
+
+            let order_state: OrderState<AssetNameExchange, InstrumentNameExchange> =
+                match status.as_str() {
+                    "open" | "pending" | "active" => OrderState::Active(ActiveOrderState::Open(
+                        Open::new(id.clone(), timestamp, Decimal::ZERO),
+                    )),
+                    "done" | "settled" => OrderState::Inactive(InactiveOrderState::FullyFilled),
+                    "cancelled" | "rejected" => OrderState::Inactive(
+                        InactiveOrderState::Cancelled(Cancelled::new(id.clone(), timestamp)),
+                    ),
+                    _ => return None,
+                };
+
+            let order_key = OrderKey {
+                exchange: ExchangeId::Coinbase,
+                instrument,
                 strategy: StrategyId::unknown(),
-                time_exchange: time,
-                side,
-                price,
-                quantity,
-                fees: AssetFees::default(),
+                cid: ClientOrderId::default(),
             };
-            Some(crate::AccountEvent::new(
+
+            let order = Order {
+                key: order_key,
+                side: parsed_side,
+                price: parsed_price,
+                kind: OrderKind::Limit,
+                quantity: parsed_size,
+                time_in_force: TimeInForce::GoodUntilCancelled { post_only: false },
+                state: order_state,
+            };
+
+            Some(UnindexedAccountEvent::new(
                 ExchangeId::Coinbase,
-                crate::AccountEventKind::Trade(trade),
+                AccountEventKind::OrderSnapshot(Snapshot::new(order)),
+            ))
+        }
+        CoinbaseEvent::Fill {
+            time,
+            trade_id,
+            product_id,
+            client_order_id,
+            order_id,
+            side,
+            price,
+            size,
+        } => {
+            let timestamp = Utc
+                .timestamp_opt((time / 1000) as i64, (time % 1000 * 1_000_000) as u32)
+                .single()?;
+            let instrument = InstrumentNameExchange::new(product_id);
+            let order_id_str = order_id.clone();
+            let parsed_order_id = OrderId::new(order_id_str);
+            let parsed_side = match side.as_str() {
+                "buy" => Side::Buy,
+                "sell" => Side::Sell,
+                _ => return None,
+            };
+            let parsed_price = Decimal::from_str(&price).ok()?;
+            let parsed_size = Decimal::from_str(&size).ok()?;
+
+            let trade_data = Trade {
+                id: TradeId::new(trade_id.to_string()),
+                order_id: parsed_order_id,
+                instrument,
+                strategy: StrategyId::unknown(),
+                time_exchange: timestamp,
+                side: parsed_side,
+                price: parsed_price,
+                quantity: parsed_size,
+                fees: AssetFees::quote_fees(Decimal::ZERO),
+            };
+
+            Some(UnindexedAccountEvent::new(
+                ExchangeId::Coinbase,
+                AccountEventKind::Trade(trade_data),
             ))
         }
     }
 }
-

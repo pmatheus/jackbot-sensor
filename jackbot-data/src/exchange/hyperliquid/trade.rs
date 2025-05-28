@@ -33,8 +33,10 @@ impl HyperliquidTrade {
             "sell" => Side::Sell,
             _ => return None,
         };
-        let time = chrono::NaiveDateTime::from_timestamp_millis(self.time as i64)
-            .map(|dt| DateTime::<Utc>::from_utc(dt, Utc))?;
+        let _time = DateTime::<Utc>::from_timestamp(
+            self.time as i64 / 1000,
+            (self.time % 1000) as u32 * 1_000_000,
+        )?;
         Some(PublicTrade {
             id: self.tid.to_string(),
             price,
@@ -85,10 +87,10 @@ impl<InstrumentKey: Clone> From<(ExchangeId, InstrumentKey, HyperliquidTrades)>
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::subscription::trade::PublicTrade;
     use crate::event::MarketEvent;
-    use jackbot_instrument::exchange::ExchangeId;
+    use crate::subscription::trade::PublicTrade;
     use jackbot_instrument::Side;
+    use jackbot_instrument::exchange::ExchangeId;
     use jackbot_integration::subscription::SubscriptionId;
 
     #[test]
@@ -146,8 +148,8 @@ mod tests {
         };
         let events: MarketIter<String, PublicTrade> =
             (ExchangeId::Hyperliquid, "BTC".to_string(), trades).into();
-        assert_eq!(events.len(), 1);
-        let MarketEvent { kind, .. } = events.into_iter().next().unwrap().unwrap();
+        assert_eq!(events.0.len(), 1);
+        let MarketEvent { kind, .. } = events.0.into_iter().next().unwrap().unwrap();
         assert_eq!(kind.price, 42000.5);
         assert_eq!(kind.amount, 0.01);
         assert_eq!(kind.side, Side::Sell);

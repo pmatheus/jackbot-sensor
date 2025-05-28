@@ -1,10 +1,10 @@
-use barter_data::{
+use futures::StreamExt;
+use jackbot_data::{
     exchange::binance::{futures::BinanceFuturesUsd, spot::BinanceSpot},
     streams::{Streams, reconnect::stream::ReconnectingStream},
     subscription::book::OrderBooksL2,
 };
-use barter_instrument::instrument::market_data::kind::MarketDataInstrumentKind;
-use futures::StreamExt;
+use jackbot_instrument::instrument::market_data::kind::MarketDataInstrumentKind;
 use tracing::{info, warn};
 
 #[rustfmt::skip]

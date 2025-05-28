@@ -89,8 +89,8 @@ impl SnapshotFetcher<BybitPerpetualsUsd, OrderBooksL2>
 #[cfg(test)]
 mod tests {
     use super::*;
-    use jackbot_integration::subscription::SubscriptionId;
     use fnv::FnvHashMap;
+    use jackbot_integration::subscription::SubscriptionId;
     use rust_decimal_macros::dec;
 
     async fn init_transformer() -> BybitPerpetualsUsdOrderBooksL2Transformer<String> {
@@ -140,8 +140,7 @@ mod tests {
             }
         }"#;
 
-        let update: BybitPayload<BybitOrderBookL2Data> =
-            serde_json::from_str(update_json).unwrap();
+        let update: BybitPayload<BybitOrderBookL2Data> = serde_json::from_str(update_json).unwrap();
         let events = transformer.transform(update);
         let event = events.into_iter().next().unwrap().unwrap();
         match event.kind {
@@ -164,12 +163,18 @@ mod tests {
         let u2: BybitPayload<BybitOrderBookL2Data> = serde_json::from_str(update2_json).unwrap();
 
         let t1 = transformer.transform(u1)[0].as_ref().unwrap().time_exchange;
+
+        // Clone u2 before using it again
+        let u2_clone = u2.clone();
         let t2 = transformer.transform(u2)[0].as_ref().unwrap().time_exchange;
         assert!(t1 > t2);
 
         let mut transformer = init_transformer().await;
-        let events = transformer.transform(u2);
-        assert!(matches!(events[0].as_ref().unwrap().kind, OrderBookEvent::Update(_)));
+        let events = transformer.transform(u2_clone);
+        assert!(matches!(
+            events[0].as_ref().unwrap().kind,
+            OrderBookEvent::Update(_)
+        ));
     }
 }
 

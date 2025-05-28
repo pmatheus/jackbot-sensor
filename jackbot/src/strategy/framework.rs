@@ -2,10 +2,8 @@ use crate::strategy::{algo::AlgoStrategy, close_positions::ClosePositionsStrateg
 use jackbot_execution::order::id::StrategyId;
 use jackbot_instrument::{asset::AssetIndex, exchange::ExchangeIndex, instrument::InstrumentIndex};
 
-pub trait Strategy<E = ExchangeIndex, I = InstrumentIndex>:
-    AlgoStrategy<E, I, State = Self::State> +
-    ClosePositionsStrategy<E, AssetIndex, I, State = Self::State>
+pub trait Strategy<StateTy, E = ExchangeIndex, I = InstrumentIndex>:
+    AlgoStrategy<E, I, State = StateTy> + ClosePositionsStrategy<E, AssetIndex, I, State = StateTy>
 {
-    type State;
     fn id(&self) -> StrategyId;
 }

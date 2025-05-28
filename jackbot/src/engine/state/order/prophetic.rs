@@ -16,7 +16,7 @@ pub struct PropheticOrderManager<ExchangeKey, InstrumentKey> {
     pending: Vec<PropheticOrder<ExchangeKey, InstrumentKey>>,
 }
 
-impl<ExchangeKey, InstrumentKey> PropheticOrderManager<ExchangeKey, InstrumentKey> {
+impl<ExchangeKey: Clone, InstrumentKey: Clone> PropheticOrderManager<ExchangeKey, InstrumentKey> {
     /// Add a prophetic order to be monitored.
     ///
     /// Subsequent calls with the same client order id are ignored. This

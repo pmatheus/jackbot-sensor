@@ -2,7 +2,7 @@
 // See Bybit WebSocket API: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
 
 use crate::books::{Canonicalizer, Level, OrderBook};
-use crate::event::{MarketEvent, MarketIter};
+use crate::event::MarketEvent;
 use crate::exchange::bybit::message::BybitPayload;
 use crate::subscription::book::OrderBookEvent;
 use chrono::{DateTime, Utc};

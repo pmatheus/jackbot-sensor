@@ -4,34 +4,33 @@
 //! while exposing the [`ExecutionClient`] interface. This allows switching
 //! between live and paper modes by swapping the client implementation in a
 //! strategy's configuration.
+use crate::paper::{PaperBook, PaperEngine};
 use crate::{
-    client::ExecutionClient,
-    exchange::paper::{PaperBook, PaperEngine},
-    UnindexedAccountEvent, UnindexedAccountSnapshot,
+    AccountEvent, AccountEventKind, UnindexedAccountEvent, UnindexedAccountSnapshot,
     balance::AssetBalance,
+    client::ExecutionClient,
+    error::{UnindexedClientError, UnindexedOrderError},
     order::{
-        Order,
-        OrderKey,
+        Order, OrderKey,
         request::{OrderRequestCancel, OrderRequestOpen, UnindexedOrderResponseCancel},
         state::Open,
     },
     trade::Trade,
-    error::{UnindexedClientError, UnindexedOrderError},
-    indexer::{AccountEventKind, AccountEvent},
 };
+use chrono::{DateTime, Utc};
+use fnv::FnvHashMap;
+use futures::StreamExt as FuturesStreamExt;
+use futures::stream::BoxStream;
 use jackbot_instrument::{
     asset::{QuoteAsset, name::AssetNameExchange},
     exchange::ExchangeId,
     instrument::{Instrument, name::InstrumentNameExchange},
 };
-use chrono::{DateTime, Utc};
-use fnv::FnvHashMap;
 use rust_decimal::Decimal;
-use std::sync::{Arc, Mutex};
-use futures::{Stream, stream::BoxStream, StreamExt};
-use tokio::sync::broadcast;
-use tokio_stream::wrappers::BroadcastStream;
 use std::future::Future;
+use std::sync::{Arc, Mutex};
+use tokio::sync::broadcast;
+use tokio_stream::{StreamExt, wrappers::BroadcastStream};
 
 #[derive(Debug, Clone)]
 pub struct BinancePaperConfig {
@@ -41,9 +40,19 @@ pub struct BinancePaperConfig {
     pub fees_percent: Decimal,
 }
 
+#[derive(Debug)]
 pub struct BinancePaperClient {
     engine: Arc<Mutex<PaperEngine>>,
     event_tx: broadcast::Sender<UnindexedAccountEvent>,
+}
+
+impl Clone for BinancePaperClient {
+    fn clone(&self) -> Self {
+        Self {
+            engine: Arc::clone(&self.engine),
+            event_tx: self.event_tx.clone(),
+        }
+    }
 }
 
 impl ExecutionClient for BinancePaperClient {
@@ -84,20 +93,22 @@ impl ExecutionClient for BinancePaperClient {
         _instruments: &[InstrumentNameExchange],
     ) -> impl Future<Output = Result<Self::AccountStream, UnindexedClientError>> + Send {
         let rx = self.event_tx.subscribe();
-        async move { Ok(Box::pin(BroadcastStream::new(rx).map_while(|r| r.ok()))) }
+        async move { Ok(BroadcastStream::new(rx).map_while(|r| r.ok()).boxed()) }
     }
 
     fn cancel_order(
         &self,
-        _request: OrderRequestCancel<ExchangeId, &InstrumentNameExchange>,
+        _request: OrderRequestCancel<ExchangeId, InstrumentNameExchange>,
     ) -> impl Future<Output = UnindexedOrderResponseCancel> + Send {
         async { unimplemented!("Binance paper cancel_order") }
     }
 
     fn open_order(
         &self,
-        request: OrderRequestOpen<ExchangeId, &InstrumentNameExchange>,
-    ) -> impl Future<Output = Order<ExchangeId, InstrumentNameExchange, Result<Open, UnindexedOrderError>>> + Send {
+        request: OrderRequestOpen<ExchangeId, InstrumentNameExchange>,
+    ) -> impl Future<
+        Output = Order<ExchangeId, InstrumentNameExchange, Result<Open, UnindexedOrderError>>,
+    > + Send {
         let engine = self.engine.clone();
         let tx = self.event_tx.clone();
         let request_owned = OrderRequestOpen {
@@ -113,21 +124,29 @@ impl ExecutionClient for BinancePaperClient {
             let mut engine = engine.lock().unwrap();
             let (order, notifications) = engine.open_order(request_owned);
             if let Some(notifs) = notifications {
-                engine.account.ack_trade(notifs.trade.clone());
-                let _ = tx.send(AccountEvent::<ExchangeId, AssetNameExchange, InstrumentNameExchange> {
-                    exchange: Self::EXCHANGE,
-                    kind: AccountEventKind::BalanceSnapshot(notifs.balance),
-                });
-                let _ = tx.send(AccountEvent::<ExchangeId, AssetNameExchange, InstrumentNameExchange> {
-                    exchange: Self::EXCHANGE,
-                    kind: AccountEventKind::Trade(notifs.trade),
-                });
+                let _ =
+                    tx.send(
+                        AccountEvent::<ExchangeId, AssetNameExchange, InstrumentNameExchange> {
+                            exchange: Self::EXCHANGE,
+                            kind: AccountEventKind::BalanceSnapshot(notifs.balance),
+                        },
+                    );
+                let _ =
+                    tx.send(
+                        AccountEvent::<ExchangeId, AssetNameExchange, InstrumentNameExchange> {
+                            exchange: Self::EXCHANGE,
+                            kind: AccountEventKind::Trade(notifs.trade),
+                        },
+                    );
             }
             order
         }
     }
 
-    fn fetch_balances(&self) -> impl Future<Output = Result<Vec<AssetBalance<AssetNameExchange>>, UnindexedClientError>> + Send {
+    fn fetch_balances(
+        &self,
+    ) -> impl Future<Output = Result<Vec<AssetBalance<AssetNameExchange>>, UnindexedClientError>> + Send
+    {
         let engine = self.engine.clone();
         async move {
             let engine = engine.lock().unwrap();
@@ -137,14 +156,18 @@ impl ExecutionClient for BinancePaperClient {
 
     fn fetch_open_orders(
         &self,
-    ) -> impl Future<Output = Result<Vec<Order<ExchangeId, InstrumentNameExchange, Open>>, UnindexedClientError>> + Send {
+    ) -> impl Future<
+        Output = Result<Vec<Order<ExchangeId, InstrumentNameExchange, Open>>, UnindexedClientError>,
+    > + Send {
         async { Ok(Vec::new()) }
     }
 
     fn fetch_trades(
         &self,
         _time_since: DateTime<Utc>,
-    ) -> impl Future<Output = Result<Vec<Trade<QuoteAsset, InstrumentNameExchange>>, UnindexedClientError>> + Send {
+    ) -> impl Future<
+        Output = Result<Vec<Trade<QuoteAsset, InstrumentNameExchange>>, UnindexedClientError>,
+    > + Send {
         async { Ok(Vec::new()) }
     }
 }

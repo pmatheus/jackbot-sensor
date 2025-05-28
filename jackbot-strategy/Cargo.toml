@@ -2,7 +2,7 @@
 name = "jackbot-strategy"
 version = "0.1.0"
 edition = "2024"
-authors = ["JustAStream <justastream.code@gmail.com>"]
+authors = ["Jack <mail@jackbot.app>"]
 license = "MIT"
 readme = "README.md"
 description = "Strategy trait and utilities for Jackbot"
@@ -18,3 +18,8 @@ rust_decimal = { workspace = true }
 rust_decimal_macros = { workspace = true }
 Jackbot = { path = "../jackbot" }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+jackbot-execution = { workspace = true }
+smol_str = { workspace = true }
+rand = { workspace = true }
+chrono = { workspace = true }
+parking_lot = { workspace = true }

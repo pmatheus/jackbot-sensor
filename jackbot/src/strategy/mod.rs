@@ -12,7 +12,6 @@ use crate::{
         on_disconnect::OnDisconnectStrategy,
         on_trading_disabled::OnTradingDisabled,
     },
-    strategy::framework,
 };
 use jackbot_execution::order::{
     id::{ClientOrderId, StrategyId},
@@ -41,112 +40,94 @@ pub mod on_disconnect;
 /// `TradingState` gets set to `TradingState::Disabled`.
 pub mod on_trading_disabled;
 
-
 /// Advanced execution algorithms such as TWAP/VWAP slicing and always maker.
 pub mod advanced_orders;
-[
+
 /// Strategy trait combining the core strategy interfaces.
 pub mod framework;
 
-/// Registry for storing and retrieving strategies by [`StrategyId`].
-pub mod registry;
-
-/// Loadable strategy configuration.
-pub mod config;
-[
-
-/// Naive implementation of all strategy interfaces.
-///
-/// *THIS IS FOR DEMONSTRATION PURPOSES ONLY, NEVER USE FOR REAL TRADING OR IN PRODUCTION*.
-///
-/// This strategy:
-/// - Generates no algorithmic orders (AlgoStrategy).
-/// - Closes positions via the naive [`close_open_positions_with_market_orders`] logic (ClosePositionsStrategy).
-/// - Does nothing when an exchange disconnects (OnDisconnectStrategy).
-/// - Does nothing when trading state is set to disabled (OnDisconnectStrategy).
+/// Default strategy that generates no orders and does nothing on events.
 #[derive(Debug, Clone)]
-pub struct DefaultStrategy<State> {
-    pub id: StrategyId,
-    phantom: PhantomData<State>,
+pub struct DefaultStrategy<StateTy, E = ExchangeIndex, I = InstrumentIndex> {
+    phantom: PhantomData<(StateTy, E, I)>,
+    id: StrategyId,
 }
 
-impl<State> Default for DefaultStrategy<State> {
+impl<StateTy> Default for DefaultStrategy<StateTy> {
     fn default() -> Self {
-        Self {
-            id: StrategyId::new("default"),
+        DefaultStrategy {
             phantom: PhantomData,
+            id: StrategyId::new("default"),
         }
     }
 }
 
-impl<State, ExchangeKey, InstrumentKey> AlgoStrategy<ExchangeKey, InstrumentKey>
-    for DefaultStrategy<State>
-{
-    type State = State;
+impl<StateTy, E, I> crate::strategy::algo::AlgoStrategy<E, I> for DefaultStrategy<StateTy, E, I> {
+    type State = StateTy;
 
     fn generate_algo_orders(
         &self,
-        _: &Self::State,
+        _state: &Self::State,
     ) -> (
-        impl IntoIterator<Item = OrderRequestCancel<ExchangeKey, InstrumentKey>>,
-        impl IntoIterator<Item = OrderRequestOpen<ExchangeKey, InstrumentKey>>,
+        impl IntoIterator<Item = OrderRequestCancel<E, I>>,
+        impl IntoIterator<Item = OrderRequestOpen<E, I>>,
     ) {
-        (std::iter::empty(), std::iter::empty())
+        (
+            Vec::<OrderRequestCancel<E, I>>::new(),
+            Vec::<OrderRequestOpen<E, I>>::new(),
+        )
     }
 }
 
-impl<GlobalData, InstrumentData> ClosePositionsStrategy
-    for DefaultStrategy<EngineState<GlobalData, InstrumentData>>
-where
-    InstrumentData: InstrumentDataState,
+impl<StateTy, E, I> crate::strategy::close_positions::ClosePositionsStrategy<E, AssetIndex, I>
+    for DefaultStrategy<StateTy, E, I>
 {
-    type State = EngineState<GlobalData, InstrumentData>;
+    type State = StateTy;
 
     fn close_positions_requests<'a>(
         &'a self,
-        state: &'a Self::State,
-        filter: &'a InstrumentFilter,
+        _state: &'a Self::State,
+        _filter: &'a InstrumentFilter<E, AssetIndex, I>,
     ) -> (
-        impl IntoIterator<Item = OrderRequestCancel<ExchangeIndex, InstrumentIndex>> + 'a,
-        impl IntoIterator<Item = OrderRequestOpen<ExchangeIndex, InstrumentIndex>> + 'a,
+        impl IntoIterator<Item = OrderRequestCancel<E, I>> + 'a,
+        impl IntoIterator<Item = OrderRequestOpen<E, I>> + 'a,
     )
     where
-        ExchangeIndex: 'a,
+        E: 'a,
         AssetIndex: 'a,
-        InstrumentIndex: 'a,
+        I: 'a,
     {
-        close_open_positions_with_market_orders(&self.id, state, filter, |_| {
-            ClientOrderId::random()
-        })
+        (
+            Vec::<OrderRequestCancel<E, I>>::new(),
+            Vec::<OrderRequestOpen<E, I>>::new(),
+        )
     }
 }
 
-impl<Clock, State, ExecutionTxs, Risk> OnDisconnectStrategy<Clock, State, ExecutionTxs, Risk>
-    for DefaultStrategy<State>
+impl<Clock, StateTy, E, I, ExecutionTxs, Risk>
+    OnDisconnectStrategy<Clock, StateTy, ExecutionTxs, Risk> for DefaultStrategy<StateTy, E, I>
 {
     type OnDisconnect = ();
 
     fn on_disconnect(
-        _: &mut Engine<Clock, State, ExecutionTxs, Self, Risk>,
-        _: ExchangeId,
+        _engine: &mut Engine<Clock, StateTy, ExecutionTxs, Self, Risk>,
+        _exchange: ExchangeId,
     ) -> Self::OnDisconnect {
     }
 }
 
-impl<Clock, State, ExecutionTxs, Risk> OnTradingDisabled<Clock, State, ExecutionTxs, Risk>
-    for DefaultStrategy<State>
+impl<Clock, StateTy, E, I, ExecutionTxs, Risk> OnTradingDisabled<Clock, StateTy, ExecutionTxs, Risk>
+    for DefaultStrategy<StateTy, E, I>
 {
     type OnTradingDisabled = ();
 
     fn on_trading_disabled(
-        _: &mut Engine<Clock, State, ExecutionTxs, Self, Risk>,
+        _engine: &mut Engine<Clock, StateTy, ExecutionTxs, Self, Risk>,
     ) -> Self::OnTradingDisabled {
     }
 }
 
-impl<State> framework::Strategy for DefaultStrategy<State> {
-    type State = State;
-
+impl<StateTy, E, I> framework::Strategy<StateTy, E, I> for DefaultStrategy<StateTy, E, I> {
     fn id(&self) -> StrategyId {
         self.id.clone()
     }

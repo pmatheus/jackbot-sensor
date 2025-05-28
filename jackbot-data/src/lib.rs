@@ -96,18 +96,18 @@ use crate::{
 };
 use async_trait::async_trait;
 use futures::{SinkExt, Stream, StreamExt, stream::BoxStream};
-use tokio_stream::StreamExt as TokioStreamExt;
+
 use jackbot_instrument::exchange::ExchangeId;
 use jackbot_integration::{
     Transformer,
     error::SocketError,
     protocol::{
         StreamParser,
-        websocket::{WebSocketParser, WsMessage, WsSink, WsStream, WsError, with_heartbeat},
+        websocket::{WebSocketParser, WsMessage, WsSink, WsError, with_heartbeat},
     },
     stream::ExchangeStream,
 };
-use std::{collections::VecDeque, future::Future, io};
+use std::{collections::VecDeque, future::Future};
 use tokio::sync::mpsc;
 use tracing::{debug, error, warn};
 

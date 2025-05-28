@@ -3,7 +3,7 @@ use crate::{
     subscription::{book::OrderBookEvent, trade::PublicTrade},
 };
 use jackbot_instrument::exchange::ExchangeId;
-use serde::{Serialize, Deserialize};
+
 use fnv::FnvHashMap;
 use std::sync::{Arc, Mutex};
 

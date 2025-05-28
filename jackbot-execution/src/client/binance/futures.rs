@@ -2,9 +2,9 @@
 //! order types. Smart trade behaviour will be emulated through order
 //! management in a future implementation.
 use crate::{
-    client::ExecutionClient,
     UnindexedAccountEvent, UnindexedAccountSnapshot,
     balance::AssetBalance,
+    client::ExecutionClient,
     error::{UnindexedClientError, UnindexedOrderError},
     order::{
         Order,
@@ -13,13 +13,13 @@ use crate::{
     },
     trade::Trade,
 };
+use chrono::{DateTime, Utc};
+use futures::stream;
 use jackbot_instrument::{
     asset::{QuoteAsset, name::AssetNameExchange},
     exchange::ExchangeId,
     instrument::name::InstrumentNameExchange,
 };
-use chrono::{DateTime, Utc};
-use futures::{Stream, stream};
 use std::future::Future;
 
 #[derive(Debug, Clone, Default)]
@@ -55,33 +55,41 @@ impl ExecutionClient for BinanceFuturesUsd {
 
     fn cancel_order(
         &self,
-        _request: OrderRequestCancel<ExchangeId, &InstrumentNameExchange>,
+        _request: OrderRequestCancel<ExchangeId, InstrumentNameExchange>,
     ) -> impl Future<Output = UnindexedOrderResponseCancel> + Send {
         async { unimplemented!("Binance futures cancel_order") }
     }
 
     fn open_order(
         &self,
-        _request: OrderRequestOpen<ExchangeId, &InstrumentNameExchange>,
-    ) -> impl Future<Output = Order<ExchangeId, InstrumentNameExchange, Result<Open, UnindexedOrderError>>> + Send {
+        _request: OrderRequestOpen<ExchangeId, InstrumentNameExchange>,
+    ) -> impl Future<
+        Output = Order<ExchangeId, InstrumentNameExchange, Result<Open, UnindexedOrderError>>,
+    > + Send {
         async { unimplemented!("Binance futures open_order") }
     }
 
-    fn fetch_balances(&self) -> impl Future<Output = Result<Vec<AssetBalance<AssetNameExchange>>, UnindexedClientError>> + Send {
+    fn fetch_balances(
+        &self,
+    ) -> impl Future<Output = Result<Vec<AssetBalance<AssetNameExchange>>, UnindexedClientError>> + Send
+    {
         async { unimplemented!("Binance futures fetch_balances") }
     }
 
     fn fetch_open_orders(
         &self,
-    ) -> impl Future<Output = Result<Vec<Order<ExchangeId, InstrumentNameExchange, Open>>, UnindexedClientError>> + Send {
+    ) -> impl Future<
+        Output = Result<Vec<Order<ExchangeId, InstrumentNameExchange, Open>>, UnindexedClientError>,
+    > + Send {
         async { unimplemented!("Binance futures fetch_open_orders") }
     }
 
     fn fetch_trades(
         &self,
         _time_since: DateTime<Utc>,
-    ) -> impl Future<Output = Result<Vec<Trade<QuoteAsset, InstrumentNameExchange>>, UnindexedClientError>> + Send {
+    ) -> impl Future<
+        Output = Result<Vec<Trade<QuoteAsset, InstrumentNameExchange>>, UnindexedClientError>,
+    > + Send {
         async { unimplemented!("Binance futures fetch_trades") }
     }
 }
-

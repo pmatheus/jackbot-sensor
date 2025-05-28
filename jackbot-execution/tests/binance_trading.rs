@@ -1,13 +1,14 @@
 use jackbot_execution::{
+    client::ExecutionClient,
     client::binance::{BinanceWsClient, BinanceWsConfig},
-    trading::TradingClient,
     order::{
         OrderKey, OrderKind, TimeInForce,
         id::{ClientOrderId, StrategyId},
         request::{OrderRequestOpen, RequestOpen},
     },
+    trading::TradingClient,
 };
-use jackbot_instrument::{exchange::ExchangeId, instrument::name::InstrumentNameExchange, Side};
+use jackbot_instrument::{Side, exchange::ExchangeId, instrument::name::InstrumentNameExchange};
 use rust_decimal_macros::dec;
 use url::Url;
 
@@ -33,6 +34,6 @@ async fn binance_open_order_stub() {
         },
     };
 
-    let order = client.open_order(request).await;
+    let order = jackbot_execution::client::ExecutionClient::open_order(&client, request).await;
     assert!(order.state.is_ok());
 }

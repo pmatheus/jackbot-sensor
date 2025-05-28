@@ -2,7 +2,7 @@
 name = "jackbot-risk"
 version = "0.1.0"
 edition = "2024"
-authors = ["JustAStream <justastream.code@gmail.com>"]
+authors = ["Jack <mail@jackbot.app>"]
 license = "MIT"
 documentation = "https://docs.rs/jackbot-risk"
 repository = "https://github.com/jackbot-rs/jackbot-rs"

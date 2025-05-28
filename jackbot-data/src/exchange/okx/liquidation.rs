@@ -1,8 +1,9 @@
-use crate::subscription::liquidation::Liquidation;
+use crate::{Identifier, subscription::liquidation::Liquidation};
 use jackbot_integration::subscription::SubscriptionId;
 
 /// OKX does not support a public liquidations channel as of 2024-06.
 /// This module is a stub for feature parity and will not emit any events.
+#[derive(Debug)]
 pub struct OkxLiquidation;
 
 impl OkxLiquidation {
@@ -18,7 +19,7 @@ impl OkxLiquidation {
     }
 }
 
-impl crate::Identifier<Option<SubscriptionId>> for OkxLiquidation {
+impl Identifier<Option<SubscriptionId>> for OkxLiquidation {
     fn id(&self) -> Option<SubscriptionId> {
         None
     }
@@ -36,4 +37,3 @@ mod tests {
         assert!(liq.id().is_none());
     }
 }
-

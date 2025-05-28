@@ -1,21 +1,22 @@
+use crate::client::ExecutionClient;
 use crate::{
-    client::ExecutionClient,
     balance::AssetBalance,
     error::{UnindexedClientError, UnindexedOrderError},
     order::{
         Order,
+        OrderKey, // Explicitly bring OrderKey into scope for clarity
         request::{OrderRequestCancel, OrderRequestOpen, UnindexedOrderResponseCancel},
         state::Open,
     },
     trade::Trade,
 };
+use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use jackbot_instrument::{
     asset::{QuoteAsset, name::AssetNameExchange},
     exchange::ExchangeId,
     instrument::name::InstrumentNameExchange,
-};
-use async_trait::async_trait;
-use chrono::{DateTime, Utc};
+}; // MODIFIED: Using super for ExecutionClient
 
 /// Async wrapper trait over [`ExecutionClient`] providing a unified trading
 /// interface.
@@ -24,7 +25,7 @@ pub trait TradingClient: ExecutionClient + Send + Sync {
     /// Place a new order on the exchange.
     async fn open_order(
         &self,
-        request: OrderRequestOpen<ExchangeId, &InstrumentNameExchange>,
+        request: OrderRequestOpen<ExchangeId, InstrumentNameExchange>,
     ) -> Order<ExchangeId, InstrumentNameExchange, Result<Open, UnindexedOrderError>> {
         ExecutionClient::open_order(self, request).await
     }
@@ -32,13 +33,15 @@ pub trait TradingClient: ExecutionClient + Send + Sync {
     /// Cancel an existing order on the exchange.
     async fn cancel_order(
         &self,
-        request: OrderRequestCancel<ExchangeId, &InstrumentNameExchange>,
+        request: OrderRequestCancel<ExchangeId, InstrumentNameExchange>,
     ) -> UnindexedOrderResponseCancel {
         ExecutionClient::cancel_order(self, request).await
     }
 
     /// Fetch the current account balances from the exchange.
-    async fn fetch_balances(&self) -> Result<Vec<AssetBalance<AssetNameExchange>>, UnindexedClientError> {
+    async fn fetch_balances(
+        &self,
+    ) -> Result<Vec<AssetBalance<AssetNameExchange>>, UnindexedClientError> {
         ExecutionClient::fetch_balances(self).await
     }
 
@@ -64,4 +67,3 @@ where
     T::AccountStream: Send,
 {
 }
-

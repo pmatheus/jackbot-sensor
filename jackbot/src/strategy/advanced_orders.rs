@@ -1,21 +1,33 @@
 use jackbot_execution::order::{
-    Order, OrderKey, OrderKind, TimeInForce,
-    id::{ClientOrderId, OrderId, StrategyId},
+    OrderKey, OrderKind, TimeInForce,
+    id::{ClientOrderId, StrategyId},
     request::{OrderRequestCancel, OrderRequestOpen, RequestCancel, RequestOpen},
-    state::{ActiveOrderState, Open},
 };
-use jackbot_instrument::{Side, asset::AssetIndex, exchange::ExchangeIndex, instrument::InstrumentIndex};
-use rust_decimal::Decimal;
+use jackbot_instrument::{
+    Side, asset::AssetIndex, exchange::ExchangeIndex, instrument::InstrumentIndex,
+};
 use rand::Rng;
-use chrono::Utc;
+use rust_decimal::Decimal;
+use rust_decimal::prelude::{FromPrimitive, ToPrimitive};
 
-use crate::engine::state::{EngineState, instrument::{filter::InstrumentFilter, data::InstrumentDataState}, order::Orders};
+use crate::engine::state::{
+    EngineState,
+    instrument::{data::InstrumentDataState, filter::InstrumentFilter},
+    order::manager::OrderManager,
+};
 
 /// Generate TWAP (time-weighted average price) order slice quantities with randomised weights.
 /// The returned quantities will sum to `total_quantity`.
-pub fn twap_slices<R: Rng>(total_quantity: Decimal, slices: usize, randomness: f64, rng: &mut R) -> Vec<Decimal> {
+pub fn twap_slices<R: Rng>(
+    total_quantity: Decimal,
+    slices: usize,
+    randomness: f64,
+    rng: &mut R,
+) -> Vec<Decimal> {
     assert!(slices > 0);
-    let mut weights: Vec<f64> = (0..slices).map(|_| 1.0 + rng.gen_range(-randomness..=randomness)).collect();
+    let mut weights: Vec<f64> = (0..slices)
+        .map(|_| 1.0 + rng.random_range(-randomness..=randomness))
+        .collect();
     let sum: f64 = weights.iter().sum();
     weights.iter_mut().for_each(|w| *w /= sum);
     let mut quantities: Vec<Decimal> = weights
@@ -32,14 +44,21 @@ pub fn twap_slices<R: Rng>(total_quantity: Decimal, slices: usize, randomness: f
 /// Generate VWAP (volume-weighted average price) order slice quantities with randomised weights.
 /// The provided `volumes` slice defines relative volume weights for each slice.
 /// The returned quantities will sum to `total_quantity`.
-pub fn vwap_slices<R: Rng>(total_quantity: Decimal, volumes: &[Decimal], randomness: f64, rng: &mut R) -> Vec<Decimal> {
+pub fn vwap_slices<R: Rng>(
+    total_quantity: Decimal,
+    volumes: &[Decimal],
+    randomness: f64,
+    rng: &mut R,
+) -> Vec<Decimal> {
     assert!(!volumes.is_empty());
     let total_volume: Decimal = volumes.iter().copied().sum();
     let mut weights: Vec<f64> = volumes
         .iter()
         .map(|v| (v / total_volume).to_f64().unwrap())
         .collect();
-    weights.iter_mut().for_each(|w| *w *= 1.0 + rng.gen_range(-randomness..=randomness));
+    weights
+        .iter_mut()
+        .for_each(|w| *w *= 1.0 + rng.random_range(-randomness..=randomness));
     let sum: f64 = weights.iter().sum();
     weights.iter_mut().for_each(|w| *w /= sum);
     let mut quantities: Vec<Decimal> = weights
@@ -61,10 +80,10 @@ pub trait BestBidAsk {
 
 impl BestBidAsk for crate::engine::state::instrument::data::DefaultInstrumentMarketData {
     fn best_bid(&self) -> Option<Decimal> {
-        self.l1.bids().levels().first().map(|l| l.price)
+        self.book.bids().levels().first().map(|l| l.price)
     }
     fn best_ask(&self) -> Option<Decimal> {
-        self.l1.asks().levels().first().map(|l| l.price)
+        self.book.asks().levels().first().map(|l| l.price)
     }
 }
 
@@ -77,12 +96,15 @@ pub struct AlwaysMakerStrategy {
     pub quantity: Decimal,
 }
 
-impl<GlobalData, InstrumentData> crate::strategy::algo::AlgoStrategy<ExchangeIndex, InstrumentIndex>
-    for AlwaysMakerStrategy
+impl crate::strategy::algo::AlgoStrategy<ExchangeIndex, InstrumentIndex> for AlwaysMakerStrategy
 where
-    InstrumentData: InstrumentDataState<ExchangeIndex, AssetIndex, InstrumentIndex> + BestBidAsk,
+    crate::engine::state::instrument::data::DefaultInstrumentMarketData:
+        InstrumentDataState<ExchangeIndex, AssetIndex, InstrumentIndex> + BestBidAsk,
 {
-    type State = EngineState<GlobalData, InstrumentData>;
+    type State = EngineState<
+        crate::engine::state::global::DefaultGlobalData,
+        crate::engine::state::instrument::data::DefaultInstrumentMarketData,
+    >;
 
     fn generate_algo_orders(
         &self,

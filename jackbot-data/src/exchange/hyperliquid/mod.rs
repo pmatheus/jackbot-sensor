@@ -4,7 +4,7 @@
 
 use self::{
     channel::HyperliquidChannel, market::HyperliquidMarket, subscription::HyperliquidSubResponse,
-    trade::HyperliquidTrade,
+
 };
 use crate::{
     ExchangeWsStream, NoInitialSnapshots,

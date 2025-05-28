@@ -1,11 +1,15 @@
-use jackbot::engine::state::order::prophetic::{PropheticOrder, PropheticOrderManager};
-use jackbot_execution::order::{OrderKey, OrderKind, TimeInForce, id::{ClientOrderId, StrategyId}, request::{OrderRequestOpen, RequestOpen}};
-use jackbot_instrument::Side;
+use Jackbot::engine::state::order::prophetic::{PropheticOrder, PropheticOrderManager};
 use chrono::{DateTime, Utc};
-use rust_decimal_macros::dec;
+use jackbot_execution::order::{
+    OrderKey, OrderKind, TimeInForce,
+    id::{ClientOrderId, StrategyId},
+    request::{OrderRequestOpen, RequestOpen},
+};
+use jackbot_instrument::Side;
 use rust_decimal::Decimal;
+use rust_decimal_macros::dec;
 
-fn sample_request(price: Decimal) -> OrderRequestOpen<u8,u8> {
+fn sample_request(price: Decimal) -> OrderRequestOpen<u8, u8> {
     OrderRequestOpen {
         key: OrderKey {
             exchange: 0,
@@ -25,7 +29,7 @@ fn sample_request(price: Decimal) -> OrderRequestOpen<u8,u8> {
 
 #[test]
 fn test_auto_place_when_in_range() {
-    let mut manager: PropheticOrderManager<u8,u8> = PropheticOrderManager::default();
+    let mut manager: PropheticOrderManager<u8, u8> = PropheticOrderManager::default();
     let order = PropheticOrder::new(sample_request(dec!(100)), DateTime::<Utc>::MIN_UTC);
     manager.add(order);
 

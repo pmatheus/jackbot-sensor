@@ -1,6 +1,7 @@
 use jackbot_data::{
     books::{manager::init_multi_order_book_l2_manager, map::OrderBookMap},
     exchange::binance::spot::BinanceSpot,
+    redis_store::InMemoryStore,
     subscription::book::OrderBooksL2,
 };
 use jackbot_instrument::instrument::market_data::{
@@ -16,25 +17,28 @@ async fn main() {
     init_logging();
 
     // Initialise OrderBookL2Manager with desired Subscriptions
-    let book_manager = init_multi_order_book_l2_manager([
-        // Separate WebSocket connection for BTC_USDT stream since it's very high volume
-        vec![
-            (BinanceSpot::default(), "btc", "usdt", MarketDataInstrumentKind::Spot, OrderBooksL2)
-        ],
+    let book_manager = init_multi_order_book_l2_manager(
+        [
+            // Separate WebSocket connection for BTC_USDT stream since it's very high volume
+            vec![
+                (BinanceSpot::default(), "btc", "usdt", MarketDataInstrumentKind::Spot, OrderBooksL2)
+            ],
 
-        // Separate WebSocket connection for ETH_USDT stream since it's very high volume
-        vec![
-            (BinanceSpot::default(), "eth", "usdt", MarketDataInstrumentKind::Spot, OrderBooksL2)
-        ],
+            // Separate WebSocket connection for ETH_USDT stream since it's very high volume
+            vec![
+                (BinanceSpot::default(), "eth", "usdt", MarketDataInstrumentKind::Spot, OrderBooksL2)
+            ],
 
-        // Lower volume Instruments can share a WebSocket connection
-        vec![
-            (BinanceSpot::default(), "xrp", "usdt", MarketDataInstrumentKind::Spot, OrderBooksL2),
-            (BinanceSpot::default(), "sol", "usdt", MarketDataInstrumentKind::Spot, OrderBooksL2),
-            (BinanceSpot::default(), "avax", "usdt", MarketDataInstrumentKind::Spot, OrderBooksL2),
-            (BinanceSpot::default(), "ltc", "usdt", MarketDataInstrumentKind::Spot, OrderBooksL2),
-        ]
-    ]).await.unwrap();
+            // Lower volume Instruments can share a WebSocket connection
+            vec![
+                (BinanceSpot::default(), "xrp", "usdt", MarketDataInstrumentKind::Spot, OrderBooksL2),
+                (BinanceSpot::default(), "sol", "usdt", MarketDataInstrumentKind::Spot, OrderBooksL2),
+                (BinanceSpot::default(), "avax", "usdt", MarketDataInstrumentKind::Spot, OrderBooksL2),
+                (BinanceSpot::default(), "ltc", "usdt", MarketDataInstrumentKind::Spot, OrderBooksL2),
+            ]
+        ],
+        InMemoryStore::new() // Use InMemoryStore as the RedisStore implementation
+    ).await.unwrap();
 
     // Clone OrderBookMap so you can access the locally managed OrderBooks elsewhere in your program
     let books = book_manager.books.clone();

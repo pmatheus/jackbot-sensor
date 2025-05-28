@@ -10,11 +10,14 @@ use crate::{
     error::JackbotError,
     execution::{
         AccountStreamEvent,
-        builder::{ExecutionBuildFutures, ExecutionBuilder},
+        builder::{ExecutionBuild, ExecutionBuilder},
     },
     shutdown::SyncShutdown,
     system::{System, SystemAuxillaryHandles, config::ExecutionConfig},
 };
+use derive_more::Constructor;
+use fnv::FnvHashMap;
+use futures::Stream;
 use jackbot_data::streams::reconnect::stream::ReconnectingStream;
 use jackbot_execution::balance::Balance;
 use jackbot_instrument::{
@@ -27,9 +30,6 @@ use jackbot_integration::{
     channel::{Channel, ChannelTxDroppable, mpsc_unbounded},
     snapshot::SnapUpdates,
 };
-use derive_more::Constructor;
-use fnv::FnvHashMap;
-use futures::Stream;
 use serde::{Deserialize, Serialize};
 use std::{fmt::Debug, marker::PhantomData};
 
@@ -221,17 +221,25 @@ impl<'a, Clock, Strategy, Risk, MarketStream, GlobalData, FnInstrumentData>
         let trading_state = trading_state.unwrap_or_default();
 
         // Build Execution infrastructure
-        let execution = executions
+        let execution_build = executions
             .into_iter()
             .try_fold(
                 ExecutionBuilder::new(instruments),
                 |builder, config| match config {
                     ExecutionConfig::Mock(mock_config) => {
-                        builder.add_mock(mock_config, clock.clone())
+                        builder.add_mock(mock_config, std::time::Duration::from_secs(30))
                     }
+                    ExecutionConfig::None => Ok(builder),
                 },
             )?
             .build();
+
+        // Create MultiExchangeTxMap from execution_build.execution_txs
+        let execution_tx_map = execution_build
+            .execution_txs
+            .iter()
+            .map(|(exchange_id, (exchange_index, tx))| (*exchange_id, Some(tx.clone())))
+            .collect::<MultiExchangeTxMap>();
 
         // Build EngineState
         let state = EngineStateBuilder::new(instruments, global_data, instrument_data_init)
@@ -245,15 +253,19 @@ impl<'a, Clock, Strategy, Risk, MarketStream, GlobalData, FnInstrumentData>
             .build();
 
         // Construct Engine
-        let engine = Engine::new(clock, state, execution.execution_tx_map, strategy, risk);
+        let engine = Engine::new(clock, state, execution_tx_map, strategy, risk);
 
         Ok(SystemBuild {
             engine,
             engine_feed_mode,
             audit_mode,
             market_stream,
-            account_channel: execution.account_channel,
-            execution_build_futures: execution.futures,
+            account_channel: execution_build.merged_channel,
+            execution_build: ExecutionBuild {
+                execution_txs: Default::default(),
+                merged_channel: Channel::default(),
+                execution_init_futures: execution_build.execution_init_futures,
+            },
             phantom_event: PhantomData,
         })
     }
@@ -279,8 +291,8 @@ pub struct SystemBuild<Engine, Event, MarketStream> {
     /// Channel for `AccountStreamEvent`.
     pub account_channel: Channel<AccountStreamEvent>,
 
-    /// Futures for initialising `ExecutionBuild` components.
-    pub execution_build_futures: ExecutionBuildFutures,
+    /// Build for initialising execution components.
+    pub execution_build: ExecutionBuild,
 
     phantom_event: PhantomData<Event>,
 }
@@ -303,7 +315,7 @@ where
         audit_mode: AuditMode,
         market_stream: MarketStream,
         account_channel: Channel<AccountStreamEvent>,
-        execution_build_futures: ExecutionBuildFutures,
+        execution_build: ExecutionBuild,
     ) -> Self {
         Self {
             engine,
@@ -311,7 +323,7 @@ where
             audit_mode,
             market_stream,
             account_channel,
-            execution_build_futures,
+            execution_build,
             phantom_event: Default::default(),
         }
     }
@@ -343,14 +355,13 @@ where
             audit_mode,
             market_stream,
             account_channel,
-            execution_build_futures,
+            execution_build,
             phantom_event: _,
         } = self;
 
         // Initialise all execution components
-        let execution = execution_build_futures
-            .init_with_runtime(runtime.clone())
-            .await?;
+        let (execution_tx_map, account_channel, execution) =
+            execution_build.init_with_runtime(runtime.clone()).await?;
 
         // Initialise central Engine channel
         let (feed_tx, mut feed_rx) = mpsc_unbounded();

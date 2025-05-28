@@ -1,49 +1,70 @@
 use crate::{
-    engine::{clock::EngineClock, execution_tx::MultiExchangeTxMap},
+    engine::execution_tx::MultiExchangeTxMap,
     error::JackbotError,
     execution::{
-        AccountStreamEvent, Execution, error::ExecutionError, manager::ExecutionManager,
+        AccountStreamEvent, error::ExecutionError, manager::ExecutionManager,
         request::ExecutionRequest,
     },
     shutdown::AsyncShutdown,
 };
-use jackbot_data::streams::{
-    consumer::STREAM_RECONNECTION_POLICY, reconnect::stream::ReconnectingStream,
-};
+use fnv::FnvHashMap;
+use futures::{FutureExt, StreamExt, future::join_all};
+use jackbot_data::streams::consumer::STREAM_RECONNECTION_POLICY;
+use jackbot_data::streams::reconnect::stream::ReconnectingStream;
 use jackbot_execution::{
-    UnindexedAccountEvent,
+    UnindexedAccountSnapshot,
+    balance::{AssetBalance, Balance},
     client::{
         ExecutionClient,
-        mock::{MockExecution, MockExecutionClientConfig, MockExecutionConfig},
+        binance::paper::{BinancePaperClient, BinancePaperConfig},
     },
-    exchange::mock::{MockExchange, request::MockExchangeRequest},
     indexer::AccountEventIndexer,
     map::generate_execution_instrument_map,
 };
 use jackbot_instrument::{
-    Keyed, Underlying,
-    asset::{AssetIndex, name::AssetNameExchange},
+    asset::AssetIndex,
     exchange::{ExchangeId, ExchangeIndex},
     index::IndexedInstruments,
-    instrument::{
-        Instrument, InstrumentIndex,
-        kind::InstrumentKind,
-        name::InstrumentNameExchange,
-        spec::{InstrumentSpec, InstrumentSpecQuantity, OrderQuantityUnits},
-    },
+    instrument::InstrumentIndex,
 };
 use jackbot_integration::channel::{Channel, UnboundedTx, mpsc_unbounded};
-use fnv::FnvHashMap;
-use futures::{FutureExt, future::try_join_all};
 use std::{pin::Pin, sync::Arc, time::Duration};
-use tokio::{
-    sync::{broadcast, mpsc},
-    task::{JoinError, JoinHandle},
-};
+use tokio::task::{JoinError, JoinHandle};
 
 type ExecutionInitFuture =
     Pin<Box<dyn Future<Output = Result<(RunFuture, RunFuture), ExecutionError>> + Send>>;
 type RunFuture = Pin<Box<dyn Future<Output = ()> + Send + 'static>>;
+
+/// Collection of execution initialization futures.
+pub type ExecutionBuildFutures = Vec<ExecutionInitFuture>;
+
+/// Collection of execution component join handles.
+pub struct ExecutionHandles {
+    pub handles: Vec<JoinHandle<()>>,
+}
+
+impl IntoIterator for ExecutionHandles {
+    type Item = JoinHandle<()>;
+    type IntoIter = std::vec::IntoIter<JoinHandle<()>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.handles.into_iter()
+    }
+}
+
+impl ExecutionHandles {
+    /// Shutdown all execution components concurrently.
+    pub async fn shutdown(&mut self) -> Result<(), JoinError> {
+        let mut handles = Vec::new();
+        std::mem::swap(&mut handles, &mut self.handles);
+
+        join_all(handles)
+            .await
+            .into_iter()
+            .collect::<Result<Vec<_>, _>>()
+            .map(|_| ())
+    }
+}
 
 /// Full execution infrastructure builder.
 ///
@@ -64,7 +85,6 @@ pub struct ExecutionBuilder<'a> {
     instruments: &'a IndexedInstruments,
     execution_txs: FnvHashMap<ExchangeId, (ExchangeIndex, UnboundedTx<ExecutionRequest>)>,
     merged_channel: Channel<AccountStreamEvent<ExchangeIndex, AssetIndex, InstrumentIndex>>,
-    mock_exchange_futures: Vec<RunFuture>,
     execution_init_futures: Vec<ExecutionInitFuture>,
 }
 
@@ -75,57 +95,51 @@ impl<'a> ExecutionBuilder<'a> {
             instruments,
             execution_txs: FnvHashMap::default(),
             merged_channel: Channel::default(),
-            mock_exchange_futures: Vec::default(),
             execution_init_futures: Vec::default(),
         }
     }
 
-    /// Adds an [`ExecutionManager`] for a mocked exchange, setting up a [`MockExchange`]
-    /// internally.
-    ///
-    /// The provided [`MockExecutionConfig`] is used to configure the [`MockExchange`] and provide
-    /// the initial account state.
-    pub fn add_mock<Clock>(
-        mut self,
-        config: MockExecutionConfig,
-        clock: Clock,
-    ) -> Result<Self, JackbotError>
-    where
-        Clock: EngineClock + Clone + Send + Sync + 'static,
-    {
-        const ACCOUNT_STREAM_CAPACITY: usize = 256;
-        const DUMMY_EXECUTION_REQUEST_TIMEOUT: Duration = Duration::from_secs(1);
-
-        let (request_tx, request_rx) = mpsc::unbounded_channel();
-        let (event_tx, event_rx) = broadcast::channel(ACCOUNT_STREAM_CAPACITY);
-
-        let mock_execution_client_config = MockExecutionClientConfig {
-            mocked_exchange: config.mocked_exchange,
-            clock: move || clock.time(),
-            request_tx,
-            event_rx,
+    /// Adds an [`ExecutionManager`] for a mock exchange using `BinancePaperClient`.
+    pub fn add_mock(
+        self,
+        config: crate::system::config::LocalMockExecutionConfig,
+        request_timeout: Duration,
+    ) -> Result<Self, JackbotError> {
+        // Build mock execution with provided mock configuration
+        let fees_percent = config.0.fees_percent;
+        // Use an empty snapshot; initial_state is not used in this simplified mock
+        let snapshot = UnindexedAccountSnapshot {
+            exchange: config.0.mocked_exchange,
+            balances: Vec::new(),
+            instruments: Vec::new(),
+        };
+        let paper_config = BinancePaperConfig {
+            books: FnvHashMap::default(),
+            instruments: FnvHashMap::default(),
+            snapshot,
+            fees_percent,
         };
 
-        // Register MockExchange init Future
-        let mock_exchange_future = self.init_mock_exchange(config, request_rx, event_tx);
-        self.mock_exchange_futures.push(mock_exchange_future);
+        // Use provided latency_ms as request timeout or fallback to provided timeout
+        // (The request_timeout parameter is still honored)
+        if config.0.mocked_exchange != ExchangeId::BinanceSpot
+            && config.0.mocked_exchange != ExchangeId::BinanceFuturesUsd
+        {
+            // Log a warning or handle as appropriate if the configured exchange_id
+            // doesn't perfectly match the hardcoded exchange in BinancePaperClient.
+            // For now, we proceed, assuming the routing logic handles this.
+            tracing::warn!(
+                exchange_id = ?config.0.mocked_exchange,
+                paper_client_exchange_id = ?BinancePaperClient::EXCHANGE,
+                "Using BinancePaperClient for an exchange_id that is not explicitly BinanceSpot/BinanceFuturesUsd. Ensure routing is correct."
+            );
+        }
 
-        self.add_execution::<MockExecution<_>>(
-            mock_execution_client_config.mocked_exchange,
-            mock_execution_client_config,
-            DUMMY_EXECUTION_REQUEST_TIMEOUT,
+        self.add_execution::<BinancePaperClient>(
+            config.0.mocked_exchange,
+            paper_config,
+            request_timeout,
         )
-    }
-
-    fn init_mock_exchange(
-        &self,
-        config: MockExecutionConfig,
-        request_rx: mpsc::UnboundedReceiver<MockExchangeRequest>,
-        event_tx: broadcast::Sender<UnindexedAccountEvent>,
-    ) -> RunFuture {
-        let instruments =
-            generate_mock_exchange_instruments(self.instruments, config.mocked_exchange);
-        Box::pin(MockExchange::new(config, request_rx, event_tx, instruments).run())
     }
 
     /// Adds an [`ExecutionManager`] for a live exchange.
@@ -169,7 +183,6 @@ impl<'a> ExecutionBuilder<'a> {
 
         let merged_tx = self.merged_channel.tx.clone();
 
-        // Init ExecutionManager Future
         let future_result = ExecutionManager::init(
             execution_rx.into_stream(),
             request_timeout,
@@ -192,302 +205,89 @@ impl<'a> ExecutionBuilder<'a> {
         Ok(self)
     }
 
-    /// Consume this `ExecutionBuilder` and build a full [`ExecutionBuild`] containing all the
-    /// [`ExecutionManager`] (mock & live) and [`MockExchange`] futures.
-    ///
-    /// **For most users, calling [`ExecutionBuild::init`] after this is satisfactory.**
-    ///
-    /// If you want more control over what runtime drives the futures to completion, you can
-    /// call [`ExecutionBuild::init_with_runtime`].
-    pub fn build(mut self) -> ExecutionBuild {
-        // Construct indexed ExecutionTx map
-        let execution_tx_map = self
-            .instruments
-            .exchanges()
-            .iter()
-            .map(|exchange| {
-                // If IndexedInstruments execution not used for execution, add None to map
-                let Some((added_execution_exchange_index, added_execution_exchange_tx)) =
-                    self.execution_txs.remove(&exchange.value)
-                else {
-                    return (exchange.value, None);
-                };
-
-                assert_eq!(
-                    exchange.key, added_execution_exchange_index,
-                    "execution ExchangeIndex != IndexedInstruments Keyed<ExchangeIndex, ExchangeId>"
-                );
-
-                // If execution has been added, add Some(ExecutionTx) to map
-                (exchange.value, Some(added_execution_exchange_tx))
-            })
-            .collect();
-
+    /// Consume this `ExecutionBuilder` and build a full [`ExecutionBuild`]
+    pub fn build(self) -> ExecutionBuild {
         ExecutionBuild {
-            execution_tx_map,
-            account_channel: self.merged_channel,
-            futures: ExecutionBuildFutures {
-                mock_exchange_run_futures: self.mock_exchange_futures,
-                execution_init_futures: self.execution_init_futures,
-            },
+            execution_txs: self.execution_txs,
+            merged_channel: self.merged_channel,
+            execution_init_futures: self.execution_init_futures,
         }
     }
 }
 
-/// Container holding execution infrastructure components ready to be initialised.
+/// Initialised execution infrastructure build.
 ///
-/// Call [`ExecutionBuild::init`] to run all the required execution component futures on tokio
-/// tasks - returns the [`MultiExchangeTxMap`] and multi-exchange [`AccountStreamEvent`] stream.
+/// Constructed by calling [`ExecutionBuilder::build`]. Contains the execution instrument map,
+/// [`ExecutionRequest`] and [`AccountStreamEvent`] channels, and futures to initialise the
+/// execution infrastructure.
 #[allow(missing_debug_implementations)]
 pub struct ExecutionBuild {
-    pub execution_tx_map: MultiExchangeTxMap,
-    pub account_channel: Channel<AccountStreamEvent>,
-    pub futures: ExecutionBuildFutures,
+    pub execution_txs: FnvHashMap<ExchangeId, (ExchangeIndex, UnboundedTx<ExecutionRequest>)>,
+    pub merged_channel: Channel<AccountStreamEvent>,
+    pub execution_init_futures: ExecutionBuildFutures,
 }
 
 impl ExecutionBuild {
-    /// Initialises all execution components on the current tokio runtime.
+    /// Initializes the constructed execution infrastructure.
     ///
-    /// This method:
-    /// - Spawns [`MockExchange`] runners tokio tasks.
-    /// - Initialises all [`ExecutionManager`]s and their AccountStreams.
-    /// - Returns the `MultiExchangeTxMap` and multi-exchange AccountStream.
-    pub async fn init(self) -> Result<Execution, JackbotError> {
-        self.init_internal(tokio::runtime::Handle::current()).await
+    /// This awaits the execution initialization futures and returns the handles for
+    /// the running execution components along with the [`MultiExchangeTxMap`].
+    pub async fn init(
+        self,
+    ) -> Result<
+        (
+            MultiExchangeTxMap,
+            Channel<AccountStreamEvent>,
+            ExecutionHandles,
+        ),
+        ExecutionError,
+    > {
+        self.init_with_runtime(tokio::runtime::Handle::current())
+            .await
     }
 
-    /// Initialises all execution components on the provided tokio runtime.
+    /// Initializes the constructed execution infrastructure with a specific runtime.
     ///
-    /// Use this method if you want more control over which tokio runtime handles running
-    /// execution components.
-    ///
-    /// This method:
-    /// - Spawns [`MockExchange`] runners tokio tasks.
-    /// - Initialises all [`ExecutionManager`]s and their AccountStreams.
-    /// - Returns the `MultiExchangeTxMap` and multi-exchange AccountStream.
+    /// This awaits the execution initialization futures and returns the handles for
+    /// the running execution components along with the [`MultiExchangeTxMap`].
     pub async fn init_with_runtime(
         self,
         runtime: tokio::runtime::Handle,
-    ) -> Result<Execution, JackbotError> {
-        self.init_internal(runtime).await
-    }
+    ) -> Result<
+        (
+            MultiExchangeTxMap,
+            Channel<AccountStreamEvent>,
+            ExecutionHandles,
+        ),
+        ExecutionError,
+    > {
+        let Self {
+            execution_txs,
+            merged_channel,
+            execution_init_futures,
+        } = self;
 
-    async fn init_internal(
-        self,
-        runtime: tokio::runtime::Handle,
-    ) -> Result<Execution, JackbotError> {
-        let handles = self.futures.init_with_runtime(runtime).await?;
-
-        Ok(Execution {
-            execution_txs: self.execution_tx_map,
-            account_channel: self.account_channel,
-            handles,
-        })
-    }
-}
-
-#[allow(missing_debug_implementations)]
-pub struct ExecutionBuildFutures {
-    pub mock_exchange_run_futures: Vec<RunFuture>,
-    pub execution_init_futures: Vec<ExecutionInitFuture>,
-}
-
-impl ExecutionBuildFutures {
-    /// Initialises all execution components on the current tokio runtime.
-    ///
-    /// This method:
-    /// - Spawns [`MockExchange`] runner tokio tasks.
-    /// - Initialises all [`ExecutionManager`]s and their AccountStreams.
-    /// - Spawns tokio tasks to forward AccountStreams to multi-exchange AccountStream
-    pub async fn init(self) -> Result<ExecutionHandles, JackbotError> {
-        self.init_internal(tokio::runtime::Handle::current()).await
-    }
-
-    /// Initialises all execution components on the provided tokio runtime.
-    ///
-    /// Use this method if you want more control over which tokio runtime handles running
-    /// execution components.
-    ///
-    /// This method:
-    /// - Spawns [`MockExchange`] runner tokio tasks.
-    /// - Initialises all [`ExecutionManager`]s and their AccountStreams.
-    /// - Spawns tokio tasks to forward AccountStreams to multi-exchange AccountStream
-    pub async fn init_with_runtime(
-        self,
-        runtime: tokio::runtime::Handle,
-    ) -> Result<ExecutionHandles, JackbotError> {
-        self.init_internal(runtime).await
-    }
-
-    async fn init_internal(
-        self,
-        runtime: tokio::runtime::Handle,
-    ) -> Result<ExecutionHandles, JackbotError> {
-        let mock_exchanges = self
-            .mock_exchange_run_futures
+        // Create MultiExchangeTxMap using its FromIterator implementation
+        let execution_tx_map = execution_txs
             .into_iter()
-            .map(|mock_exchange_run_future| runtime.spawn(mock_exchange_run_future))
-            .collect();
+            .map(|(exchange_id, (exchange_index, tx))| (exchange_id, Some(tx)))
+            .collect::<MultiExchangeTxMap>();
 
-        // Await ExecutionManager build futures and ensure success
-        let (managers, account_to_engines) =
-            futures::future::try_join_all(self.execution_init_futures)
-                .await?
-                .into_iter()
-                .map(|(manager_run_future, account_event_forward_future)| {
-                    (
-                        runtime.spawn(manager_run_future),
-                        runtime.spawn(account_event_forward_future),
-                    )
-                })
-                .unzip();
+        // Initialize all execution components concurrently
+        let init_results = futures::future::join_all(execution_init_futures).await;
 
-        Ok(ExecutionHandles {
-            mock_exchanges,
-            managers,
-            account_to_engines,
-        })
+        // Collect execution futures and run them
+        let mut handles = Vec::new();
+        for result in init_results {
+            let (manager_future, stream_future) = result?;
+            handles.push(runtime.spawn(manager_future));
+            handles.push(runtime.spawn(stream_future));
+        }
+
+        Ok((
+            execution_tx_map,
+            merged_channel,
+            ExecutionHandles { handles },
+        ))
     }
-}
-
-#[allow(missing_debug_implementations)]
-pub struct ExecutionHandles {
-    pub mock_exchanges: Vec<JoinHandle<()>>,
-    pub managers: Vec<JoinHandle<()>>,
-    pub account_to_engines: Vec<JoinHandle<()>>,
-}
-
-impl AsyncShutdown for ExecutionHandles {
-    type Result = Result<(), JoinError>;
-
-    async fn shutdown(&mut self) -> Self::Result {
-        let handles = self
-            .mock_exchanges
-            .drain(..)
-            .chain(self.managers.drain(..))
-            .chain(self.account_to_engines.drain(..));
-
-        try_join_all(handles).await?;
-        Ok(())
-    }
-}
-
-impl IntoIterator for ExecutionHandles {
-    type Item = JoinHandle<()>;
-    type IntoIter = std::vec::IntoIter<Self::Item>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.mock_exchanges
-            .into_iter()
-            .chain(self.managers)
-            .chain(self.account_to_engines)
-            .collect::<Vec<_>>()
-            .into_iter()
-    }
-}
-
-fn generate_mock_exchange_instruments(
-    instruments: &IndexedInstruments,
-    exchange: ExchangeId,
-) -> FnvHashMap<InstrumentNameExchange, Instrument<ExchangeId, AssetNameExchange>> {
-    instruments
-        .instruments()
-        .iter()
-        .filter_map(
-            |Keyed {
-                 key: _,
-                 value: instrument,
-             }| {
-                if instrument.exchange.value != exchange {
-                    return None;
-                }
-
-                let Instrument {
-                    exchange,
-                    name_internal,
-                    name_exchange,
-                    underlying,
-                    quote,
-                    kind,
-                    spec,
-                } = instrument;
-
-                let kind = match kind {
-                    InstrumentKind::Spot => InstrumentKind::Spot,
-                    unsupported => {
-                        panic!("MockExchange does not support: {unsupported:?}")
-                    }
-                };
-
-                let spec = match spec {
-                    Some(spec) => {
-                        let InstrumentSpec {
-                            price,
-                            quantity:
-                                InstrumentSpecQuantity {
-                                    unit,
-                                    min,
-                                    increment,
-                                },
-                            notional,
-                        } = spec;
-
-                        let unit = match unit {
-                            OrderQuantityUnits::Asset(asset) => {
-                                let quantity_asset = instruments
-                                    .find_asset(*asset)
-                                    .unwrap()
-                                    .asset
-                                    .name_exchange
-                                    .clone();
-                                OrderQuantityUnits::Asset(quantity_asset)
-                            }
-                            OrderQuantityUnits::Contract => OrderQuantityUnits::Contract,
-                            OrderQuantityUnits::Quote => OrderQuantityUnits::Quote,
-                        };
-
-                        Some(InstrumentSpec {
-                            price: *price,
-                            quantity: InstrumentSpecQuantity {
-                                unit,
-                                min: *min,
-                                increment: *increment,
-                            },
-                            notional: *notional,
-                        })
-                    }
-                    None => None,
-                };
-
-                let underlying_base = instruments
-                    .find_asset(underlying.base)
-                    .unwrap()
-                    .asset
-                    .name_exchange
-                    .clone();
-
-                let underlying_quote = instruments
-                    .find_asset(underlying.quote)
-                    .unwrap()
-                    .asset
-                    .name_exchange
-                    .clone();
-
-                let instrument = Instrument {
-                    exchange: exchange.value,
-                    name_internal: name_internal.clone(),
-                    name_exchange: name_exchange.clone(),
-                    underlying: Underlying {
-                        base: underlying_base,
-                        quote: underlying_quote,
-                    },
-                    quote: *quote,
-                    kind,
-                    spec,
-                };
-
-                Some((instrument.name_exchange.clone(), instrument))
-            },
-        )
-        .collect()
 }

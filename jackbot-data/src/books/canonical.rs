@@ -5,7 +5,7 @@
 //! we use the term "canonicalization" to refer to the process of converting exchange-specific
 //! orderbook formats into this standard representation.
 
-use super::{Level, OrderBook};
+use super::OrderBook;
 use chrono::{DateTime, Utc};
 use rust_decimal::prelude::ToPrimitive;
 
@@ -114,7 +114,7 @@ impl From<CanonicalOrderBook> for OrderBook {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rust_decimal::Decimal;
+    use crate::books::Level;
     use rust_decimal_macros::dec;
 
     #[test]

@@ -1,11 +1,13 @@
 use crate::streams::{consumer::StreamKey, reconnect::Event};
-use jackbot_integration::{channel::Tx, metric::{Metric, Tag, Field}};
 use chrono::Utc;
 use derive_more::Constructor;
 use futures::Stream;
 use futures_util::StreamExt;
+use jackbot_integration::{
+    channel::Tx,
+    metric::{Field, Metric, Tag},
+};
 use serde::{Deserialize, Serialize};
-use rand::Rng;
 use std::{convert, fmt::Debug, future, future::Future};
 use tracing::{error, info, warn};
 
@@ -233,28 +235,27 @@ impl ReconnectionState {
     fn generate_sleep_duration(&self) -> std::time::Duration {
         let jitter = if self.policy.jitter_ms > 0 {
             use rand::Rng;
-            let mut rng = rand::thread_rng();
-            rng.gen_range(0..=self.policy.jitter_ms)
+            let mut rng = rand::rng();
+            rng.random_range(0..=self.policy.jitter_ms)
         } else {
             0
         };
 
         std::time::Duration::from_millis(self.backoff_ms_current + jitter)
     }
-
-    fn generate_sleep_future(&self) -> tokio::time::Sleep {
-        tokio::time::sleep(self.generate_sleep_duration())
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::{Arc, atomic::{AtomicUsize, Ordering}};
-    use futures_util::StreamExt;
-    use tokio_stream::StreamExt as TokioStreamExt;
-    use std::time::Duration;
+
     use jackbot_instrument::exchange::ExchangeId;
+    use std::pin::Pin;
+    use std::sync::{
+        Arc,
+        atomic::{AtomicUsize, Ordering},
+    };
+    use std::time::Duration;
 
     #[tokio::test]
     async fn test_generate_sleep_duration_jitter() {
@@ -271,8 +272,6 @@ mod tests {
 
     #[tokio::test]
     async fn test_reconnecting_stream_reconnects() {
-
-
         let attempts = Arc::new(AtomicUsize::new(0));
         let init = {
             let attempts = attempts.clone();
@@ -281,21 +280,38 @@ mod tests {
                 async move {
                     let count = attempts.fetch_add(1, Ordering::SeqCst);
                     if count == 0 {
-                        Ok(tokio_stream::iter(vec![Ok(1), Err(())]))
+                        Ok::<_, ()>(Box::pin(tokio_stream::iter(vec![Ok(1), Err(())]))
+                            as Pin<Box<dyn Stream<Item = Result<i32, ()>> + Send + 'static>>)
                     } else {
-                        Ok(tokio_stream::iter(vec![Ok(2)]))
+                        Ok::<_, ()>(
+                            Box::pin(tokio_stream::iter(vec![Ok(2_i32), Err(())]).take(0))
+                                as Pin<Box<dyn Stream<Item = Result<i32, ()>> + Send + 'static>>,
+                        )
                     }
                 }
             }
         };
 
-        let policy = ReconnectionBackoffPolicy { backoff_ms_initial: 0, backoff_multiplier: 1, backoff_ms_max: 0, jitter_ms: 0 };
-        let stream = init_reconnecting_stream(init).await.unwrap()
-            .with_reconnect_backoff(policy, StreamKey::new_general("test", ExchangeId::BinanceSpot))
-            .with_termination_on_error(|_| true, StreamKey::new_general("test", ExchangeId::BinanceSpot))
+        let policy = ReconnectionBackoffPolicy {
+            backoff_ms_initial: 0,
+            backoff_multiplier: 1,
+            backoff_ms_max: 0,
+            jitter_ms: 0,
+        };
+        let stream = init_reconnecting_stream(init)
+            .await
+            .unwrap()
+            .with_reconnect_backoff(
+                policy,
+                StreamKey::new_general("test", ExchangeId::BinanceSpot),
+            )
+            .with_termination_on_error(
+                |_| true,
+                StreamKey::new_general("test", ExchangeId::BinanceSpot),
+            )
             .with_reconnection_events(());
 
-        let collected: Vec<_> = stream.take(3).collect().await;
+        let collected: Vec<_> = tokio_stream::StreamExt::take(stream, 3).collect().await;
         assert_eq!(attempts.load(Ordering::SeqCst), 2);
         assert_eq!(collected[0], Event::Item(Ok(1)));
         assert_eq!(collected[1], Event::Reconnecting(()));

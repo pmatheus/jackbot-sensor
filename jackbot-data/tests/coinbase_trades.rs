@@ -1,5 +1,6 @@
 use jackbot_data::exchange::{
-    coinbase::{channel::CoinbaseChannel, market::CoinbaseMarket, Coinbase},
+    Connector,
+    coinbase::{Coinbase, channel::CoinbaseChannel, market::CoinbaseMarket},
     subscription::ExchangeSub,
 };
 use tokio_tungstenite::tungstenite::Message;

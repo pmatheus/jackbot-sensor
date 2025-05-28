@@ -1,10 +1,13 @@
+use futures::{SinkExt, StreamExt};
 use jackbot_execution::{
-    client::{kraken::{KrakenWsClient, KrakenWsConfig}, ExecutionClient},
     AccountEventKind,
+    client::{
+        ExecutionClient,
+        kraken::{KrakenWsClient, KrakenWsConfig},
+    },
 };
 use tokio::net::TcpListener;
 use tokio_tungstenite::{accept_async, tungstenite::Message};
-use futures::{SinkExt, StreamExt};
 use url::Url;
 
 async fn run_server(addr: &str, first: String, second: String, third: String) {
@@ -14,7 +17,7 @@ async fn run_server(addr: &str, first: String, second: String, third: String) {
         let mut ws = accept_async(stream).await.unwrap();
         // recv auth
         ws.next().await.unwrap().unwrap();
-        ws.send(Message::Text(payload)).await.unwrap();
+        ws.send(Message::Text(payload.into())).await.unwrap();
         ws.close(None).await.unwrap();
     }
 }
@@ -22,10 +25,17 @@ async fn run_server(addr: &str, first: String, second: String, third: String) {
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn test_reconnect_and_normalise() {
     let addr = "127.0.0.1:18280";
-    let balance = r#"{\"type\":\"balance\",\"time\":1,\"asset\":\"BTC\",\"free\":\"0.5\",\"total\":\"1.0\"}"#.to_string();
+    let balance =
+        r#"{\"type\":\"balance\",\"time\":1,\"asset\":\"BTC\",\"free\":\"0.5\",\"total\":\"1.0\"}"#
+            .to_string();
     let order = r#"{\"type\":\"order\",\"time\":2,\"pair\":\"BTC/USD\",\"side\":\"buy\",\"price\":\"100\",\"size\":\"0.1\",\"order_id\":\"1\",\"status\":\"open\"}"#.to_string();
     let trade = r#"{\"type\":\"trade\",\"time\":3,\"trade_id\":1,\"pair\":\"BTC/USD\",\"side\":\"buy\",\"price\":\"100\",\"size\":\"0.1\"}"#.to_string();
-    tokio::spawn(run_server(addr, balance.clone(), order.clone(), trade.clone()));
+    tokio::spawn(run_server(
+        addr,
+        balance.clone(),
+        order.clone(),
+        trade.clone(),
+    ));
 
     let client = KrakenWsClient::new(KrakenWsConfig {
         url: Url::parse(&format!("ws://{}", addr)).unwrap(),

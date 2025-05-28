@@ -1,49 +1,49 @@
+use crate::strategy::advanced::OrderExecutionStrategy;
 use crate::{
     client::ExecutionClient,
+    error::UnindexedOrderError,
     order::{
+        Order, OrderKey,
         request::{OrderRequestOpen, RequestOpen},
-        Order,
         state::Open,
     },
-    error::UnindexedOrderError,
 };
-use jackbot_instrument::{
-    exchange::ExchangeId,
-    instrument::name::InstrumentNameExchange,
-};
+use async_trait::async_trait;
 use jackbot_data::books::aggregator::OrderBookAggregator;
+use jackbot_instrument::{exchange::ExchangeId, instrument::name::InstrumentNameExchange};
 use rand::prelude::*;
 use rust_decimal::Decimal;
-use tokio::time::{sleep, Duration};
-use crate::advanced::OrderExecutionStrategy;
-use async_trait::async_trait;
+use rust_decimal::prelude::*;
+use tokio::time::{Duration, sleep};
 
-/// Generate VWAP (volume-weighted average price) order slice quantities with randomised weights.
-/// The provided `volumes` slice defines relative volume weights for each slice.
+/// Generate TWAP (time-weighted average price) order slice quantities with randomised weights.
 /// The returned quantities will sum to `total_quantity`.
-pub fn vwap_slices<R: Rng>(total_quantity: Decimal, volumes: &[Decimal], randomness: f64, rng: &mut R) -> Vec<Decimal> {
-    assert!(!volumes.is_empty());
-    let total_volume: Decimal = volumes.iter().copied().sum();
-    let mut weights: Vec<f64> = volumes
-        .iter()
-        .map(|v| (v / total_volume).to_f64().unwrap())
+pub fn twap_slices<R: Rng>(
+    total_quantity: Decimal,
+    slices: usize,
+    randomness: f64,
+    rng: &mut R,
+) -> Vec<Decimal> {
+    assert!(slices > 0);
+    let mut weights: Vec<f64> = (0..slices)
+        .map(|_| 1.0 + rng.gen_range(-randomness..=randomness))
         .collect();
-    weights.iter_mut().for_each(|w| *w *= 1.0 + rng.gen_range(-randomness..=randomness));
     let sum: f64 = weights.iter().sum();
     weights.iter_mut().for_each(|w| *w /= sum);
     let mut quantities: Vec<Decimal> = weights
         .iter()
         .map(|w| total_quantity * Decimal::from_f64(*w).unwrap())
         .collect();
-    let diff = total_quantity - quantities.iter().copied().sum::<Decimal>();
+    let diff: Decimal = total_quantity - quantities.iter().copied().sum::<Decimal>();
     if let Some(last) = quantities.last_mut() {
         *last += diff;
     }
     quantities
 }
 
+/// TWAP scheduler that slices an order into parts and schedules them over time.
 #[derive(Debug, Clone)]
-pub struct VwapScheduler<C, R>
+pub struct TwapScheduler<C, R>
 where
     C: ExecutionClient + Clone,
     R: Rng + Clone,
@@ -53,59 +53,67 @@ where
     rng: R,
 }
 
-/// Parameters controlling VWAP execution behaviour.
-#[derive(Debug, Clone)]
-pub struct VwapConfig {
-    /// Relative volume weights for each slice.
-    pub volumes: Vec<Decimal>,
+/// Parameters controlling TWAP execution behaviour.
+#[derive(Debug, Clone, Copy)]
+pub struct TwapConfig {
+    /// Number of order slices to generate.
+    pub slices: usize,
     /// Randomness applied to slice weighting.
     pub randomness: f64,
     /// Base delay between order slices.
     pub base_delay: Duration,
 }
 
-impl<C, R> VwapScheduler<C, R>
+impl<C, R> TwapScheduler<C, R>
 where
     C: ExecutionClient + Clone,
     R: Rng + Clone,
 {
     pub fn new(client: C, aggregator: OrderBookAggregator, rng: R) -> Self {
-        Self { client, aggregator, rng }
+        Self {
+            client,
+            aggregator,
+            rng,
+        }
     }
 
-    fn generate_delays(&mut self, volumes: &[Decimal], base: Duration) -> Vec<Duration> {
-        let spread = if let (Some((_, bid)), Some((_, ask))) = (self.aggregator.best_bid(), self.aggregator.best_ask()) {
+    fn generate_delays(&mut self, slices: usize, base: Duration) -> Vec<Duration> {
+        let spread = if let (Some((_, bid)), Some((_, ask))) =
+            (self.aggregator.best_bid(), self.aggregator.best_ask())
+        {
             (ask - bid).abs()
         } else {
             Decimal::ONE
         };
         let factor = spread.to_f64().unwrap_or(1.0);
-        let mut weights: Vec<f64> = volumes.iter().map(|v| v.to_f64().unwrap()).collect();
-        let sum: f64 = weights.iter().sum();
-        weights.iter_mut().for_each(|w| *w /= sum);
-        weights
-            .iter()
-            .map(|w| {
+        (0..slices)
+            .map(|_| {
                 let jitter = self.rng.gen_range(0.0..base.as_millis() as f64 * factor);
-                base.mul_f64(*w) + Duration::from_millis(jitter as u64)
+                base + Duration::from_millis(jitter as u64)
             })
             .collect()
     }
 
+    /// Execute the provided order request using a TWAP schedule.
     pub async fn execute(
         &mut self,
         request: OrderRequestOpen<ExchangeId, &InstrumentNameExchange>,
-        volumes: &[Decimal],
+        slices: usize,
         randomness: f64,
         base_delay: Duration,
     ) -> Vec<Order<ExchangeId, InstrumentNameExchange, Result<Open, UnindexedOrderError>>> {
-        let quantities = vwap_slices(request.state.quantity, volumes, randomness, &mut self.rng);
-        let delays = self.generate_delays(volumes, base_delay);
-        let mut results = Vec::with_capacity(quantities.len());
+        let quantities = twap_slices(request.state.quantity, slices, randomness, &mut self.rng);
+        let delays = self.generate_delays(slices, base_delay);
+        let mut results = Vec::with_capacity(slices);
         for (qty, delay) in quantities.into_iter().zip(delays.into_iter()) {
             sleep(delay).await;
             let req = OrderRequestOpen {
-                key: request.key.clone(),
+                key: OrderKey {
+                    exchange: request.key.exchange,
+                    instrument: request.key.instrument.clone(),
+                    strategy: request.key.strategy.clone(),
+                    cid: request.key.cid.clone(),
+                },
                 state: RequestOpen {
                     side: request.state.side,
                     price: request.state.price,
@@ -115,33 +123,32 @@ where
                 },
             };
             let res = self.client.clone().open_order(req).await;
-            results.push(res);
+            results.push(res.map_instrument(|inst_ref| inst_ref.clone()));
         }
         results
     }
 }
 
 #[async_trait]
-impl<C, R> OrderExecutionStrategy for VwapScheduler<C, R>
+impl<C, R> OrderExecutionStrategy for TwapScheduler<C, R>
 where
     C: ExecutionClient + Clone + Send + Sync,
     R: Rng + Clone + Send + Sync,
 {
-    type Config = VwapConfig;
+    type Config = TwapConfig;
 
     async fn execute(
         &mut self,
         request: OrderRequestOpen<ExchangeId, &InstrumentNameExchange>,
         config: Self::Config,
     ) -> Vec<Order<ExchangeId, InstrumentNameExchange, Result<Open, UnindexedOrderError>>> {
-        VwapScheduler::execute(
+        TwapScheduler::execute(
             self,
             request,
-            &config.volumes,
+            config.slices,
             config.randomness,
             config.base_delay,
         )
         .await
     }
 }
-

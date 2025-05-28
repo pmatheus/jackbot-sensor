@@ -1,4 +1,5 @@
 use jackbot_data::exchange::{
+    Connector,
     binance::{channel::BinanceChannel, market::BinanceMarket, spot::BinanceSpot},
     subscription::ExchangeSub,
 };
@@ -18,7 +19,10 @@ fn test_binance_spot_trade_requests() {
             let v: serde_json::Value = serde_json::from_str(text).unwrap();
             assert_eq!(v["method"], "SUBSCRIBE");
             assert_eq!(v["id"], 1);
-            assert_eq!(v["params"], serde_json::json!(["btcusdt@trade", "ethusdt@trade"]));
+            assert_eq!(
+                v["params"],
+                serde_json::json!(["btcusdt@trade", "ethusdt@trade"])
+            );
         }
         _ => panic!("expected text message"),
     }

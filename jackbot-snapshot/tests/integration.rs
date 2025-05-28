@@ -1,5 +1,5 @@
 use jackbot_snapshot::{
-    DataRecord, FakeRedis, IcebergTable, LocalStore, RecordType, SnapshotConfig, SnapshotScheduler,
+    DataRecord, FakeRedis, IcebergMeta, LocalStore, RecordType, SnapshotConfig, SnapshotScheduler,
 };
 use std::{sync::Arc, time::Duration};
 
@@ -26,7 +26,6 @@ async fn test_scheduler_multiple_snapshots() {
     let store = Arc::new(LocalStore::new(local_root.clone()));
     let scheduler = SnapshotScheduler::new(redis, store, meta.clone(), cfg);
 
-
     // Take two snapshots manually
     scheduler.snapshot_once().await.unwrap();
     tokio::time::sleep(Duration::from_millis(1)).await;
@@ -37,6 +36,6 @@ async fn test_scheduler_multiple_snapshots() {
         .collect();
     assert_eq!(files.len(), 2);
     let meta_contents = std::fs::read_to_string(meta).unwrap();
-    let meta: IcebergTable = serde_json::from_str(&meta_contents).unwrap();
+    let meta: IcebergMeta = serde_json::from_str(&meta_contents).unwrap();
     assert_eq!(meta.current_snapshot_id, 2);
 }

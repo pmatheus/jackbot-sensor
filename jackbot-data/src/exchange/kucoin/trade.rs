@@ -5,7 +5,7 @@ use crate::{
     Identifier,
     event::{MarketEvent, MarketIter},
 };
-use chrono::{DateTime, Utc};
+use chrono::Utc;
 use jackbot_instrument::{Side, exchange::ExchangeId};
 use jackbot_integration::subscription::SubscriptionId;
 use serde::{Deserialize, Serialize};
@@ -37,6 +37,28 @@ impl KucoinTrade {
             amount,
             side,
         })
+    }
+}
+
+impl<InstrumentKey: Clone> From<(ExchangeId, InstrumentKey, KucoinTrade)> for MarketIter<InstrumentKey, PublicTrade> {
+    fn from((exchange, instrument, trade): (ExchangeId, InstrumentKey, KucoinTrade)) -> Self {
+        match trade.to_public_trade() {
+            Some(pt) => MarketIter(vec![Ok(MarketEvent {
+                time_exchange: chrono::Utc::now(), // Kucoin trades have ms timestamps, can parse if needed
+                time_received: chrono::Utc::now(),
+                exchange,
+                instrument,
+                kind: pt,
+            })]),
+            None => MarketIter(vec![]),
+        }
+    }
+}
+
+
+impl Identifier<Option<SubscriptionId>> for KucoinTrade {
+    fn id(&self) -> Option<SubscriptionId> {
+        Some(SubscriptionId::from(self.symbol.clone()))
     }
 }
 

@@ -1,4 +1,5 @@
 use rust_decimal::Decimal;
+use rust_decimal::prelude::FromPrimitive;
 use std::time::Duration;
 
 /// Configuration parameters for [`MarketSimulator`].
@@ -43,10 +44,16 @@ impl MarketSimulator {
 
     /// Simulate execution of an order at the given price and quantity.
     pub fn execute(&self, price: Decimal, quantity: Decimal) -> TradeResult {
-        let slip = price * Decimal::from_f64(self.config.slippage_bps / 10_000.0).unwrap_or_default();
+        let slip =
+            price * Decimal::from_f64(self.config.slippage_bps / 10_000.0).unwrap_or_default();
         let executed_price = price + slip;
-        let fee = executed_price * quantity * Decimal::from_f64(self.config.fee_bps / 10_000.0).unwrap_or_default();
-        TradeResult { executed_price, fee }
+        let fee = executed_price
+            * quantity
+            * Decimal::from_f64(self.config.fee_bps / 10_000.0).unwrap_or_default();
+        TradeResult {
+            executed_price,
+            fee,
+        }
     }
 
     /// Return the configured latency.

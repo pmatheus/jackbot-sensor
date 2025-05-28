@@ -1,23 +1,19 @@
+use crate::strategy::advanced::OrderExecutionStrategy;
 use crate::{
     client::ExecutionClient,
+    error::UnindexedOrderError,
     order::{
+        Order, OrderKey,
         id::ClientOrderId,
         request::{OrderRequestCancel, OrderRequestOpen, RequestCancel},
-        Order,
         state::Open,
     },
-    error::UnindexedOrderError,
 };
-use jackbot_data::books::aggregator::OrderBookAggregator;
-use jackbot_instrument::{
-    exchange::ExchangeId,
-    instrument::name::InstrumentNameExchange,
-    Side,
-};
-use rust_decimal::Decimal;
-use tokio::time::{sleep, Duration};
-use crate::advanced::OrderExecutionStrategy;
 use async_trait::async_trait;
+use jackbot_data::books::aggregator::OrderBookAggregator;
+use jackbot_instrument::{Side, exchange::ExchangeId, instrument::name::InstrumentNameExchange};
+use rust_decimal::Decimal;
+use tokio::time::{Duration, sleep};
 
 /// Simple always maker execution that reposts top-of-book orders until filled.
 #[derive(Debug, Clone)]
@@ -48,15 +44,15 @@ where
     }
 
     /// Execute the provided order request, reposting until filled.
-    pub async fn execute(
+    pub async fn execute_internal(
         &mut self,
-        mut request: OrderRequestOpen<ExchangeId, &InstrumentNameExchange>,
+        mut request: OrderRequestOpen<ExchangeId, InstrumentNameExchange>,
         cancel_after: Duration,
     ) -> Vec<Order<ExchangeId, InstrumentNameExchange, Result<Open, UnindexedOrderError>>> {
-        let mut remaining = request.state.quantity;
         let mut results = Vec::new();
+        let mut remaining = request.state.quantity;
 
-        while remaining > Decimal::ZERO {
+        while !remaining.is_zero() {
             let price = match request.state.side {
                 Side::Buy => self.aggregator.best_bid().map(|(_, p)| p),
                 Side::Sell => self.aggregator.best_ask().map(|(_, p)| p),
@@ -85,11 +81,16 @@ where
 
             if let Some(id) = order_id {
                 sleep(cancel_after).await;
-                let cancel = OrderRequestCancel {
-                    key: order.key.clone(),
+                let cancel_request = OrderRequestCancel {
+                    key: OrderKey {
+                        exchange: order.key.exchange,
+                        instrument: order.key.instrument.clone(),
+                        strategy: order.key.strategy.clone(),
+                        cid: order.key.cid.clone(),
+                    },
                     state: RequestCancel { id: Some(id) },
                 };
-                let _ = self.client.clone().cancel_order(cancel).await;
+                let _ = self.client.clone().cancel_order(cancel_request).await;
             } else {
                 break;
             }
@@ -111,6 +112,16 @@ where
         request: OrderRequestOpen<ExchangeId, &InstrumentNameExchange>,
         config: Self::Config,
     ) -> Vec<Order<ExchangeId, InstrumentNameExchange, Result<Open, UnindexedOrderError>>> {
-        self.execute(request, config.cancel_after).await
+        let owned_request = OrderRequestOpen {
+            key: OrderKey {
+                exchange: request.key.exchange,
+                instrument: request.key.instrument.clone(),
+                strategy: request.key.strategy.clone(),
+                cid: request.key.cid.clone(),
+            },
+            state: request.state.clone(),
+        };
+        self.execute_internal(owned_request, config.cancel_after)
+            .await
     }
 }

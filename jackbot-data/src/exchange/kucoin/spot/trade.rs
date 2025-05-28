@@ -7,7 +7,7 @@ use crate::{
     subscription::trade::PublicTrades,
     ExchangeWsStream,
 };
-use super::super::super::Kucoin;
+use crate::exchange::kucoin::Kucoin;
 
 pub use super::super::trade::KucoinTrade;
 

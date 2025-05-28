@@ -3,14 +3,14 @@ use crate::order::{
     request::{OrderRequestCancel, OrderRequestOpen, RequestCancel, RequestOpen},
     state::UnindexedOrderState,
 };
+use derive_more::{Constructor, Display};
+use id::ClientOrderId;
 use jackbot_instrument::{
     Side,
     asset::{AssetIndex, name::AssetNameExchange},
     exchange::{ExchangeId, ExchangeIndex},
     instrument::{InstrumentIndex, name::InstrumentNameExchange},
 };
-use derive_more::{Constructor, Display};
-use id::ClientOrderId;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use state::{ActiveOrderState, Cancelled, InactiveOrderState, Open, OpenInFlight, OrderState};
@@ -69,6 +69,23 @@ pub struct OrderKey<ExchangeKey = ExchangeIndex, InstrumentKey = InstrumentIndex
     pub cid: ClientOrderId,
 }
 
+impl<ExchangeKey, InstrumentKey> OrderKey<ExchangeKey, InstrumentKey> {
+    pub fn map_instrument<NewInstrumentKey, F>(
+        self,
+        f: F,
+    ) -> OrderKey<ExchangeKey, NewInstrumentKey>
+    where
+        F: FnOnce(InstrumentKey) -> NewInstrumentKey,
+    {
+        OrderKey {
+            exchange: self.exchange,
+            instrument: f(self.instrument),
+            strategy: self.strategy,
+            cid: self.cid,
+        }
+    }
+}
+
 #[derive(
     Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Deserialize, Serialize, Constructor,
 )]
@@ -80,6 +97,26 @@ pub struct Order<ExchangeKey = ExchangeIndex, InstrumentKey = InstrumentIndex, S
     pub kind: OrderKind,
     pub time_in_force: TimeInForce,
     pub state: State,
+}
+
+impl<ExchangeKey, InstrumentKey, State> Order<ExchangeKey, InstrumentKey, State> {
+    pub fn map_instrument<NewInstrumentKey, F>(
+        self,
+        f: F,
+    ) -> Order<ExchangeKey, NewInstrumentKey, State>
+    where
+        F: FnOnce(InstrumentKey) -> NewInstrumentKey,
+    {
+        Order {
+            key: self.key.map_instrument(f),
+            side: self.side,
+            price: self.price,
+            quantity: self.quantity,
+            kind: self.kind,
+            time_in_force: self.time_in_force,
+            state: self.state,
+        }
+    }
 }
 
 impl<ExchangeKey, AssetKey, InstrumentKey>

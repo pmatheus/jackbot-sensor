@@ -1,12 +1,7 @@
 use super::Coinbase;
-use crate::subscription::book::OrderBooksL2;
 use crate::{
     Identifier,
-    subscription::{
-        Subscription,
-        trade::PublicTrades,
-        book::OrderBooksL2,
-    },
+    subscription::{Subscription, book::OrderBooksL2, trade::PublicTrades},
 };
 use serde::Serialize;
 

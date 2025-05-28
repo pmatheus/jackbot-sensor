@@ -62,6 +62,13 @@ impl OrderId {
     }
 }
 
+impl<T> From<ClientOrderId<T>> for OrderId<T> {
+    /// Convert a ClientOrderId into an OrderId by taking inner value.
+    fn from(cid: ClientOrderId<T>) -> Self {
+        OrderId(cid.0)
+    }
+}
+
 #[derive(
     Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Deserialize, Serialize, Display, From,
 )]

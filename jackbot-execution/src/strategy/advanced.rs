@@ -1,17 +1,10 @@
 use crate::{
     client::ExecutionClient,
-    order::{
-        request::OrderRequestOpen,
-        state::Open,
-        Order,
-    },
     error::UnindexedOrderError,
-};
-use jackbot_instrument::{
-    exchange::ExchangeId,
-    instrument::name::InstrumentNameExchange,
+    order::{Order, request::OrderRequestOpen, state::Open},
 };
 use async_trait::async_trait;
+use jackbot_instrument::{exchange::ExchangeId, instrument::name::InstrumentNameExchange};
 
 /// Unified interface for advanced order execution strategies.
 ///

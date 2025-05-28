@@ -1,6 +1,6 @@
+use jackbot_instrument::exchange::ExchangeId;
 use rust_decimal::Decimal;
 use std::collections::HashMap;
-use jackbot_instrument::exchange::ExchangeId;
 
 /// Simple smart routing state with exposure tracking.
 #[derive(Debug)]
@@ -12,7 +12,10 @@ pub struct SmartRouter {
 impl SmartRouter {
     /// Create a new router with the specified maximum exposure.
     pub fn new(max_exposure: Decimal) -> Self {
-        Self { max_exposure, current_exposure: Decimal::ZERO }
+        Self {
+            max_exposure,
+            current_exposure: Decimal::ZERO,
+        }
     }
 
     /// Returns true if a trade of `quantity` would exceed exposure limits.

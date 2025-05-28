@@ -1,21 +1,23 @@
+use fnv::FnvHashMap;
+use jackbot_data::books::Level;
 use jackbot_execution::{
+    UnindexedAccountSnapshot,
+    client::ExecutionClient,
     client::binance::paper::{BinancePaperClient, BinancePaperConfig},
-    exchange::paper::PaperBook,
     order::{
+        Order, OrderKey, OrderKind, TimeInForce,
         id::{ClientOrderId, StrategyId},
         request::{OrderRequestOpen, RequestOpen},
-        OrderKey, OrderKind, TimeInForce,
+        state::Open,
     },
-    UnindexedAccountSnapshot,
+    paper::PaperBook,
 };
 use jackbot_instrument::{
+    Side, Underlying,
+    asset::name::AssetNameExchange,
     exchange::ExchangeId,
     instrument::{Instrument, name::InstrumentNameExchange},
-    asset::name::AssetNameExchange,
-    Underlying,
-    Side,
 };
-use fnv::FnvHashMap;
 use rust_decimal_macros::dec;
 
 #[tokio::test]
@@ -30,7 +32,10 @@ async fn test_binance_paper_client_open_order() {
     let mut instruments = FnvHashMap::default();
     instruments.insert(instrument.name_exchange.clone(), instrument);
 
-    let book = PaperBook::new(vec![(dec!(99), dec!(1))], vec![(dec!(101), dec!(1))]);
+    let book = PaperBook::new(
+        vec![Level::new(dec!(99), dec!(1))],
+        vec![Level::new(dec!(101), dec!(1))],
+    );
     let mut books = FnvHashMap::default();
     books.insert(InstrumentNameExchange::from("BTC-USDT"), book);
 

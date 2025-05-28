@@ -1,10 +1,13 @@
-use jackbot_execution::{
-    jackpot_orders::JackpotMonitor,
-    order::{id::{OrderId, StrategyId}, request::OrderRequestOpen},
-    trade::{Trade, TradeId, AssetFees},
-};
-use jackbot_instrument::{exchange::ExchangeId, instrument::name::InstrumentNameExchange, Side};
 use chrono::{DateTime, Utc};
+use jackbot_execution::{
+    jackpot::JackpotMonitor,
+    order::{
+        id::{OrderId, StrategyId},
+        request::OrderRequestOpen,
+    },
+    trade::{AssetFees, Trade, TradeId},
+};
+use jackbot_instrument::{Side, exchange::ExchangeId, instrument::name::InstrumentNameExchange};
 use rust_decimal_macros::dec;
 
 #[test]
@@ -42,5 +45,9 @@ fn monitor_no_liquidation_when_profit() {
         fees: AssetFees::quote_fees(dec!(0)),
     };
     monitor.record_trade(&trade, dec!(5));
-    assert!(monitor.update_price(ExchangeId::BinanceSpot, &trade.instrument, dec!(105)).is_none());
+    assert!(
+        monitor
+            .update_price(ExchangeId::BinanceSpot, &trade.instrument, dec!(105))
+            .is_none()
+    );
 }
