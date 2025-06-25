@@ -2,10 +2,13 @@ use crate::{
     books::OrderBook,
     subscription::{book::OrderBookEvent, trade::PublicTrade},
 };
-use jackbot_instrument::exchange::ExchangeId;
+use jackbot_instrument::{exchange::ExchangeId, Side};
 
 use fnv::FnvHashMap;
 use std::sync::{Arc, Mutex};
+use chrono::Utc;
+use serde_json;
+use rust_decimal::prelude::ToPrimitive;
 
 /// Default Redis key prefix used across exchanges.
 pub const DEFAULT_PREFIX: &str = "jb";
@@ -47,6 +50,15 @@ pub trait RedisStore: Send + Sync {
 
     /// Retrieve up to `limit` most recent trades.
     fn get_trades(&self, exchange: ExchangeId, instrument: &str, limit: usize) -> Vec<PublicTrade>;
+
+    /// Publish snapshot to Redis pub/sub channel for real-time streaming.
+    fn publish_snapshot(&self, exchange: ExchangeId, instrument: &str, snapshot: &OrderBook);
+
+    /// Publish delta to Redis pub/sub channel for real-time streaming.
+    fn publish_delta(&self, exchange: ExchangeId, instrument: &str, delta: &OrderBookEvent);
+
+    /// Publish trade to Redis pub/sub channel for real-time streaming.
+    fn publish_trade(&self, exchange: ExchangeId, instrument: &str, trade: &PublicTrade);
 }
 
 /// In-memory RedisStore used for testing.
@@ -165,6 +177,18 @@ impl RedisStore for InMemoryStore {
                     .collect()
             })
             .unwrap_or_default()
+    }
+
+    fn publish_snapshot(&self, _exchange: ExchangeId, _instrument: &str, _snapshot: &OrderBook) {
+        // No-op for in-memory testing store
+    }
+
+    fn publish_delta(&self, _exchange: ExchangeId, _instrument: &str, _delta: &OrderBookEvent) {
+        // No-op for in-memory testing store
+    }
+
+    fn publish_trade(&self, _exchange: ExchangeId, _instrument: &str, _trade: &PublicTrade) {
+        // No-op for in-memory testing store
     }
 }
 
@@ -301,6 +325,86 @@ impl RedisStore for RedisClientStore {
                 .collect()
         } else {
             Vec::new()
+        }
+    }
+
+    fn publish_snapshot(&self, exchange: ExchangeId, instrument: &str, snapshot: &OrderBook) {
+        let channel = format!("jb:{}:{}:snapshot", exchange, instrument);
+        
+        // Create bids and asks arrays
+        let bids: Vec<[f64; 2]> = snapshot.bids().levels().iter()
+            .map(|level| [level.price.to_f64().unwrap_or(0.0), level.amount.to_f64().unwrap_or(0.0)])
+            .collect();
+        let asks: Vec<[f64; 2]> = snapshot.asks().levels().iter()
+            .map(|level| [level.price.to_f64().unwrap_or(0.0), level.amount.to_f64().unwrap_or(0.0)])
+            .collect();
+        
+        // Create message manually to avoid json! macro dependency issues
+        let message = format!(
+            r#"{{"type":"snapshot","exchange":"{}","symbol":"{}","timestamp":{},"data":{{"bids":{},"asks":{}}}}}"#,
+            exchange,
+            instrument,
+            Utc::now().timestamp_millis(),
+            serde_json::to_string(&bids).unwrap_or_default(),
+            serde_json::to_string(&asks).unwrap_or_default()
+        );
+        
+        if let Ok(mut conn) = self.client.get_connection() {
+            let _: redis::RedisResult<()> = redis::cmd("PUBLISH")
+                .arg(&channel)
+                .arg(&message)
+                .query(&mut conn);
+        }
+    }
+
+    fn publish_delta(&self, exchange: ExchangeId, instrument: &str, delta: &OrderBookEvent) {
+        let channel = format!("jb:{}:{}:deltas", exchange, instrument);
+        
+        // Serialize the delta data first
+        if let Ok(delta_json) = serde_json::to_string(delta) {
+            let message = format!(
+                r#"{{"type":"delta","exchange":"{}","symbol":"{}","timestamp":{},"data":{}}}"#,
+                exchange,
+                instrument,
+                Utc::now().timestamp_millis(),
+                delta_json
+            );
+            
+            if let Ok(mut conn) = self.client.get_connection() {
+                let _: redis::RedisResult<()> = redis::cmd("PUBLISH")
+                    .arg(&channel)
+                    .arg(&message)
+                    .query(&mut conn);
+            }
+        }
+    }
+
+    fn publish_trade(&self, exchange: ExchangeId, instrument: &str, trade: &PublicTrade) {
+        let channel = format!("jb:{}:{}:trades", exchange, instrument);
+        
+        let side = match trade.side {
+            Side::Buy => "buy",
+            Side::Sell => "sell",
+        };
+        
+        let trade_id = &trade.id;
+        
+        let message = format!(
+            r#"{{"type":"trade","exchange":"{}","symbol":"{}","timestamp":{},"data":{{"id":"{}","price":{},"quantity":{},"side":"{}","is_maker":false}}}}"#,
+            exchange,
+            instrument,
+            Utc::now().timestamp_millis(),
+            trade_id,
+            trade.price,
+            trade.amount,
+            side
+        );
+        
+        if let Ok(mut conn) = self.client.get_connection() {
+            let _: redis::RedisResult<()> = redis::cmd("PUBLISH")
+                .arg(&channel)
+                .arg(&message)
+                .query(&mut conn);
         }
     }
 }

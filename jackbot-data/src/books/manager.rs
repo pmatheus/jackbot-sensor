@@ -65,16 +65,33 @@ where
             let mut book_lock = book.write();
             match event.kind {
                 OrderBookEvent::Snapshot(ref snap) => {
+                    // Store snapshot to Redis storage
                     self.store
                         .store_snapshot(event.exchange, &event.instrument.to_string(), snap);
+                    
+                    // Publish snapshot to Redis pub/sub for real-time streaming
+                    self.store
+                        .publish_snapshot(event.exchange, &event.instrument.to_string(), snap);
+                    
+                    // Update local order book
                     book_lock.update(OrderBookEvent::Snapshot(snap.clone()));
                 }
                 OrderBookEvent::Update(ref delta) => {
+                    // Store delta to Redis storage
                     self.store.store_delta(
                         event.exchange,
                         &event.instrument.to_string(),
                         &OrderBookEvent::Update(delta.clone()),
                     );
+                    
+                    // Publish delta to Redis pub/sub for real-time streaming
+                    self.store.publish_delta(
+                        event.exchange,
+                        &event.instrument.to_string(),
+                        &OrderBookEvent::Update(delta.clone()),
+                    );
+                    
+                    // Update local order book
                     book_lock.update(OrderBookEvent::Update(delta.clone()));
                 }
             }
