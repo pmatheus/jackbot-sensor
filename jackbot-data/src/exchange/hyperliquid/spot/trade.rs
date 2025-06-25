@@ -1,0 +1,22 @@
+//! Trade event types for Hyperliquid Spot.
+//!
+//! Provides convenient aliases for [`Hyperliquid`](super::super::Hyperliquid)
+//! trade streams.
+
+use super::super::Hyperliquid;
+use crate::{
+    ExchangeWsStream, subscription::trade::PublicTrades,
+    transformer::stateless::StatelessTransformer,
+};
+
+pub use super::super::trade::HyperliquidTrades;
+
+/// [`ExchangeTransformer`](crate::transformer::ExchangeTransformer) used to
+/// convert Hyperliquid WebSocket trade messages into [`PublicTrade`](PublicTrades)
+/// events.
+pub type HyperliquidSpotTradesTransformer<InstrumentKey> =
+    StatelessTransformer<Hyperliquid, InstrumentKey, PublicTrades, HyperliquidTrades>;
+
+/// Type alias for a Hyperliquid Spot trades WebSocket stream.
+pub type HyperliquidSpotTradesStream<InstrumentKey> =
+    ExchangeWsStream<HyperliquidSpotTradesTransformer<InstrumentKey>>;

@@ -1,0 +1,21 @@
+//! Trade event types for Kucoin Futures.
+//!
+//! Provides convenient aliases for [`Kucoin`](super::super::super::Kucoin) futures trade streams.
+
+use crate::exchange::kucoin::Kucoin;
+use crate::{
+    ExchangeWsStream, subscription::trade::PublicTrades,
+    transformer::stateless::StatelessTransformer,
+};
+
+pub use super::super::trade::KucoinTrade;
+
+/// [`ExchangeTransformer`](crate::transformer::ExchangeTransformer) used to
+/// convert Kucoin WebSocket trade messages into [`PublicTrade`](PublicTrades)
+/// events.
+pub type KucoinFuturesTradesTransformer<InstrumentKey> =
+    StatelessTransformer<Kucoin, InstrumentKey, PublicTrades, KucoinTrade>;
+
+/// Type alias for a Kucoin Futures trades WebSocket stream.
+pub type KucoinFuturesTradesStream<InstrumentKey> =
+    ExchangeWsStream<KucoinFuturesTradesTransformer<InstrumentKey>>;

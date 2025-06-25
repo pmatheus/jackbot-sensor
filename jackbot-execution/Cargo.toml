@@ -1,0 +1,77 @@
+[package]
+name = "jackbot-execution"
+version = "0.5.3"
+edition = "2021"
+authors = ["Jack <mail@jackbot.app>"]
+license = "MIT"
+documentation = "https://docs.rs/jackbot-execution/"
+repository = "https://github.com/jackbot-rs/jackbot-rs"
+readme = "README.md"
+description = "Stream private account data from financial venues, and execute (live or mock) orders."
+keywords = ["trading", "backtesting", "crypto", "stocks", "investment"]
+categories = ["accessibility", "simulation"]
+
+
+[dependencies]
+# Jackbot Ecosystem
+jackbot-integration = { workspace = true }
+jackbot-instrument = { workspace = true }
+jackbot-data = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+
+# Async
+tokio = { workspace = true, features = ["sync", "macros", "rt-multi-thread", "time"] }
+tokio-stream = { workspace = true, features = ["sync"] }
+futures = { workspace = true }
+async-trait = { workspace = true }
+
+# Data Structures
+smol_str = { workspace = true }
+fnv = { workspace = true }
+rust_decimal = { workspace = true }
+
+# Error
+thiserror = { workspace = true }
+
+# SerDe
+serde = { workspace = true, features = ["derive"] }
+chrono = { workspace = true, features = ["serde"] }
+
+# Misc
+tungstenite = { workspace = true }
+url = "2"
+tokio-tungstenite = { workspace = true }
+serde_json = "1"
+futures-util = "0.3"
+rand = { workspace = true }
+itertools = { workspace = true }
+uuid = { version = "1.0", features = ["v4"] }
+fastrand = "2.0"
+derive_more = { workspace = true, features = ["constructor", "from", "display"]}
+parking_lot = "0.12"
+
+# HTTP client for staking APIs
+reqwest = { version = "0.11", features = ["json"] }
+
+# Cryptographic functions for API signatures
+hmac = "0.12"
+sha2 = "0.10"
+hex = "0.4"
+base64 = "0.21"
+
+# AWS SDK for Kinesis integration
+aws-config = "1.0"
+aws-sdk-kinesis = "1.0"
+
+
+
+[dev-dependencies]
+rust_decimal_macros = { workspace = true }
+tokio-test = "0.4"
+tracing-subscriber = "0.3"
+
+[features]
+default = []
+

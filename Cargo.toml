@@ -1,0 +1,195 @@
+[workspace]
+resolver = "3"
+members = [
+    "jackbot",
+    "jackbot-data",
+    "jackbot-execution",
+    "jackbot-integration",
+    "jackbot-macro",
+    "jackbot-instrument",
+    "jackbot-risk",
+    "jackbot-snapshot",
+    "jackbot-strategy",
+    "jackbot-ta",
+]
+
+[package]
+name = "jackbot-sensor"
+version = "1.0.0"
+edition = "2021"
+description = "Comprehensive cryptocurrency trading sensor system"
+license = "MIT"
+
+# Sensor binary
+[[bin]]
+name = "jackbot-sensor"
+path = "src/main.rs"
+
+# Demo binary
+[[bin]]
+name = "demo_redis_data"
+path = "demo_redis_data.rs"
+
+[dependencies]
+# Core Jackbot modules
+jackbot = { path = "./jackbot" }
+jackbot-data = { workspace = true }
+jackbot-execution = { workspace = true }
+jackbot-integration = { workspace = true }
+jackbot-instrument = { workspace = true }
+jackbot-risk = { workspace = true }
+jackbot-strategy = { workspace = true }
+jackbot-ta = { workspace = true }
+jackbot-snapshot = { workspace = true }
+
+# Async runtime
+tokio = { workspace = true, features = ["full"] }
+tokio-stream = { workspace = true }
+futures = { workspace = true }
+futures-util = { workspace = true }
+async-trait = { workspace = true }
+
+# Logging and observability
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["env-filter", "json"] }
+
+# CLI interface
+clap = { version = "4.4", features = ["derive", "env"] }
+
+# Configuration
+config = "0.14"
+toml = "0.8"
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# HTTP server for APIs
+axum = { version = "0.7", features = ["ws", "macros"] }
+tower = { version = "0.5" }
+tower-http = { version = "0.6", features = ["cors", "trace"] }
+
+# Error handling
+thiserror = { workspace = true }
+anyhow = "1.0"
+
+# Data structures
+indexmap = { workspace = true }
+rust_decimal = { workspace = true }
+uuid = { version = "1.10", features = ["v4", "serde"] }
+chrono.workspace = true
+
+# Redis for state management
+redis = { workspace = true }
+
+# AWS SDK for deployment
+aws-config = "1.1"
+aws-sdk-ec2 = "1.15"
+aws-sdk-ecs = "1.12"
+aws-sdk-kinesis = "1.11"
+
+# Metrics and monitoring
+prometheus = "0.13"
+
+# Rate limiting
+governor = "0.6"
+
+# Regex for validation
+regex = "1.10"
+
+# JSON Web Tokens
+jsonwebtoken = "9.2"
+
+# HTTP client for JWKS
+reqwest = { workspace = true }
+
+# Base64 encoding for JWT parsing
+base64 = { workspace = true }
+
+# Random number generation
+rand = { workspace = true }
+url.workspace = true
+
+[workspace.dependencies]
+# Jackbot Ecosystem
+jackbot-integration = { path = "./jackbot-integration", version = "0.9.1" }
+jackbot-instrument = { path = "./jackbot-instrument", version = "0.3.1" }
+jackbot-data = { path = "./jackbot-data", version = "0.10.1" }
+jackbot-execution = { path = "./jackbot-execution", version = "0.5.3" }
+jackbot-macro = { path = "./jackbot-macro", version = "0.2.0" }
+jackbot-risk = { path = "./jackbot-risk", version = "0.1.0" }
+jackbot-strategy = { path = "./jackbot-strategy", version = "0.1.0" }
+jackbot-ta = { path = "./jackbot-ta", version = "0.1.0" }
+jackbot-snapshot = { path = "./jackbot-snapshot", version = "0.1.0" }
+
+
+# Logging
+tracing = { version = "0.1.41" }
+tracing-subscriber = { version = "0.3.19" }
+
+# Async
+tokio = { version = "1.42", default-features = false, features = ["macros", "net", "rt-multi-thread", "signal", "time"] }
+tokio-stream = { version = "0.1.17" }
+tokio-test = { version = "0.4.4" }
+futures = { version = "0.3.31" }
+futures-util = { version = "0.3.31" }
+async-trait = { version = "0.1.83" }
+pin-project = { version = "1.1.7" }
+
+# Error
+thiserror = { version = "2.0.8" }
+
+# SerDe
+serde = { version = "1.0.216", features = ["derive"] }
+serde_json = { version = "1.0.133" }
+serde_qs = { version = "0.13.0" }
+serde_urlencoded = { version = "0.7.1" }
+
+# Protocol
+url = { version = "2.5.4" }
+reqwest = { version = "0.12.9",default-features = false, features = ["rustls-tls", "json"] }
+tokio-tungstenite = { version = "0.26.0", features = ["url","rustls-tls-webpki-roots"] }
+
+# Data Structures
+vecmap-rs = { version = "0.2.2" }
+parking_lot = { version = "0.12.3" }
+rust_decimal = { version = "1.36.0", features = ["maths", "serde"] }
+smol_str = { version = "0.3.2" }
+fnv = { version = "1.0.7" }
+indexmap = { version = "2.6.0" }
+tungstenite = { version = "0.26.2" }
+
+# Redis interaction
+redis = { version = "0.24.0" }
+
+# Crytographic Signatures
+hmac = { version = "0.12.1" }
+sha2 = { version = "0.10.8" }
+hex = { version = "0.4.3" }
+base64 = { version = "0.22.1" }
+
+# Misc
+rand = { version = "0.9.0" }
+chrono = { version = "0.4.39", features = ["serde"] }
+derive_more = { version = "2.0.1", features = [
+    "constructor",
+    "display",
+    "from",
+] }
+itertools = { version = "0.14.0" }
+rust_decimal_macros = { version = "1.29.1" }
+bytes = { version = "1.5.0" }
+spin_sleep = { version = "1.3.0" }
+criterion = { version = "0.5.1" }
+proptest = { version = "1.4" }
+wiremock = { version = "0.6" }
+test-log = { version = "0.2" }
+serial_test = { version = "3.1" }
+
+[dev-dependencies]
+tempfile = "3.8"
+proptest = "1.4"
+tokio-test = { workspace = true }
+wiremock = "0.6"
+test-log = "0.2"
+serial_test = "3.1"

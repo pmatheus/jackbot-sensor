@@ -1,0 +1,306 @@
+//! Performance benchmarks for trading data structures and operations.
+
+use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use jackbot_data::{
+    books::{
+        aggregator::{OrderBookAggregator, ExchangeBook, AggregatorMetrics},
+        OrderBook, Level,
+    },
+    performance::{
+        memory_pool::MemoryPool,
+        safe_ring_buffer::{SafeRingBuffer, TimestampedRingBuffer, ChannelRingBuffer},
+        latency_tracker::LatencyTracker,
+    },
+};
+use jackbot_instrument::exchange::ExchangeId;
+use parking_lot::RwLock;
+use rust_decimal::Decimal;
+use std::{sync::Arc, time::Duration};
+
+/// Benchmark order book aggregation performance
+fn benchmark_order_book_aggregation(c: &mut Criterion) {
+    let mut group = c.benchmark_group("order_book_aggregation");
+    
+    // Create test order books for different exchanges
+    let create_test_book = |exchange: ExchangeId, base_price: f64| {
+        let mut bids = Vec::new();
+        let mut asks = Vec::new();
+        
+        // Generate 100 levels for bids and asks
+        for i in 0..100 {
+            let bid_price = Decimal::from_f64(base_price - (i as f64) * 0.01).unwrap();
+            let ask_price = Decimal::from_f64(base_price + (i as f64) * 0.01).unwrap();
+            let amount = Decimal::from_f64(10.0 + (i as f64) * 0.1).unwrap();
+            
+            bids.push(Level::new(bid_price, amount));
+            asks.push(Level::new(ask_price, amount));
+        }
+        
+        ExchangeBook {
+            exchange,
+            book: Arc::new(RwLock::new(OrderBook::new(0, None, bids, asks))),
+            weight: Decimal::ONE,
+        }
+    };
+    
+    // Test with different numbers of exchanges
+    for num_exchanges in [1, 5, 11].iter() {
+        let mut books = Vec::new();
+        let exchanges = [
+            ExchangeId::BinanceSpot,
+            ExchangeId::BinanceFuturesUsd,
+            ExchangeId::Coinbase,
+            ExchangeId::Okx,
+            ExchangeId::BybitSpot,
+            ExchangeId::BybitLinear,
+            ExchangeId::KrakenSpot,
+            ExchangeId::KucoinSpot,
+            ExchangeId::GateSpot,
+            ExchangeId::BitgetSpot,
+            ExchangeId::Mexc,
+        ];
+        
+        for i in 0..*num_exchanges {
+            books.push(create_test_book(exchanges[i], 50000.0 + (i as f64) * 10.0));
+        }
+        
+        let aggregator = OrderBookAggregator::new(books);
+        
+        group.throughput(Throughput::Elements(*num_exchanges as u64));
+        group.bench_with_input(
+            BenchmarkId::new("aggregate", num_exchanges),
+            num_exchanges,
+            |b, _| {
+                b.iter(|| {
+                    let _result = aggregator.aggregate(black_box(20));
+                });
+            },
+        );
+    }
+    
+    group.finish();
+}
+
+/// Benchmark memory pool performance
+fn benchmark_memory_pool(c: &mut Criterion) {
+    let mut group = c.benchmark_group("memory_pool");
+    
+    let pool: MemoryPool<Vec<u8>> = MemoryPool::new(1000);
+    
+    group.bench_function("acquire_release", |b| {
+        b.iter(|| {
+            let obj = pool.acquire();
+            black_box(&*obj);
+            // obj automatically drops and returns to pool
+        });
+    });
+    
+    group.bench_function("acquire_modify_release", |b| {
+        b.iter(|| {
+            let mut obj = pool.acquire();
+            obj.clear();
+            obj.extend_from_slice(&[1, 2, 3, 4, 5]);
+            black_box(&*obj);
+        });
+    });
+    
+    group.finish();
+}
+
+/// Benchmark ring buffer performance
+fn benchmark_ring_buffers(c: &mut Criterion) {
+    let mut group = c.benchmark_group("ring_buffers");
+    
+    // Test SafeRingBuffer
+    let safe_buffer = SafeRingBuffer::new(1024);
+    group.bench_function("safe_ring_buffer_push_pop", |b| {
+        b.iter(|| {
+            for i in 0..100 {
+                let _ = safe_buffer.push(black_box(i));
+            }
+            for _ in 0..100 {
+                let _ = safe_buffer.pop();
+            }
+        });
+    });
+    
+    // Test TimestampedRingBuffer
+    let timestamped_buffer = TimestampedRingBuffer::new(1024);
+    group.bench_function("timestamped_ring_buffer_push_pop", |b| {
+        b.iter(|| {
+            for i in 0..100 {
+                let _ = timestamped_buffer.push(black_box(i));
+            }
+            for _ in 0..100 {
+                let _ = timestamped_buffer.pop();
+            }
+        });
+    });
+    
+    // Test ChannelRingBuffer
+    let channel_buffer = ChannelRingBuffer::new(1024);
+    group.bench_function("channel_ring_buffer_send_recv", |b| {
+        b.iter(|| {
+            for i in 0..100 {
+                let _ = channel_buffer.send(black_box(i));
+            }
+            for _ in 0..100 {
+                let _ = channel_buffer.recv();
+            }
+        });
+    });
+    
+    group.finish();
+}
+
+/// Benchmark latency tracking performance
+fn benchmark_latency_tracking(c: &mut Criterion) {
+    let mut group = c.benchmark_group("latency_tracking");
+    
+    let tracker = Arc::new(LatencyTracker::new(10000));
+    
+    group.bench_function("record_latency", |b| {
+        b.iter(|| {
+            tracker.record(
+                Duration::from_micros(black_box(100)),
+                "test_operation".to_string(),
+                Some("test_exchange".to_string()),
+            );
+        });
+    });
+    
+    group.bench_function("get_stats", |b| {
+        // Pre-populate with some data
+        for i in 0..1000 {
+            tracker.record(
+                Duration::from_micros(100 + i),
+                "test_operation".to_string(),
+                Some("test_exchange".to_string()),
+            );
+        }
+        
+        b.iter(|| {
+            let _stats = tracker.stats();
+        });
+    });
+    
+    group.finish();
+}
+
+/// Benchmark complete market data processing pipeline
+fn benchmark_market_data_pipeline(c: &mut Criterion) {
+    let mut group = c.benchmark_group("market_data_pipeline");
+    
+    // Simulate a complete pipeline: receive data -> parse -> aggregate -> store
+    let memory_pool: MemoryPool<Vec<u8>> = MemoryPool::new(1000);
+    let data_buffer = SafeRingBuffer::new(1024);
+    let latency_tracker = Arc::new(LatencyTracker::new(1000));
+    
+    // Create order book aggregator
+    let create_test_book = |exchange: ExchangeId| {
+        let bids = vec![Level::new(Decimal::from_f64(50000.0).unwrap(), Decimal::from_f64(1.0).unwrap())];
+        let asks = vec![Level::new(Decimal::from_f64(50001.0).unwrap(), Decimal::from_f64(1.0).unwrap())];
+        
+        ExchangeBook {
+            exchange,
+            book: Arc::new(RwLock::new(OrderBook::new(0, None, bids, asks))),
+            weight: Decimal::ONE,
+        }
+    };
+    
+    let books = vec![
+        create_test_book(ExchangeId::BinanceSpot),
+        create_test_book(ExchangeId::Coinbase),
+        create_test_book(ExchangeId::Okx),
+    ];
+    let aggregator = OrderBookAggregator::new(books);
+    
+    group.bench_function("complete_pipeline", |b| {
+        b.iter(|| {
+            let start = std::time::Instant::now();
+            
+            // 1. Acquire memory from pool
+            let mut buffer = memory_pool.acquire();
+            buffer.clear();
+            buffer.extend_from_slice(b"test market data");
+            
+            // 2. Store in ring buffer
+            let _ = data_buffer.push(buffer.len());
+            
+            // 3. Aggregate order books
+            let _aggregated = aggregator.aggregate(10);
+            
+            // 4. Record latency
+            latency_tracker.record_since(
+                start,
+                "market_data_processing".to_string(),
+                Some("test_exchange".to_string()),
+            );
+        });
+    });
+    
+    group.finish();
+}
+
+/// Benchmark concurrent performance with multiple threads
+fn benchmark_concurrent_performance(c: &mut Criterion) {
+    let mut group = c.benchmark_group("concurrent_performance");
+    
+    let safe_buffer = Arc::new(SafeRingBuffer::new(1024));
+    let latency_tracker = Arc::new(LatencyTracker::new(10000));
+    
+    group.bench_function("concurrent_ring_buffer", |b| {
+        b.iter(|| {
+            let handles: Vec<_> = (0..4).map(|thread_id| {
+                let buffer = safe_buffer.clone();
+                std::thread::spawn(move || {
+                    for i in 0..25 {
+                        let _ = buffer.push(black_box(thread_id * 100 + i));
+                    }
+                })
+            }).collect();
+            
+            for handle in handles {
+                handle.join().unwrap();
+            }
+            
+            // Consume all items
+            while safe_buffer.pop().is_some() {}
+        });
+    });
+    
+    group.bench_function("concurrent_latency_tracking", |b| {
+        b.iter(|| {
+            let handles: Vec<_> = (0..4).map(|thread_id| {
+                let tracker = latency_tracker.clone();
+                std::thread::spawn(move || {
+                    for i in 0..25 {
+                        tracker.record(
+                            Duration::from_micros(black_box(100 + i)),
+                            format!("operation_{}", thread_id),
+                            Some(format!("exchange_{}", thread_id)),
+                        );
+                    }
+                })
+            }).collect();
+            
+            for handle in handles {
+                handle.join().unwrap();
+            }
+        });
+    });
+    
+    group.finish();
+}
+
+criterion_group!(
+    benches,
+    benchmark_order_book_aggregation,
+    benchmark_memory_pool,
+    benchmark_ring_buffers,
+    benchmark_latency_tracking,
+    benchmark_market_data_pipeline,
+    benchmark_concurrent_performance
+);
+
+criterion_main!(benches);
