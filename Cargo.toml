@@ -175,6 +175,9 @@ sha2 = { version = "0.10.8" }
 hex = { version = "0.4.3" }
 base64 = { version = "0.22.1" }
 
+# Database
+redis = { version = "0.27", features = ["aio", "tokio-comp", "connection-manager"] }
+
 # Misc
 rand = { version = "0.9.0" }
 chrono = { version = "0.4.39", features = ["serde"] }
