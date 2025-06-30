@@ -52,10 +52,10 @@ impl DefaultRedisStore {
         let mut conn = self.conn.as_ref().clone();
         
         if let Some(ttl_seconds) = ttl {
-            conn.set_ex(&key, serialized, ttl_seconds).await
+            conn.set_ex::<_, _, ()>(&key, serialized, ttl_seconds).await
                 .map_err(|e| DataError::Connection(format!("Failed to set value with TTL: {}", e)))?;
         } else {
-            conn.set(&key, serialized).await
+            conn.set::<_, _, ()>(&key, serialized).await
                 .map_err(|e| DataError::Connection(format!("Failed to set value: {}", e)))?;
         }
         
@@ -88,7 +88,7 @@ impl DefaultRedisStore {
         let key = format!("{}:{}", self.prefix, key);
         let mut conn = self.conn.as_ref().clone();
         
-        conn.del(&key).await
+        conn.del::<_, ()>(&key).await
             .map_err(|e| DataError::Connection(format!("Failed to delete key: {}", e)))?;
         
         debug!("Deleted key from Redis: {}", key);
@@ -101,7 +101,7 @@ impl DefaultRedisStore {
         let key = format!("{}:{}", self.prefix, key);
         let mut conn = self.conn.as_ref().clone();
         
-        let exists: bool = conn.exists(&key).await
+        let exists: bool = conn.exists::<_, bool>(&key).await
             .map_err(|e| DataError::Connection(format!("Failed to check key existence: {}", e)))?;
         
         Ok(exists)
@@ -113,7 +113,7 @@ impl DefaultRedisStore {
         let mut conn = self.conn.as_ref().clone();
         
         // Store with 5 minute TTL for orderbook snapshots
-        conn.set_ex(&format!("{}:{}", self.prefix, key), snapshot, 300).await
+        conn.set_ex::<_, _, ()>(&format!("{}:{}", self.prefix, key), snapshot, 300).await
             .map_err(|e| DataError::Connection(format!("Failed to store orderbook snapshot: {}", e)))?;
         
         Ok(())
@@ -125,7 +125,7 @@ impl DefaultRedisStore {
         let mut conn = self.conn.as_ref().clone();
         
         // Store with 1 hour TTL for trades
-        conn.set_ex(&format!("{}:{}", self.prefix, key), trade_data, 3600).await
+        conn.set_ex::<_, _, ()>(&format!("{}:{}", self.prefix, key), trade_data, 3600).await
             .map_err(|e| DataError::Connection(format!("Failed to store trade: {}", e)))?;
         
         Ok(())
