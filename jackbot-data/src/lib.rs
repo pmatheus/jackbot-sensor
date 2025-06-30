@@ -147,7 +147,6 @@ pub mod instrument;
 pub mod books;
 
 /// Redis storage utilities for snapshots, deltas, and trades.
-pub mod redis_store;
 
 /// High-performance data structures and optimizations for trading operations.
 // Note: Temporarily disabled due to unsafe code restrictions

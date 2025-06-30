@@ -81,11 +81,20 @@ pub struct ApiConfig {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DataConfig {
-    pub redis_url: String,
+    pub message_broker: MessageBrokerConfig,
     pub kinesis_stream_prefix: String,
     pub s3_bucket: String,
     pub batch_size: usize,
     pub flush_interval: u64,
+    pub data_lake_enabled: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MessageBrokerConfig {
+    pub brokers: String,
+    pub consumer_group: String,
+    pub topic_prefix: String,
+    pub compression: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -255,11 +264,17 @@ impl Default for SensorConfig {
                 rate_limit_per_minute: 1000,
             },
             data: DataConfig {
-                redis_url: "redis://localhost:6379".to_string(),
+                message_broker: MessageBrokerConfig {
+                    brokers: "localhost:9092".to_string(),
+                    consumer_group: "jackbot-sensors".to_string(),
+                    topic_prefix: "jackbot".to_string(),
+                    compression: "snappy".to_string(),
+                },
                 kinesis_stream_prefix: "jackbot-market-data-".to_string(),
-                s3_bucket: "jackbot-sensor-data".to_string(),
-                batch_size: 100,
-                flush_interval: 1000,
+                s3_bucket: "jackbot-data-lake".to_string(),
+                batch_size: 1000,
+                flush_interval: 5000,
+                data_lake_enabled: true,
             },
             risk: RiskConfig {
                 max_daily_loss_usd: 10000.0,

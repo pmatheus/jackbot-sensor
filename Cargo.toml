@@ -25,11 +25,6 @@ license = "MIT"
 name = "jackbot-sensor"
 path = "src/main.rs"
 
-# Demo binary
-[[bin]]
-name = "demo_redis_data"
-path = "demo_redis_data.rs"
-
 [dependencies]
 # Core Jackbot modules
 jackbot = { path = "./jackbot" }
@@ -64,6 +59,12 @@ toml = "0.8"
 serde = { workspace = true }
 serde_json = { workspace = true }
 
+# Environment variables
+dotenv = "0.15"
+
+# TLS support
+rustls = "0.23"
+
 # HTTP server for APIs
 axum = { version = "0.7", features = ["ws", "macros"] }
 tower = { version = "0.5" }
@@ -77,10 +78,18 @@ anyhow = "1.0"
 indexmap = { workspace = true }
 rust_decimal = { workspace = true }
 uuid = { version = "1.10", features = ["v4", "serde"] }
-chrono.workspace = true
+chrono = { workspace = true }
 
-# Redis for state management
-redis = { workspace = true }
+
+# Kafka for real-time streaming
+rdkafka = { version = "0.36", features = ["tokio"] }
+
+# Apache Arrow and Parquet for data lake
+arrow = { version = "50", features = ["chrono-tz"] }
+parquet = { version = "50", features = ["async", "arrow"] }
+
+# AWS S3 for data lake storage
+aws-sdk-s3 = "1.20.0"
 
 # AWS SDK for deployment
 aws-config = "1.1"
@@ -108,7 +117,7 @@ base64 = { workspace = true }
 
 # Random number generation
 rand = { workspace = true }
-url.workspace = true
+url = { workspace = true }
 
 [workspace.dependencies]
 # Jackbot Ecosystem
@@ -159,8 +168,6 @@ fnv = { version = "1.0.7" }
 indexmap = { version = "2.6.0" }
 tungstenite = { version = "0.26.2" }
 
-# Redis interaction
-redis = { version = "0.24.0" }
 
 # Crytographic Signatures
 hmac = { version = "0.12.1" }

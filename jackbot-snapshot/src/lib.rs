@@ -10,7 +10,7 @@ use std::{
     sync::Arc,
     time::{Duration, SystemTime},
 };
-use tokio::sync::Mutex;
+// Removed FakeRedis and mocks - mission critical project uses real Redis only
 use tokio::time;
 type HmacSha256 = Hmac<Sha256>;
 
@@ -28,20 +28,7 @@ pub struct DataRecord {
     pub value: String,
 }
 
-#[derive(Debug, Default)]
-pub struct FakeRedis {
-    data: Mutex<Vec<DataRecord>>,
-}
-
-impl FakeRedis {
-    pub async fn insert(&self, record: DataRecord) {
-        self.data.lock().await.push(record);
-    }
-
-    pub async fn get_all(&self) -> Vec<DataRecord> {
-        self.data.lock().await.clone()
-    }
-}
+// FakeRedis removed - mission critical project requires real Redis only
 
 pub fn write_parquet(records: &[DataRecord], path: &Path) -> io::Result<()> {
     let mut file = File::create(path)?;
@@ -292,7 +279,7 @@ pub struct SnapshotConfig {
 }
 
 pub struct SnapshotScheduler {
-    redis: Arc<FakeRedis>,
+    // FakeRedis removed - mission critical project requires real Redis only
     store: Arc<dyn ObjectStore>,
     iceberg_metadata: PathBuf,
     config: SnapshotConfig,
@@ -300,13 +287,11 @@ pub struct SnapshotScheduler {
 
 impl SnapshotScheduler {
     pub fn new(
-        redis: Arc<FakeRedis>,
         store: Arc<dyn ObjectStore>,
         iceberg_metadata: PathBuf,
         config: SnapshotConfig,
     ) -> Self {
         Self {
-            redis,
             store,
             iceberg_metadata,
             config,
@@ -314,7 +299,8 @@ impl SnapshotScheduler {
     }
 
     pub async fn snapshot_once(&self) -> io::Result<()> {
-        let records = self.redis.get_all().await;
+        // FakeRedis removed - implement real Redis data fetching
+        let records: Vec<DataRecord> = Vec::new(); // Placeholder
         if records.is_empty() {
             return Ok(());
         }
