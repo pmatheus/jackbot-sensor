@@ -24,6 +24,12 @@ pub enum DataError {
 
     #[error("SocketError: {0}")]
     Socket(String),
+    
+    #[error("Connection error: {0}")]
+    Connection(String),
+    
+    #[error("Serialization/Deserialization error: {0}")]
+    Serde(String),
 
     #[error("unsupported dynamic Subscription for exchange: {exchange}, kind: {sub_kind}")]
     Unsupported {

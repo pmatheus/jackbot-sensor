@@ -166,6 +166,9 @@ pub mod books;
 /// [`futures_usd`](exchange::binance::futures::l2::BinanceFuturesUsdOrderBooksL2Transformer).
 pub mod transformer;
 
+/// Redis store for caching order book and trade data.
+pub mod redis_store;
+
 /// Convenient type alias for an [`ExchangeStream`] utilising a tungstenite
 /// [`WebSocket`](jackbot_integration::protocol::websocket::WebSocket).
 pub type ExchangeWsStream<Transformer> =
