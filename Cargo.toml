@@ -85,8 +85,8 @@ chrono = { workspace = true }
 rdkafka = { version = "0.36", features = ["tokio"] }
 
 # Apache Arrow and Parquet for data lake
-arrow = { version = "50", features = ["chrono-tz"] }
-parquet = { version = "50", features = ["async", "arrow"] }
+arrow = { version = "52", features = ["chrono-tz"] }
+parquet = { version = "52", features = ["async", "arrow"] }
 
 # AWS S3 for data lake storage
 aws-sdk-s3 = "1.20.0"
