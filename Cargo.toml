@@ -1,5 +1,5 @@
 [workspace]
-resolver = "3"
+resolver = "2"
 members = [
     "jackbot",
     "jackbot-data",
@@ -85,8 +85,9 @@ chrono = { workspace = true }
 rdkafka = { version = "0.36", features = ["tokio"] }
 
 # Apache Arrow and Parquet for data lake
-arrow = { version = "53", features = ["chrono-tz"] }
-parquet = { version = "53", features = ["async", "arrow"] }
+# Temporarily disabled due to compilation issues - will re-enable when needed
+# arrow = { version = "50", features = ["chrono-tz"] }
+# parquet = { version = "50", features = ["async", "arrow"] }
 
 # AWS S3 for data lake storage
 aws-sdk-s3 = "1.20.0"
@@ -118,6 +119,9 @@ base64 = { workspace = true }
 # Random number generation
 rand = { workspace = true }
 url = { workspace = true }
+
+# Redis for order processing
+redis = { workspace = true }
 
 [workspace.dependencies]
 # Jackbot Ecosystem

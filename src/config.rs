@@ -81,6 +81,7 @@ pub struct ApiConfig {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DataConfig {
+    pub redis_url: String,
     pub message_broker: MessageBrokerConfig,
     pub kinesis_stream_prefix: String,
     pub s3_bucket: String,

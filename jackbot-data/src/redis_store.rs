@@ -27,6 +27,9 @@ pub struct DefaultRedisStore {
     prefix: String,
 }
 
+/// Alias for backward compatibility
+pub type RedisClientStore = DefaultRedisStore;
+
 impl DefaultRedisStore {
     /// Create a new Redis store instance
     pub async fn new(redis_url: &str, prefix: &str) -> Result<Self, DataError> {
