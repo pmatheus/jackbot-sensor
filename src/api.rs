@@ -3,7 +3,7 @@ use axum::{
     extract::{Path, Query, State, WebSocketUpgrade, ConnectInfo},
     http::{StatusCode, HeaderMap},
     response::{IntoResponse, Json},
-    routing::{get, post, delete, patch},
+    routing::{get, post, delete, patch, put},
     Router, middleware,
 };
 use axum::extract::ws::{WebSocket, Message};
@@ -935,7 +935,7 @@ async fn get_ticker_handler(
 ) -> impl IntoResponse {
     let normalized_symbol = match state.validator.validate_symbol(&symbol) {
         Ok(sym) => sym,
-        Err(e) => return create_error_response(e.code, &e.message),
+        Err(e) => return create_error_response(e.code, &e.message).into_response(),
     };
     
     let exchange = params.exchange.unwrap_or("binance".to_string());
@@ -1000,7 +1000,7 @@ async fn get_orderbook_handler(
 ) -> impl IntoResponse {
     let normalized_symbol = match state.validator.validate_symbol(&symbol) {
         Ok(sym) => sym,
-        Err(e) => return create_error_response(e.code, &e.message),
+        Err(e) => return create_error_response(e.code, &e.message).into_response(),
     };
     
     let exchange = params.exchange.unwrap_or("binance".to_string());
@@ -1034,7 +1034,7 @@ async fn get_trades_handler(
 ) -> impl IntoResponse {
     let normalized_symbol = match state.validator.validate_symbol(&symbol) {
         Ok(sym) => sym,
-        Err(e) => return create_error_response(e.code, &e.message),
+        Err(e) => return create_error_response(e.code, &e.message).into_response(),
     };
     
     let exchange = params.exchange.unwrap_or("binance".to_string());
@@ -1064,7 +1064,7 @@ async fn get_candles_handler(
 ) -> impl IntoResponse {
     let normalized_symbol = match state.validator.validate_symbol(&symbol) {
         Ok(sym) => sym,
-        Err(e) => return create_error_response(e.code, &e.message),
+        Err(e) => return create_error_response(e.code, &e.message).into_response(),
     };
     
     let exchange = params.exchange.unwrap_or("binance".to_string());
@@ -1152,7 +1152,7 @@ async fn get_historical_klines_handler(
 ) -> impl IntoResponse {
     let _normalized_symbol = match state.validator.validate_symbol(&symbol) {
         Ok(sym) => sym,
-        Err(e) => return create_error_response(e.code, &e.message),
+        Err(e) => return create_error_response(e.code, &e.message).into_response(),
     };
     
     // TODO: Implement historical klines from S3/Parquet
@@ -1166,7 +1166,7 @@ async fn get_historical_trades_handler(
 ) -> impl IntoResponse {
     let _normalized_symbol = match state.validator.validate_symbol(&symbol) {
         Ok(sym) => sym,
-        Err(e) => return create_error_response(e.code, &e.message),
+        Err(e) => return create_error_response(e.code, &e.message).into_response(),
     };
     
     // TODO: Implement historical trades from S3/Parquet
@@ -1182,7 +1182,7 @@ async fn place_order_handler(
     // Validate order request using the validator
     let validated_request = match state.validator.validate_order(&request) {
         Ok(req) => req,
-        Err(e) => return create_error_response(e.code, &e.message),
+        Err(e) => return create_error_response(e.code, &e.message).into_response(),
     };
     
     info!("Placing order: {:?} {} {} @ {:?}", 

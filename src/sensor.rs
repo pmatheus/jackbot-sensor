@@ -15,6 +15,44 @@ use tracing::{error, info, warn};
 use crate::config::SensorConfig;
 use crate::order_processor::OrderProcessor;
 
+/// Instance information for the sensor
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct InstanceInfo {
+    pub instance_id: String,
+    pub region: String,
+    pub pairs: Vec<String>,
+    pub status: String,
+    pub last_heartbeat: u64,
+}
+
+/// New trading pair alert
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct NewPairAlert {
+    pub exchange: String,
+    pub pair: String,
+    pub method: DetectionMethod,
+    pub priority: AlertPriority,
+    pub timestamp: u64,
+}
+
+/// Detection method for new pairs
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub enum DetectionMethod {
+    VolumeBased,
+    PriceMovement,
+    MarketCapBased,
+    Manual,
+}
+
+/// Alert priority levels
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub enum AlertPriority {
+    Low,
+    Medium,
+    High,
+    Critical,
+}
+
 pub struct SensorManager {
     config: SensorConfig,
     instance_id: Option<String>,
