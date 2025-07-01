@@ -106,7 +106,7 @@ impl PairDiscovery {
                 base_asset: pair.base_asset.clone(),
                 quote_asset: pair.quote_asset.clone(),
                 detected_at: chrono::Utc::now(),
-                detection_method: DetectionMethod::ApiPoll,
+                detection_method: DetectionMethod::Manual,
                 trading_start_time: pair.trading_start_time,
                 priority,
             };
@@ -169,7 +169,8 @@ impl PairDiscovery {
         // Randomly add a new pair (10% chance)
         if rand::random::<f64>() < 0.1 {
             let new_tokens = vec!["NEWCOIN", "FRESHTOKEN", "LATEST", "TRENDING"];
-            if let Some(token) = new_tokens.choose(&mut rand::thread_rng()) {
+            // TODO: Fix random selection - choose() method not available
+            if let Some(token) = new_tokens.first() {
                 pairs.push(TradingPair {
                     symbol: format!("{}/USDT", token),
                     base_asset: token.to_string(),

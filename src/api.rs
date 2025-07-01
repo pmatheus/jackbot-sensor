@@ -41,7 +41,7 @@ pub struct ApiState {
 }
 
 /// JWT Claims structure for Firebase tokens
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct JwtClaims {
     pub iss: String,        // Issuer
     pub aud: String,        // Audience (Firebase project ID)
@@ -55,7 +55,7 @@ pub struct JwtClaims {
     pub firebase: Option<FirebaseClaims>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FirebaseClaims {
     pub identities: Option<serde_json::Value>,
     pub sign_in_provider: Option<String>,
@@ -79,7 +79,7 @@ pub struct AuthenticatedUser {
     pub exp: i64,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApiResponse<T> {
     pub success: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -89,7 +89,7 @@ pub struct ApiResponse<T> {
     pub meta: ApiMeta,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PaginatedResponse<T> {
     pub success: bool,
     pub data: Vec<T>,
@@ -97,7 +97,7 @@ pub struct PaginatedResponse<T> {
     pub meta: ApiMeta,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PaginationInfo {
     pub total: usize,
     pub limit: usize,
@@ -105,14 +105,14 @@ pub struct PaginationInfo {
     pub has_more: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApiError {
     pub code: String,
     pub message: String,
     pub details: Option<serde_json::Value>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ApiMeta {
     pub request_id: String,
     pub timestamp: i64, // Unix milliseconds
@@ -120,7 +120,7 @@ pub struct ApiMeta {
 }
 
 // Error codes as per API contract
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ErrorCode {
     // Authentication & Authorization
     #[serde(rename = "UNAUTHORIZED")]
@@ -237,7 +237,7 @@ pub enum TimeInForce {
     FillOrKill,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OrderResponse {
     pub id: String,
     #[serde(rename = "userId")]
@@ -529,7 +529,7 @@ pub struct StakingReward {
 }
 
 // Market data structures as per API contract
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TickerData {
     pub symbol: String,
     pub exchange: String,
@@ -547,7 +547,7 @@ pub struct TickerData {
     pub timestamp: i64,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OrderBookData {
     pub symbol: String,
     pub exchange: String,
@@ -558,7 +558,7 @@ pub struct OrderBookData {
     pub sequence_id: Option<u64>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TradeData {
     pub symbol: String,
     pub exchange: String,
@@ -571,7 +571,7 @@ pub struct TradeData {
     pub is_maker: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct KlineData {
     pub symbol: String,
     pub exchange: String,
@@ -590,7 +590,7 @@ pub struct KlineData {
     pub is_final: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PositionData {
     pub id: String,
     #[serde(rename = "userId")]
@@ -616,7 +616,7 @@ pub struct PositionData {
     pub timestamp: i64,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BalanceData {
     #[serde(rename = "userId")]
     pub user_id: String,
@@ -642,7 +642,7 @@ pub struct QueryParams {
 }
 
 // WebSocket message structures
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WebSocketMessage {
     pub channel: Option<String>,
     #[serde(rename = "type")]
@@ -901,7 +901,7 @@ async fn health_handler(State(state): State<ApiState>) -> impl IntoResponse {
         },
     };
     
-    create_success_response(health)
+    create_success_response(health).into_response()
 }
 
 async fn metrics_handler() -> impl IntoResponse {
@@ -954,7 +954,7 @@ async fn get_ticker_handler(
         timestamp: chrono::Utc::now().timestamp_millis(),
     };
     
-    create_success_response(ticker)
+    create_success_response(ticker).into_response()
 }
 
 async fn get_all_tickers_handler(
@@ -990,7 +990,7 @@ async fn get_all_tickers_handler(
         },
     ];
     
-    create_success_response(tickers)
+    create_success_response(tickers).into_response()
 }
 
 async fn get_orderbook_handler(
@@ -1024,7 +1024,7 @@ async fn get_orderbook_handler(
         sequence_id: Some(987654321),
     };
     
-    create_success_response(orderbook)
+    create_success_response(orderbook).into_response()
 }
 
 async fn get_trades_handler(
@@ -1054,7 +1054,7 @@ async fn get_trades_handler(
         },
     ];
     
-    create_paginated_response(trades, limit, 0, 1)
+    create_paginated_response(trades, limit, 0, 1).into_response()
 }
 
 async fn get_candles_handler(
@@ -1088,7 +1088,7 @@ async fn get_candles_handler(
         },
     ];
     
-    create_paginated_response(candles, limit, 0, 1)
+    create_paginated_response(candles, limit, 0, 1).into_response()
 }
 
 async fn get_symbols_handler(
@@ -1120,7 +1120,7 @@ async fn get_symbols_handler(
         }),
     ];
     
-    create_success_response(symbols)
+    create_success_response(symbols).into_response()
 }
 
 async fn get_exchanges_handler() -> impl IntoResponse {
@@ -1141,7 +1141,7 @@ async fn get_exchanges_handler() -> impl IntoResponse {
         }),
     ];
     
-    create_success_response(exchanges)
+    create_success_response(exchanges).into_response()
 }
 
 // Historical data handlers
@@ -1156,7 +1156,7 @@ async fn get_historical_klines_handler(
     };
     
     // TODO: Implement historical klines from S3/Parquet
-    create_success_response(Vec::<KlineData>::new())
+    create_success_response(Vec::<KlineData>::new()).into_response()
 }
 
 async fn get_historical_trades_handler(
@@ -1170,7 +1170,7 @@ async fn get_historical_trades_handler(
     };
     
     // TODO: Implement historical trades from S3/Parquet
-    create_success_response(Vec::<TradeData>::new())
+    create_success_response(Vec::<TradeData>::new()).into_response()
 }
 
 // Trading API handlers
@@ -1208,7 +1208,7 @@ async fn place_order_handler(
         updated_at: chrono::Utc::now().timestamp_millis(),
     };
     
-    (StatusCode::CREATED, create_success_response(response))
+    (StatusCode::CREATED, create_success_response(response)).into_response()
 }
 
 async fn get_order_handler(
@@ -2008,19 +2008,31 @@ async fn websocket_handler(
 }
 
 async fn handle_websocket(socket: WebSocket, state: ApiState) {
-    let (mut sender, mut receiver) = socket.split();
+    let (sender, mut receiver) = socket.split();
     let connection_id = uuid::Uuid::new_v4().to_string();
     
     let (tx, mut rx) = mpsc::unbounded_channel::<String>();
+    let (ping_tx, mut ping_rx) = mpsc::unbounded_channel::<Vec<u8>>();
     
     // Add connection to state
     state.ws_connections.write().await.insert(connection_id.clone(), tx);
     
     // Spawn task to send messages to client
+    let mut sender = sender;
     let send_task = tokio::spawn(async move {
-        while let Some(msg) = rx.recv().await {
-            if sender.send(Message::Text(msg)).await.is_err() {
-                break;
+        loop {
+            tokio::select! {
+                Some(msg) = rx.recv() => {
+                    if sender.send(Message::Text(msg)).await.is_err() {
+                        break;
+                    }
+                },
+                Some(data) = ping_rx.recv() => {
+                    if sender.send(Message::Pong(data)).await.is_err() {
+                        break;
+                    }
+                },
+                else => break,
             }
         }
     });
@@ -2035,9 +2047,7 @@ async fn handle_websocket(socket: WebSocket, state: ApiState) {
                     }
                 },
                 Message::Ping(data) => {
-                    if sender.send(Message::Pong(data)).await.is_err() {
-                        break;
-                    }
+                    let _ = ping_tx.send(data);
                 },
                 Message::Close(_) => break,
                 _ => {}

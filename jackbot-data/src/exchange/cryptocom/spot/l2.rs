@@ -76,7 +76,57 @@ impl<InstrumentKey> From<(ExchangeId, InstrumentKey, CryptocomOrderBookL2)>
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::redis_store::InMemoryStore;
+    use crate::redis_store::RedisStore;
+    use std::collections::HashMap;
+    use std::sync::{Arc, Mutex};
+    
+    // Mock store for testing
+    #[derive(Clone, Debug)]
+    pub struct MockRedisStore {
+        snapshots: Arc<Mutex<HashMap<String, String>>>,
+        deltas: Arc<Mutex<HashMap<String, Vec<String>>>>,
+    }
+    
+    impl MockRedisStore {
+        pub fn new() -> Self {
+            Self {
+                snapshots: Arc::new(Mutex::new(HashMap::new())),
+                deltas: Arc::new(Mutex::new(HashMap::new())),
+            }
+        }
+        
+        pub fn get_snapshot_json(&self, exchange: ExchangeId, symbol: &str) -> Option<String> {
+            let key = format!("{}:{}", exchange, symbol);
+            self.snapshots.lock().unwrap().get(&key).cloned()
+        }
+        
+        pub fn delta_len(&self, exchange: ExchangeId, symbol: &str) -> usize {
+            let key = format!("{}:{}", exchange, symbol);
+            self.deltas.lock().unwrap().get(&key).map(|v| v.len()).unwrap_or(0)
+        }
+    }
+    
+    impl RedisStore for MockRedisStore {
+        fn store_snapshot(&self, exchange: ExchangeId, symbol: &str, snapshot: &OrderBook) {
+            let key = format!("{}:{}", exchange, symbol);
+            if let Ok(serialized) = serde_json::to_string(snapshot) {
+                self.snapshots.lock().unwrap().insert(key, serialized);
+            }
+        }
+        
+        fn store_delta(&self, exchange: ExchangeId, symbol: &str, delta: &OrderBookEvent) {
+            let key = format!("{}:{}", exchange, symbol);
+            if let Ok(serialized) = serde_json::to_string(delta) {
+                self.deltas.lock().unwrap()
+                    .entry(key)
+                    .or_insert_with(Vec::new)
+                    .push(serialized);
+            }
+        }
+        
+        fn publish_snapshot(&self, _exchange: ExchangeId, _symbol: &str, _snapshot: &OrderBook) {}
+        fn publish_delta(&self, _exchange: ExchangeId, _symbol: &str, _delta: &OrderBookEvent) {}
+    }
     use rust_decimal_macros::dec;
 
     #[test]
@@ -89,7 +139,7 @@ mod tests {
 
     #[test]
     fn test_store_methods() {
-        let store = InMemoryStore::new();
+        let store = MockRedisStore::new();
         let book = CryptocomOrderBookL2 {
             subscription_id: "BTC_USDT".into(),
             time: Utc::now(),

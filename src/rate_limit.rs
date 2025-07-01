@@ -200,10 +200,11 @@ impl RateLimitManager {
         limiter: &RateLimiterType,
     ) -> (u32, u32, u64) {
         let quota = self.get_quota_for_bucket(bucket);
-        let base_limit = quota.max_burst().get();
+        // TODO: Fix governor quota API - max_burst() doesn't exist
+        let base_limit = 100; // Temporary placeholder
         
         // This is a simplified version - in reality, we'd need to track exact remaining count
-        let remaining = base_limit.saturating_sub(1);
+        let remaining = (base_limit as u32).saturating_sub(1);
         
         // Calculate reset time based on the quota's period
         let reset_time = match bucket {

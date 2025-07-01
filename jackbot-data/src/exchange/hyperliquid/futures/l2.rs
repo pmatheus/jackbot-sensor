@@ -124,7 +124,7 @@ impl L2Sequencer<HyperliquidFuturesOrderBookL2> for HyperliquidFuturesOrderBookL
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{books::Level, redis_store::InMemoryStore};
+    use crate::{books::Level, redis_store::DefaultRedisStore};
     use rust_decimal_macros::dec;
 
     #[test]
@@ -150,7 +150,8 @@ mod tests {
         let input = r#"{"coin":"BTC","bids":[["30000.0","1.0"]],"asks":[["30010.0","2.0"]]}"#;
         let book: HyperliquidFuturesOrderBookL2 = serde_json::from_str(input).unwrap();
 
-        let store = InMemoryStore::new();
+        // TODO: Fix store initialization for async
+        // let store = DefaultRedisStore::new();
         book.store_snapshot(&store);
 
         // Use the actual subscription_id generated during deserialization

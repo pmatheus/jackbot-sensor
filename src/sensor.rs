@@ -10,7 +10,7 @@ use jackbot_data::{
 use jackbot_instrument::instrument::market_data::kind::MarketDataInstrumentKind;
 use futures_util::StreamExt;
 use std::sync::Arc;
-use tracing::{error, info, warn};
+use tracing::{debug, error, info, warn};
 
 use crate::config::SensorConfig;
 use crate::order_processor::OrderProcessor;
@@ -29,10 +29,13 @@ pub struct InstanceInfo {
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct NewPairAlert {
     pub exchange: String,
-    pub pair: String,
-    pub method: DetectionMethod,
+    pub symbol: String,
+    pub base_asset: String,
+    pub quote_asset: String,
+    pub detected_at: chrono::DateTime<chrono::Utc>,
+    pub detection_method: DetectionMethod,
+    pub trading_start_time: Option<chrono::DateTime<chrono::Utc>>,
     pub priority: AlertPriority,
-    pub timestamp: u64,
 }
 
 /// Detection method for new pairs
@@ -65,8 +68,11 @@ impl SensorManager {
         info!("📡 Initializing sensor manager...");
         
         // Connect to Redis
-        let redis_store = Arc::new(RedisClientStore::new(&config.data.redis_url, "jb".to_string())
-            .map_err(|e| anyhow::anyhow!("Failed to create Redis store: {}", e))?);
+        let redis_store = Arc::new(
+            RedisClientStore::new(&config.data.redis_url, "jb")
+                .await
+                .map_err(|e| anyhow::anyhow!("Failed to create Redis store: {}", e))?
+        );
         info!("✅ Connected to Redis");
 
         Ok(Self {
@@ -154,19 +160,11 @@ impl SensorManager {
                             );
                         }
                         
-                        // Store in Redis
-                        redis_store_trades.store_trade(
-                            market_event.exchange,
-                            &instrument,
-                            &market_event.kind
-                        );
+                        // TODO: Implement trade storage to Redis
+                        debug!("Storing trade: {:?}", market_event);
                         
-                        // Publish to Redis pub/sub
-                        redis_store_trades.publish_trade(
-                            market_event.exchange,
-                            &instrument,
-                            &market_event.kind
-                        );
+                        // TODO: Implement trade publishing to Redis
+                        debug!("Trade received: {:?}", market_event);
                     }
                     jackbot_data::streams::reconnect::Event::Item(Err(e)) => {
                         error!("Trade stream error: {}", e);

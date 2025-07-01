@@ -265,6 +265,7 @@ impl Default for SensorConfig {
                 rate_limit_per_minute: 1000,
             },
             data: DataConfig {
+                redis_url: "redis://localhost:6379".to_string(),
                 message_broker: MessageBrokerConfig {
                     brokers: "localhost:9092".to_string(),
                     consumer_group: "jackbot-sensors".to_string(),

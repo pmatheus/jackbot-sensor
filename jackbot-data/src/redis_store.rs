@@ -27,6 +27,15 @@ pub struct DefaultRedisStore {
     prefix: String,
 }
 
+impl std::fmt::Debug for DefaultRedisStore {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("DefaultRedisStore")
+            .field("prefix", &self.prefix)
+            .field("conn", &"<ConnectionManager>")
+            .finish()
+    }
+}
+
 /// Alias for backward compatibility
 pub type RedisClientStore = DefaultRedisStore;
 
