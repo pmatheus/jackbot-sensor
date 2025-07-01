@@ -109,6 +109,13 @@ pub mod ab_testing;
 /// Basic technical analysis indicators.
 pub mod technical;
 
+/// Simple machine learning model trait and implementations.
+pub mod ml;
+
+/// ML API client for remote model inference.
+pub mod ml_api;
+
+
 /// Traits and types related to component shutdowns.
 pub mod shutdown;
 

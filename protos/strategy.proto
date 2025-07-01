@@ -1,0 +1,201 @@
+syntax = "proto3";
+
+package jackbot.strategy;
+
+import "google/protobuf/timestamp.proto";
+
+// The strategy service that external strategies must implement
+service StrategyPlugin {
+  // Initialize the strategy with configuration
+  rpc Initialize(InitializeRequest) returns (InitializeResponse);
+  
+  // Process market state and return trading decisions
+  rpc ProcessState(StateData) returns (TradingSignal);
+  
+  // Notify strategy of execution results
+  rpc OnExecution(ExecutionResult) returns (Acknowledgment);
+  
+  // Graceful shutdown
+  rpc Shutdown(ShutdownRequest) returns (ShutdownResponse);
+  
+  // Health check
+  rpc HealthCheck(HealthRequest) returns (HealthResponse);
+}
+
+// Initialization
+message InitializeRequest {
+  string strategy_id = 1;
+  map<string, string> config = 2;
+  repeated string instruments = 3;
+  double initial_capital = 4;
+  bool is_backtest = 5;
+  google.protobuf.Timestamp start_time = 6;
+}
+
+message InitializeResponse {
+  bool success = 1;
+  string message = 2;
+  StrategyCapabilities capabilities = 3;
+}
+
+message StrategyCapabilities {
+  repeated string supported_instruments = 1;
+  repeated string required_data_types = 2;
+  int32 min_state_dimension = 3;
+  int32 max_state_dimension = 4;
+  bool supports_multi_asset = 5;
+  bool supports_partial_fills = 6;
+}
+
+// Market State Data
+message StateData {
+  string instrument = 1;
+  google.protobuf.Timestamp timestamp = 2;
+  
+  // Flexible state vector for ML models
+  repeated double state_vector = 3;
+  
+  // Structured market data for rule-based strategies
+  MarketData market_data = 4;
+  
+  // Current positions
+  repeated Position positions = 5;
+  
+  // Account state
+  AccountState account = 6;
+}
+
+message MarketData {
+  // Price data
+  double bid = 1;
+  double ask = 2;
+  double mid = 3;
+  double last = 4;
+  
+  // Order book
+  repeated PriceLevel bid_levels = 5;
+  repeated PriceLevel ask_levels = 6;
+  
+  // Recent trades
+  repeated Trade recent_trades = 7;
+  
+  // Technical indicators (optional)
+  map<string, double> indicators = 8;
+  
+  // OHLCV candles
+  repeated Candle candles = 9;
+}
+
+message PriceLevel {
+  double price = 1;
+  double quantity = 2;
+}
+
+message Trade {
+  double price = 1;
+  double quantity = 2;
+  bool is_buy = 3;
+  google.protobuf.Timestamp timestamp = 4;
+}
+
+message Candle {
+  double open = 1;
+  double high = 2;
+  double low = 3;
+  double close = 4;
+  double volume = 5;
+  google.protobuf.Timestamp timestamp = 6;
+  string timeframe = 7;
+}
+
+message Position {
+  string instrument = 1;
+  double quantity = 2;
+  double entry_price = 3;
+  double current_price = 4;
+  double unrealized_pnl = 5;
+  google.protobuf.Timestamp entry_time = 6;
+}
+
+message AccountState {
+  double balance = 1;
+  double equity = 2;
+  double margin_used = 3;
+  double margin_available = 4;
+  double total_pnl = 5;
+}
+
+// Trading Signals
+message TradingSignal {
+  string strategy_id = 1;
+  google.protobuf.Timestamp timestamp = 2;
+  repeated OrderRequest orders = 3;
+  string metadata = 4;  // JSON for strategy-specific data
+}
+
+message OrderRequest {
+  string instrument = 1;
+  OrderType order_type = 2;
+  OrderSide side = 3;
+  double quantity = 4;
+  double price = 5;  // For limit orders
+  double stop_loss = 6;
+  double take_profit = 7;
+  string client_order_id = 8;
+  map<string, string> tags = 9;
+}
+
+enum OrderType {
+  MARKET = 0;
+  LIMIT = 1;
+  STOP = 2;
+  STOP_LIMIT = 3;
+}
+
+enum OrderSide {
+  BUY = 0;
+  SELL = 1;
+}
+
+// Execution feedback
+message ExecutionResult {
+  string client_order_id = 1;
+  string exchange_order_id = 2;
+  ExecutionStatus status = 3;
+  double filled_quantity = 4;
+  double average_price = 5;
+  double commission = 6;
+  google.protobuf.Timestamp timestamp = 7;
+  string rejection_reason = 8;
+}
+
+enum ExecutionStatus {
+  PENDING = 0;
+  FILLED = 1;
+  PARTIALLY_FILLED = 2;
+  CANCELLED = 3;
+  REJECTED = 4;
+}
+
+message Acknowledgment {
+  bool received = 1;
+}
+
+// Lifecycle management
+message ShutdownRequest {
+  string reason = 1;
+  bool force = 2;
+}
+
+message ShutdownResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+  bool healthy = 1;
+  string status = 2;
+  map<string, string> metadata = 3;
+}

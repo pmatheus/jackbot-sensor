@@ -35,6 +35,12 @@ pub mod advanced_orders;
 /// Strategy trait combining the core strategy interfaces.
 pub mod framework;
 
+/// ML-based trading strategy using remote model inference.
+pub mod ml_trading;
+
+/// gRPC-based strategy plugin for external strategy integration.
+pub mod grpc_plugin;
+
 /// Default strategy that generates no orders and does nothing on events.
 #[derive(Debug, Clone)]
 pub struct DefaultStrategy<StateTy, E = ExchangeIndex, I = InstrumentIndex> {

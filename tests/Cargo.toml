@@ -1,0 +1,25 @@
+[package]
+name = "jackbot-sensor-tests"
+version = "0.1.0"
+edition = "2021"
+
+[[test]]
+name = "test_defi_integration"
+path = "test_defi_integration.rs"
+required-features = ["integration-tests"]
+
+[[test]]
+name = "test_defi_unit"
+path = "test_defi_unit.rs"
+
+[dependencies]
+jackbot-sensor = { path = ".." }
+ethers = "2.0"
+tokio = { version = "1.42", features = ["full", "test-util"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+hex = "0.4"
+chrono = "0.4"
+
+[features]
+integration-tests = []
