@@ -3,7 +3,7 @@
 use anyhow::Result;
 use jackbot_data::{
     exchange::binance::futures::BinanceFuturesUsd,
-    redis_store::{RedisClientStore, RedisStore},
+    kafka_store::{KafkaClientStore, KafkaStore},
     streams::Streams,
     subscription::{trade::PublicTrades, book::OrderBooksL2},
 };
@@ -59,7 +59,7 @@ pub enum AlertPriority {
 pub struct SensorManager {
     config: SensorConfig,
     instance_id: Option<String>,
-    redis_store: Arc<RedisClientStore>,
+    kafka_store: Arc<KafkaClientStore>,
     order_processor: Option<OrderProcessor>,
 }
 
@@ -67,18 +67,18 @@ impl SensorManager {
     pub async fn new(config: SensorConfig, instance_id: Option<String>) -> Result<Self> {
         info!("📡 Initializing sensor manager...");
         
-        // Connect to Redis
-        let redis_store = Arc::new(
-            RedisClientStore::new(&config.data.redis_url, "jb")
+        // Connect to Kafka
+        let kafka_store = Arc::new(
+            KafkaClientStore::new(&config.data.kafka_url, "jb")
                 .await
-                .map_err(|e| anyhow::anyhow!("Failed to create Redis store: {}", e))?
+                .map_err(|e| anyhow::anyhow!("Failed to create Kafka store: {}", e))?
         );
-        info!("✅ Connected to Redis");
+        info!("✅ Connected to Kafka");
 
         Ok(Self {
             config,
             instance_id,
-            redis_store,
+            kafka_store,
             order_processor: None,
         })
     }
@@ -87,7 +87,7 @@ impl SensorManager {
         info!("🚀 Starting sensor streams...");
 
         // Start order processor
-        let order_processor = OrderProcessor::new(self.redis_store.clone()).await?;
+        let order_processor = OrderProcessor::new(self.kafka_store.clone()).await?;
         self.order_processor = Some(order_processor.clone());
         
         // Spawn order processing task
@@ -136,7 +136,7 @@ impl SensorManager {
         info!("✅ Order book streams initialized");
 
         // Process trade streams
-        let redis_store_trades = self.redis_store.clone();
+        let kafka_store_trades = self.kafka_store.clone();
         tokio::spawn(async move {
             let mut joined_stream = trade_streams.select_all();
             let mut trade_count = 0;
@@ -160,10 +160,10 @@ impl SensorManager {
                             );
                         }
                         
-                        // TODO: Implement trade storage to Redis
+                        // TODO: Implement trade storage to Kafka
                         debug!("Storing trade: {:?}", market_event);
                         
-                        // TODO: Implement trade publishing to Redis
+                        // TODO: Implement trade publishing to Kafka
                         debug!("Trade received: {:?}", market_event);
                     }
                     jackbot_data::streams::reconnect::Event::Item(Err(e)) => {
@@ -177,7 +177,7 @@ impl SensorManager {
         });
 
         // Process order book streams
-        let redis_store_books = self.redis_store.clone();
+        let kafka_store_books = self.kafka_store.clone();
         tokio::spawn(async move {
             let mut joined_stream = book_streams.select_all();
             let mut update_count = 0;
@@ -199,14 +199,14 @@ impl SensorManager {
                                 );
                                 
                                 // Store snapshot
-                                redis_store_books.store_snapshot(
+                                kafka_store_books.store_snapshot(
                                     market_event.exchange,
                                     &instrument,
                                     book
                                 );
                                 
                                 // Publish snapshot
-                                redis_store_books.publish_snapshot(
+                                kafka_store_books.publish_snapshot(
                                     market_event.exchange,
                                     &instrument,
                                     book
@@ -225,14 +225,14 @@ impl SensorManager {
                                 }
                                 
                                 // Store delta
-                                redis_store_books.store_delta(
+                                kafka_store_books.store_delta(
                                     market_event.exchange,
                                     &instrument,
                                     &market_event.kind
                                 );
                                 
                                 // Publish delta
-                                redis_store_books.publish_delta(
+                                kafka_store_books.publish_delta(
                                     market_event.exchange,
                                     &instrument,
                                     &market_event.kind

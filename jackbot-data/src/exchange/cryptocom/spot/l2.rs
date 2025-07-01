@@ -4,7 +4,7 @@ use crate::{
     Identifier,
     books::{Canonicalizer, Level, OrderBook},
     event::{MarketEvent, MarketIter},
-    redis_store::RedisStore,
+    kafka_store::KafkaStore,
 };
 use chrono::{DateTime, Utc};
 use jackbot_instrument::exchange::ExchangeId;
@@ -39,8 +39,8 @@ impl Canonicalizer for CryptocomOrderBookL2 {
 }
 
 impl CryptocomOrderBookL2 {
-    /// Persist this order book snapshot to the provided [`RedisStore`].
-    pub fn store_snapshot<Store: RedisStore>(&self, store: &Store) {
+    /// Persist this order book snapshot to the provided [`KafkaStore`].
+    pub fn store_snapshot<Store: KafkaStore>(&self, store: &Store) {
         let snapshot = self.canonicalize(self.time);
         store.store_snapshot(
             ExchangeId::Cryptocom,
@@ -49,8 +49,8 @@ impl CryptocomOrderBookL2 {
         );
     }
 
-    /// Persist this order book update to the provided [`RedisStore`].
-    pub fn store_delta<Store: RedisStore>(&self, store: &Store) {
+    /// Persist this order book update to the provided [`KafkaStore`].
+    pub fn store_delta<Store: KafkaStore>(&self, store: &Store) {
         let delta = OrderBookEvent::Update(self.canonicalize(self.time));
         store.store_delta(ExchangeId::Cryptocom, self.subscription_id.as_ref(), &delta);
     }
@@ -76,54 +76,61 @@ impl<InstrumentKey> From<(ExchangeId, InstrumentKey, CryptocomOrderBookL2)>
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::redis_store::RedisStore;
+    use crate::kafka_store::KafkaStore;
     use std::collections::HashMap;
     use std::sync::{Arc, Mutex};
-    
+
     // Mock store for testing
     #[derive(Clone, Debug)]
-    pub struct MockRedisStore {
+    pub struct MockKafkaStore {
         snapshots: Arc<Mutex<HashMap<String, String>>>,
         deltas: Arc<Mutex<HashMap<String, Vec<String>>>>,
     }
-    
-    impl MockRedisStore {
+
+    impl MockKafkaStore {
         pub fn new() -> Self {
             Self {
                 snapshots: Arc::new(Mutex::new(HashMap::new())),
                 deltas: Arc::new(Mutex::new(HashMap::new())),
             }
         }
-        
+
         pub fn get_snapshot_json(&self, exchange: ExchangeId, symbol: &str) -> Option<String> {
             let key = format!("{}:{}", exchange, symbol);
             self.snapshots.lock().unwrap().get(&key).cloned()
         }
-        
+
         pub fn delta_len(&self, exchange: ExchangeId, symbol: &str) -> usize {
             let key = format!("{}:{}", exchange, symbol);
-            self.deltas.lock().unwrap().get(&key).map(|v| v.len()).unwrap_or(0)
+            self.deltas
+                .lock()
+                .unwrap()
+                .get(&key)
+                .map(|v| v.len())
+                .unwrap_or(0)
         }
     }
-    
-    impl RedisStore for MockRedisStore {
+
+    impl KafkaStore for MockKafkaStore {
         fn store_snapshot(&self, exchange: ExchangeId, symbol: &str, snapshot: &OrderBook) {
             let key = format!("{}:{}", exchange, symbol);
             if let Ok(serialized) = serde_json::to_string(snapshot) {
                 self.snapshots.lock().unwrap().insert(key, serialized);
             }
         }
-        
+
         fn store_delta(&self, exchange: ExchangeId, symbol: &str, delta: &OrderBookEvent) {
             let key = format!("{}:{}", exchange, symbol);
             if let Ok(serialized) = serde_json::to_string(delta) {
-                self.deltas.lock().unwrap()
+                self.deltas
+                    .lock()
+                    .unwrap()
                     .entry(key)
                     .or_insert_with(Vec::new)
                     .push(serialized);
             }
         }
-        
+
         fn publish_snapshot(&self, _exchange: ExchangeId, _symbol: &str, _snapshot: &OrderBook) {}
         fn publish_delta(&self, _exchange: ExchangeId, _symbol: &str, _delta: &OrderBookEvent) {}
     }
@@ -139,7 +146,7 @@ mod tests {
 
     #[test]
     fn test_store_methods() {
-        let store = MockRedisStore::new();
+        let store = MockKafkaStore::new();
         let book = CryptocomOrderBookL2 {
             subscription_id: "BTC_USDT".into(),
             time: Utc::now(),

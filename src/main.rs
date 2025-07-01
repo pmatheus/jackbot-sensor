@@ -69,7 +69,7 @@ enum Commands {
     /// Show sensor status
     Status,
 
-    /// Run in MVP mode (simplified Redis order processing)
+    /// Run in MVP mode (simplified Kafka order processing)
     Mvp,
 }
 

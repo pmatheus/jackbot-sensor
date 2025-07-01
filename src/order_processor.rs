@@ -1,14 +1,14 @@
-//! Order processor - Handles order execution through Redis pub/sub
+//! Order processor - Handles order execution through Kafka backbone
 
 use anyhow::Result;
-use jackbot_data::redis_store::RedisClientStore;
-use redis::aio::MultiplexedConnection;
-use redis::{AsyncCommands, Client};
-use serde::{Deserialize, Serialize};
-use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, Ordering};
-use tracing::{error, info, warn};
 use futures_util::StreamExt;
+use jackbot_data::kafka_store::KafkaClientStore;
+use kafka::aio::MultiplexedConnection;
+use kafka::{AsyncCommands, Client};
+use serde::{Deserialize, Serialize};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+use tracing::{error, info, warn};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Order {
@@ -35,37 +35,38 @@ pub struct OrderStatus {
 
 #[derive(Clone)]
 pub struct OrderProcessor {
-    redis_store: Arc<RedisClientStore>,
+    kafka_store: Arc<KafkaClientStore>,
     running: Arc<AtomicBool>,
 }
 
 impl OrderProcessor {
-    pub async fn new(redis_store: Arc<RedisClientStore>) -> Result<Self> {
+    pub async fn new(kafka_store: Arc<KafkaClientStore>) -> Result<Self> {
         Ok(Self {
-            redis_store,
+            kafka_store,
             running: Arc::new(AtomicBool::new(true)),
         })
     }
 
     pub async fn run(&self) -> Result<()> {
         info!("🔄 Order processor starting...");
-        
-        // Get Redis connection for pub/sub
-        // For now, use the default Redis URL
-        let redis_url = std::env::var("REDIS_URL").unwrap_or_else(|_| "redis://127.0.0.1:6379".to_string());
-        let client = Client::open(redis_url)?;
-        
-        // Get connection for pub/sub
+
+        // Get Kafka connection for backbone
+        // For now, use the default Kafka URL
+        let kafka_url =
+            std::env::var("REDIS_URL").unwrap_or_else(|_| "kafka://127.0.0.1:6379".to_string());
+        let client = Client::open(kafka_url)?;
+
+        // Get connection for backbone
         let pubsub_con = client.get_async_connection().await?;
         let mut pubsub = pubsub_con.into_pubsub();
-        
+
         // Subscribe to order channel
         pubsub.subscribe("jb:orders:new").await?;
         info!("📡 Subscribed to order channel: jb:orders:new");
-        
+
         // Get connection for publishing status updates
         let mut con = client.get_multiplexed_async_connection().await?;
-        
+
         // Process orders
         while self.running.load(Ordering::Relaxed) {
             match pubsub.on_message().next().await {
@@ -75,10 +76,10 @@ impl OrderProcessor {
                             match serde_json::from_str::<Order>(&payload) {
                                 Ok(order) => {
                                     info!(
-                                        "📋 Received order: {} {} {} {} @ {:?}", 
+                                        "📋 Received order: {} {} {} {} @ {:?}",
                                         order.id, order.side, order.qty, order.symbol, order.price
                                     );
-                                    
+
                                     // Process the order
                                     let status = match self.process_order(&order).await {
                                         Ok(status) => {
@@ -86,7 +87,10 @@ impl OrderProcessor {
                                             status
                                         }
                                         Err(e) => {
-                                            error!("❌ Failed to process order {}: {}", order.id, e);
+                                            error!(
+                                                "❌ Failed to process order {}: {}",
+                                                order.id, e
+                                            );
                                             OrderStatus {
                                                 order_id: order.id.clone(),
                                                 status: "FAILED".to_string(),
@@ -97,13 +101,15 @@ impl OrderProcessor {
                                             }
                                         }
                                     };
-                                    
+
                                     // Publish status update
                                     let status_json = serde_json::to_string(&status)?;
-                                    let _: () = con.publish(
-                                        format!("jb:orders:status:{}", order.user),
-                                        status_json
-                                    ).await?;
+                                    let _: () = con
+                                        .publish(
+                                            format!("jb:orders:status:{}", order.user),
+                                            status_json,
+                                        )
+                                        .await?;
                                 }
                                 Err(e) => {
                                     error!("Failed to parse order: {}", e);
@@ -123,7 +129,7 @@ impl OrderProcessor {
                 }
             }
         }
-        
+
         info!("🛑 Order processor stopped");
         Ok(())
     }
@@ -131,19 +137,22 @@ impl OrderProcessor {
     async fn process_order(&self, order: &Order) -> Result<OrderStatus> {
         // TODO: Implement actual order execution
         // For now, this is a placeholder that simulates successful execution
-        
-        info!("🔄 Processing order {} on exchange {}", order.id, order.exchange);
-        
+
+        info!(
+            "🔄 Processing order {} on exchange {}",
+            order.id, order.exchange
+        );
+
         // In production, this would:
         // 1. Validate the order
         // 2. Check user balance/margin requirements
         // 3. Send order to the appropriate exchange
         // 4. Handle the exchange response
         // 5. Update order status in database
-        
+
         // Simulate processing delay
         tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
-        
+
         // Return simulated success
         Ok(OrderStatus {
             order_id: order.id.clone(),

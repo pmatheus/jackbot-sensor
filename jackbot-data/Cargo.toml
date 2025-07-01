@@ -49,8 +49,8 @@ thiserror = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 
-# Redis interaction
-redis = { workspace = true }
+# Kafka interaction
+kafka = { workspace = true }
 
 # Data Structures
 parking_lot = { workspace = true }

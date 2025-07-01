@@ -44,14 +44,14 @@ Volume Spikes:      25-35ms average
 
 ### ✅ Data Transceiver Performance
 
-**Target**: <100ms from exchange WebSocket to Redis  
+**Target**: <100ms from exchange WebSocket to Kafka  
 **Achievement**: ~75ms average latency  
 **Peak Performance**: Sub-50ms for direct connections  
 
 ```
 Exchange to Parser:  10-20ms average
-Parser to Redis:     15-25ms average
-Redis Storage:       5-10ms average
+Parser to Kafka:     15-25ms average
+Kafka Storage:       5-10ms average
 End-to-End:         75-95ms average
 ```
 
@@ -123,13 +123,13 @@ Bandwidth Usage:     10-50 Mbps sustained
 
 ### Storage Optimizations
 
-**Redis Performance**:
+**Kafka Performance**:
 - Pipelining for batch operations
 - Lua scripting for atomic operations
 - Memory-optimized data structures
 - Connection pooling and multiplexing
 
-**Redis Metrics**:
+**Kafka Metrics**:
 ```
 Access Latency:      <10ms average
 Write Throughput:    50,000+ ops/sec
@@ -143,7 +143,7 @@ Connection Pool:     100 connections
 
 **Test Environment**:
 - AWS c6i.4xlarge instance (16 vCPU, 32GB RAM)
-- Redis ElastiCache r6g.xlarge
+- Kafka ElastiCache r6g.xlarge
 - 1Gbps network connection
 - Ubuntu 22.04 LTS with performance kernel
 
@@ -272,8 +272,8 @@ tcp_nodelay = true
 tcp_keepalive = true
 reconnect_delay_ms = 100
 
-[redis]
-# Redis performance tuning
+[kafka]
+# Kafka performance tuning
 pipeline_size = 100
 connection_timeout_ms = 5000
 read_timeout_ms = 1000
@@ -323,7 +323,7 @@ max_reconnect_attempts = 5
 5. **Memory Usage** (monitor for leaks)
 6. **CPU Utilization** (should be <70% sustained)
 7. **Network Latency** (RTT to exchanges)
-8. **Redis Performance** (latency and throughput)
+8. **Kafka Performance** (latency and throughput)
 
 ### Prometheus Metrics
 
@@ -355,7 +355,7 @@ network_latency_seconds{exchange="binance"}
 4. Memory usage trends (graph)
 5. CPU utilization by component (stacked graph)
 6. Network latency to exchanges (heatmap)
-7. Redis performance metrics (multi-stat)
+7. Kafka performance metrics (multi-stat)
 8. Circuit breaker status (alert)
 
 ## Troubleshooting Performance Issues
@@ -374,9 +374,9 @@ ping api.binance.com
 mtr api.binance.com
 traceroute api.binance.com
 
-# Redis performance
-redis-cli --latency-history -i 1
-redis-cli info stats
+# Kafka performance
+kafka-cli --latency-history -i 1
+kafka-cli info stats
 
 # Application profiling
 perf record -g -p $(pgrep jackbot-sensor)
@@ -387,7 +387,7 @@ perf report
 1. **High CPU Usage**: Scale horizontally or optimize algorithms
 2. **Memory Pressure**: Tune cache sizes or add more RAM
 3. **Network Issues**: Check routing, DNS, or switch providers
-4. **Redis Bottleneck**: Tune Redis config or use clustering
+4. **Kafka Bottleneck**: Tune Kafka config or use clustering
 5. **Disk I/O**: Move to NVMe SSD or tune I/O scheduler
 
 ### Memory Optimization

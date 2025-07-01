@@ -352,7 +352,7 @@ impl PairDistributor {
             return Ok(Vec::new());
         }
 
-        warn!("Redistributing {} pairs from failed instance {}", 
+        warn!("Kafkatributing {} pairs from failed instance {}", 
               failed_pairs.len(), failed_instance);
 
         let mut operations = Vec::new();
@@ -398,7 +398,7 @@ impl PairDistributor {
 
         // If there are still remaining pairs, we need to overload some instances temporarily
         if !remaining_pairs.is_empty() {
-            warn!("Still have {} pairs to redistribute, overloading instances", 
+            warn!("Still have {} pairs to kafkatribute, overloading instances", 
                   remaining_pairs.len());
 
             // Distribute remaining pairs evenly among all healthy instances
@@ -424,7 +424,7 @@ impl PairDistributor {
                     from_instance: failed_instance.to_string(),
                     to_instance: instance_id,
                     pairs_to_move: assigned_pairs,
-                    reason: format!("Emergency redistribution from {}", failed_instance),
+                    reason: format!("Emergency kafkatribution from {}", failed_instance),
                     priority: RebalancePriority::Critical,
                 };
 
@@ -640,12 +640,12 @@ mod tests {
 
         let operations = distributor.handle_instance_failure("instance-3", &distribution).await.unwrap();
         
-        // Should create operations to redistribute the 3 pairs from instance-3
+        // Should create operations to kafkatribute the 3 pairs from instance-3
         assert!(!operations.is_empty());
         assert!(operations.iter().all(|op| op.from_instance == "instance-3"));
         assert!(operations.iter().all(|op| matches!(op.priority, RebalancePriority::Critical)));
         
-        let total_redistributed: usize = operations.iter().map(|op| op.pairs_to_move.len()).sum();
-        assert_eq!(total_redistributed, 3);
+        let total_kafkatributed: usize = operations.iter().map(|op| op.pairs_to_move.len()).sum();
+        assert_eq!(total_kafkatributed, 3);
     }
 }

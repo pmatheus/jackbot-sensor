@@ -120,8 +120,8 @@ base64 = { workspace = true }
 rand = { workspace = true }
 url = { workspace = true }
 
-# Redis for order processing
-redis = { workspace = true }
+# Kafka for order processing
+kafka = { workspace = true }
 
 [workspace.dependencies]
 # Jackbot Ecosystem
@@ -180,7 +180,7 @@ hex = { version = "0.4.3" }
 base64 = { version = "0.22.1" }
 
 # Database
-redis = { version = "0.27", features = ["aio", "tokio-comp", "connection-manager"] }
+kafka = { version = "0.27", features = ["aio", "tokio-comp", "connection-manager"] }
 
 # Misc
 rand = { version = "0.9.0" }

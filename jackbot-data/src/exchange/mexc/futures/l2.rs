@@ -4,7 +4,7 @@ use crate::{
     Identifier,
     books::{Canonicalizer, Level, OrderBook},
     event::{MarketEvent, MarketIter},
-    redis_store::RedisStore,
+    kafka_store::KafkaStore,
 };
 use chrono::{DateTime, Utc};
 use jackbot_instrument::exchange::ExchangeId;
@@ -39,14 +39,14 @@ impl Canonicalizer for MexcFuturesOrderBookL2 {
 }
 
 impl MexcFuturesOrderBookL2 {
-    /// Persist this order book snapshot to the provided [`RedisStore`].
-    pub fn store_snapshot<Store: RedisStore>(&self, store: &Store) {
+    /// Persist this order book snapshot to the provided [`KafkaStore`].
+    pub fn store_snapshot<Store: KafkaStore>(&self, store: &Store) {
         let snapshot = self.canonicalize(self.time);
         store.store_snapshot(ExchangeId::Mexc, self.subscription_id.as_ref(), &snapshot);
     }
 
-    /// Persist this order book update to the provided [`RedisStore`].
-    pub fn store_delta<Store: RedisStore>(&self, store: &Store) {
+    /// Persist this order book update to the provided [`KafkaStore`].
+    pub fn store_delta<Store: KafkaStore>(&self, store: &Store) {
         let delta = OrderBookEvent::Update(self.canonicalize(self.time));
         store.store_delta(ExchangeId::Mexc, self.subscription_id.as_ref(), &delta);
     }

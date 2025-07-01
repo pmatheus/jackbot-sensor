@@ -81,7 +81,7 @@ pub struct ApiConfig {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DataConfig {
-    pub redis_url: String,
+    pub kafka_url: String,
     pub message_broker: MessageBrokerConfig,
     pub kinesis_stream_prefix: String,
     pub s3_bucket: String,
@@ -265,7 +265,7 @@ impl Default for SensorConfig {
                 rate_limit_per_minute: 1000,
             },
             data: DataConfig {
-                redis_url: "redis://localhost:6379".to_string(),
+                kafka_url: "kafka://localhost:6379".to_string(),
                 message_broker: MessageBrokerConfig {
                     brokers: "localhost:9092".to_string(),
                     consumer_group: "jackbot-sensors".to_string(),

@@ -62,7 +62,7 @@ pub struct TradingEngine {
     risk_engine: RiskEngine,
     
     // Data distribution
-    redis_publisher: RedisPublisher,
+    kafka_publisher: KafkaPublisher,
     data_lake_writer: DataLakeWriter,
     
     // Performance monitoring
@@ -201,8 +201,8 @@ pub struct ExchangeConnection {
             }
         }
         
-        // Publish to Redis
-        self.publish_to_redis(&market_data).await?;
+        // Publish to Kafka
+        self.publish_to_kafka(&market_data).await?;
         
         Ok(())
     }
@@ -607,10 +607,10 @@ pub struct LockFreeOrderBook {
 
 ## 📊 DATA DISTRIBUTION
 
-### Redis Publishing
+### Kafka Publishing
 ```rust
-pub struct RedisPublisher {
-    pool: RedisPool,
+pub struct KafkaPublisher {
+    pool: KafkaPool,
     serializer: MessagePackSerializer,
     
     pub async fn publish_market_data(&self, data: &MarketData) -> Result<()> {
@@ -627,7 +627,7 @@ pub struct RedisPublisher {
         };
         
         // Publish with pipelining
-        redis::pipe()
+        kafka::pipe()
             .publish(&channel, payload)
             .publish("market_data:all", &channel)
             .query_async(&mut conn)
@@ -836,7 +836,7 @@ cpupower frequency-set -g performance
 ## 🤝 COLLABORATION PROTOCOL
 
 ### Data Contracts
-1. **Redis Message Format**: MessagePack serialization
+1. **Kafka Message Format**: MessagePack serialization
 2. **S3 Data Format**: Parquet with Iceberg metadata
 3. **WebSocket Protocol**: JSON with sequence numbers
 4. **Error Codes**: Standardized across all services

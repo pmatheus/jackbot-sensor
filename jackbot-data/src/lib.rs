@@ -10,7 +10,12 @@
     rust_2018_idioms,
     rust_2024_compatibility
 )]
-#![allow(clippy::type_complexity, clippy::too_many_arguments, type_alias_bounds, dead_code)]
+#![allow(
+    clippy::type_complexity,
+    clippy::too_many_arguments,
+    type_alias_bounds,
+    dead_code
+)]
 
 //! # Jackbot-Data
 //! A high-performance WebSocket integration library for streaming public market data from leading cryptocurrency
@@ -146,7 +151,7 @@ pub mod instrument;
 /// a collection of sorted local Instrument [`OrderBook`](books::OrderBook)s
 pub mod books;
 
-/// Redis storage utilities for snapshots, deltas, and trades.
+/// Kafka storage utilities for snapshots, deltas, and trades.
 
 /// High-performance data structures and optimizations for trading operations.
 // Note: Temporarily disabled due to unsafe code restrictions
@@ -166,8 +171,8 @@ pub mod books;
 /// [`futures_usd`](exchange::binance::futures::l2::BinanceFuturesUsdOrderBooksL2Transformer).
 pub mod transformer;
 
-/// Redis store for caching order book and trade data.
-pub mod redis_store;
+/// Kafka store for caching order book and trade data.
+pub mod kafka_store;
 
 /// Convenient type alias for an [`ExchangeStream`] utilising a tungstenite
 /// [`WebSocket`](jackbot_integration::protocol::websocket::WebSocket).

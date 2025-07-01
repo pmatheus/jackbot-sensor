@@ -1,4 +1,4 @@
-use crate::redis_store::RedisStore;
+use crate::kafka_store::KafkaStore;
 use crate::{
     Identifier,
     books::{
@@ -39,7 +39,7 @@ where
     St: Stream<Item = MarketStreamEvent<BookMap::Key, OrderBookEvent>> + Unpin,
     BookMap: OrderBookMap,
     BookMap::Key: Debug + Display,
-    Store: RedisStore,
+    Store: KafkaStore,
 {
     /// Manage local L2 [`OrderBook`]s.
     pub async fn run(mut self) {
@@ -65,32 +65,35 @@ where
             let mut book_lock = book.write();
             match event.kind {
                 OrderBookEvent::Snapshot(ref snap) => {
-                    // Store snapshot to Redis storage
+                    // Store snapshot to Kafka storage
                     self.store
                         .store_snapshot(event.exchange, &event.instrument.to_string(), snap);
-                    
-                    // Publish snapshot to Redis pub/sub for real-time streaming
-                    self.store
-                        .publish_snapshot(event.exchange, &event.instrument.to_string(), snap);
-                    
+
+                    // Publish snapshot to Kafka backbone for real-time streaming
+                    self.store.publish_snapshot(
+                        event.exchange,
+                        &event.instrument.to_string(),
+                        snap,
+                    );
+
                     // Update local order book
                     book_lock.update(OrderBookEvent::Snapshot(snap.clone()));
                 }
                 OrderBookEvent::Update(ref delta) => {
-                    // Store delta to Redis storage
+                    // Store delta to Kafka storage
                     self.store.store_delta(
                         event.exchange,
                         &event.instrument.to_string(),
                         &OrderBookEvent::Update(delta.clone()),
                     );
-                    
-                    // Publish delta to Redis pub/sub for real-time streaming
+
+                    // Publish delta to Kafka backbone for real-time streaming
                     self.store.publish_delta(
                         event.exchange,
                         &event.instrument.to_string(),
                         &OrderBookEvent::Update(delta.clone()),
                     );
-                    
+
                     // Update local order book
                     book_lock.update(OrderBookEvent::Update(delta.clone()));
                 }
@@ -130,7 +133,7 @@ where
     Instrument::Key: Eq + Hash + Send + 'static,
     Subscription<Exchange, Instrument, OrderBooksL2>:
         Identifier<Exchange::Channel> + Identifier<Exchange::Market>,
-    Store: RedisStore + Clone,
+    Store: KafkaStore + Clone,
 {
     // Generate Streams from provided OrderBooksL2 Subscription batches
     let (stream_builder, books) = subscription_batches.into_iter().fold(

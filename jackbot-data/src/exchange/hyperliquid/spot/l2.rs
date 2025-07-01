@@ -5,7 +5,7 @@ use crate::{
     books::{Canonicalizer, Level, OrderBook},
     event::{MarketEvent, MarketIter},
     exchange::{hyperliquid::channel::HyperliquidChannel, subscription::ExchangeSub},
-    redis_store::RedisStore,
+    kafka_store::KafkaStore,
     subscription::book::OrderBookEvent,
 };
 use chrono::{DateTime, Utc};
@@ -42,8 +42,8 @@ impl Canonicalizer for HyperliquidOrderBookL2 {
 }
 
 impl HyperliquidOrderBookL2 {
-    /// Persist this order book snapshot to the provided [`RedisStore`].
-    pub fn store_snapshot<Store: RedisStore>(&self, store: &Store) {
+    /// Persist this order book snapshot to the provided [`KafkaStore`].
+    pub fn store_snapshot<Store: KafkaStore>(&self, store: &Store) {
         let snapshot = self.canonicalize(self.time);
         store.store_snapshot(
             ExchangeId::Hyperliquid,
@@ -52,8 +52,8 @@ impl HyperliquidOrderBookL2 {
         );
     }
 
-    /// Persist this order book update to the provided [`RedisStore`].
-    pub fn store_delta<Store: RedisStore>(&self, store: &Store) {
+    /// Persist this order book update to the provided [`KafkaStore`].
+    pub fn store_delta<Store: KafkaStore>(&self, store: &Store) {
         let delta = OrderBookEvent::Update(self.canonicalize(self.time));
         store.store_delta(
             ExchangeId::Hyperliquid,
@@ -93,7 +93,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{books::Level, redis_store::DefaultRedisStore};
+    use crate::{books::Level, kafka_store::DefaultKafkaStore};
     use rust_decimal_macros::dec;
 
     #[test]
@@ -116,7 +116,7 @@ mod tests {
     #[test]
     fn test_store_methods() {
         // TODO: Fix store initialization for async
-        // let store = DefaultRedisStore::new();
+        // let store = DefaultKafkaStore::new();
         let book = HyperliquidOrderBookL2 {
             subscription_id: "BTC".into(),
             time: Utc::now(),

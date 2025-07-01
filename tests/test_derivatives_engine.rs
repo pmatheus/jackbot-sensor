@@ -2,7 +2,7 @@
 
 #[cfg(test)]
 mod tests {
-    use super::super::derivatives_engine::*;
+    use jackbot_sensor::defi::derivatives_engine::*;
     use ethers::prelude::*;
     use std::collections::HashMap;
 

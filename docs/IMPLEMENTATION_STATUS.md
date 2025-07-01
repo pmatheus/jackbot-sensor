@@ -553,34 +553,34 @@ Only the paper and mock engines support automatic liquidation.
 - Check off each box as you complete the step for each task.
 - If an exchange/market does not support jackpot orders, document it here and in the code with comments.
 
-## 🚧 TODO: Redis Order Book & Trade Data Representation
+## 🚧 TODO: Kafka Order Book & Trade Data Representation
 
-> **Goal:** Implement a Redis-backed, real-time representation of all order book and trade data being fetched for all supported exchanges and markets. Ensure efficient, consistent, and scalable storage and retrieval for downstream consumers and analytics.
+> **Goal:** Implement a Kafka-backed, real-time representation of all order book and trade data being fetched for all supported exchanges and markets. Ensure efficient, consistent, and scalable storage and retrieval for downstream consumers and analytics.
 
 **General Steps:**
-- [x] Design a Redis schema for storing order book snapshots, deltas, and trade events (multi-exchange, multi-market).
+- [x] Design a Kafka schema for storing order book snapshots, deltas, and trade events (multi-exchange, multi-market).
 - [x] Implement efficient serialization/deserialization for order book and trade data (e.g., JSON, MessagePack, or binary).
-- [x] Integrate Redis updates into the order book and trade WebSocket handlers for all exchanges/markets.
-- [x] Ensure atomicity and consistency of updates (e.g., use Redis transactions or Lua scripts for multi-key updates).
+- [x] Integrate Kafka updates into the order book and trade WebSocket handlers for all exchanges/markets.
+- [x] Ensure atomicity and consistency of updates (e.g., use Kafka transactions or Lua scripts for multi-key updates).
 - Snapshot keys use the pattern `jb:<exchange>:<instrument>:snapshot`.
 - Delta lists use `jb:<exchange>:<instrument>:deltas` and trades are stored under `jb:<exchange>:<instrument>:trades`.
-- All writes are performed via Redis pipelines with `.atomic()` to guarantee consistency.
-- [x] Implement efficient querying and subscription mechanisms for downstream consumers (e.g., pub/sub, streams, sorted sets).
-- [x] Add/extend integration and unit tests for Redis logic (including edge cases, reconnections, and data consistency).
+- All writes are performed via Kafka pipelines with `.atomic()` to guarantee consistency.
+- [x] Implement efficient querying and subscription mechanisms for downstream consumers (e.g., backbone, streams, sorted sets).
+- [x] Add/extend integration and unit tests for Kafka logic (including edge cases, reconnections, and data consistency).
 - [x] Add/extend module-level and user-facing documentation.
 - [x] Update `docs/IMPLEMENTATION_STATUS.md` with status and links.
 
 - **Feature-Specific TODOs:**
 
-- [x] Redis Order Book Storage (all exchanges, spot/futures)
-- [x] Redis Trade Data Storage (all exchanges, spot/futures)
+- [x] Kafka Order Book Storage (all exchanges, spot/futures)
+- [x] Kafka Trade Data Storage (all exchanges, spot/futures)
 - [x] Multi-Exchange/Market Keying & Namespacing
 - [x] Efficient Delta/Update Handling
-- [x] Downstream Consumer API (pub/sub, streams, etc.)
-- [x] MEXC: Integrate Redis for order book and trades
-- [x] Gate.io: Integrate Redis for order book and trades
+- [x] Downstream Consumer API (backbone, streams, etc.)
+- [x] MEXC: Integrate Kafka for order book and trades
+- [x] Gate.io: Integrate Kafka for order book and trades
 - Gate.io now uses a single `ExchangeId::Gateio` variant across all crates.
-- [x] Crypto.com: Integrate Redis for order book and trades
+- [x] Crypto.com: Integrate Kafka for order book and trades
 
 **Final Steps:**
 - [x] Update feature matrix and exchange-by-exchange status in this file.
@@ -591,15 +591,15 @@ Only the paper and mock engines support automatic liquidation.
 
 **Instructions for Contributors:**
 - Check off each box as you complete the step for each task.
-- If an exchange/market does not support Redis integration, document it here and in the code with comments.
+- If an exchange/market does not support Kafka integration, document it here and in the code with comments.
 
-## 🚧 TODO: Redis Snapshot to S3 (Parquet + Iceberg Data Lake)
+## 🚧 TODO: Kafka Snapshot to S3 (Parquet + Iceberg Data Lake)
 
-> **Goal:** Implement a mechanism to periodically save snapshots of cached order book and trade data from Redis to S3 in Parquet format, using Apache Iceberg for data lake management. Ensure scalable, queryable, and cost-efficient historical data storage for analytics and research.
+> **Goal:** Implement a mechanism to periodically save snapshots of cached order book and trade data from Kafka to S3 in Parquet format, using Apache Iceberg for data lake management. Ensure scalable, queryable, and cost-efficient historical data storage for analytics and research.
 
 **General Steps:**
 - [x] Design a snapshot schema for order book and trade data (columnar, analytics-friendly).
-- [x] Implement efficient extraction of data from Redis (batch, streaming, or point-in-time snapshot).
+- [x] Implement efficient extraction of data from Kafka (batch, streaming, or point-in-time snapshot).
 - [x] Serialize and write data to Parquet format (using appropriate libraries for Rust or via ETL pipeline).
 - [x] Integrate with S3 for scalable, reliable storage (handle credentials, retries, partitioning).
 - [x] Register and manage Parquet files with Apache Iceberg for data lake organization and queryability.
@@ -646,7 +646,7 @@ Only the paper and mock engines support automatic liquidation.
     - [x] Account balance updates (deposits, withdrawals, transfers, PnL, margin changes).
     - [x] Order events (new, filled, partially filled, canceled, rejected, etc.).
     - [x] Position updates (for futures/perpetuals).
- - [x] Normalize and emit events for downstream consumers (internal APIs, Redis, etc.).
+ - [x] Normalize and emit events for downstream consumers (internal APIs, Kafka, etc.).
 - [x] Add/extend integration and unit tests for all user WebSocket logic (including edge cases, reconnections, and error handling).
 - [x] Add/extend module-level and user-facing documentation.
 - [x] Update `docs/IMPLEMENTATION_STATUS.md` with status and links.

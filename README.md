@@ -18,12 +18,12 @@ Jackbot Sensor is a high-performance cryptocurrency trading system supporting 11
 # Install Rust (if not already installed)
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
-# Install Redis for local development
-# macOS: brew install redis
-# Ubuntu: sudo apt install redis-server
+# Install Kafka for local development
+# macOS: brew install kafka
+# Ubuntu: sudo apt install kafka-server
 
-# Start Redis
-redis-server
+# Start Kafka
+kafka-server
 ```
 
 ### Paper Trading (Recommended for First Use)
@@ -76,7 +76,7 @@ cargo run --bin jackbot-market-maker --exchange binance --symbol BTC/USDT --spre
 │                    Data Layer                                     │
 │                                 │                                 │
 │  ┌─────────────┐   ┌─────────────┐   ┌─────────────────────────┐  │
-│  │   Redis     │   │ WebSocket   │   │     S3 Data Lake        │  │
+│  │   Kafka     │   │ WebSocket   │   │     S3 Data Lake        │  │
 │  │   Cache     │◄─►│  Streams    │◄─►│  (Parquet + Iceberg)    │  │
 │  └─────────────┘   └─────────────┘   └─────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────┘
@@ -191,7 +191,7 @@ cargo run --bin jackbot-portfolio           # Portfolio analytics
 - **Risk Management**: ✅ Complete - Multi-dimensional controls and monitoring
 - **Strategy Framework**: ✅ Complete - Backtesting, live deployment, A/B testing
 - **Portfolio Management**: ✅ Complete - Real-time P&L and performance analytics
-- **Data Pipeline**: ✅ Complete - Redis caching, S3 data lake, Parquet storage
+- **Data Pipeline**: ✅ Complete - Kafka caching, S3 data lake, Parquet storage
 - **Monitoring**: ✅ Complete - Health checks, alerting, performance metrics
 
 ### Production Readiness
@@ -210,7 +210,7 @@ cargo run --bin jackbot-portfolio           # Portfolio analytics
 ## 📈 Performance Characteristics
 
 ### Latency & Throughput
-- **Market Data**: <100ms from exchange WebSocket to Redis
+- **Market Data**: <100ms from exchange WebSocket to Kafka
 - **Order Execution**: <500ms end-to-end (including risk checks)
 - **Strategy Evaluation**: <50ms per trading signal
 - **Throughput**: 1,000+ orders/second, 50,000+ market data messages/second

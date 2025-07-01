@@ -8,7 +8,7 @@ A high-performance market data collection engine for cryptocurrency trading with
 * **Canonical Representation**: Unified L2 order book and trade data across all venues
 * **High Performance**: <100ms latency, 50,000+ messages/second processing capacity
 * **Reliable**: Automatic reconnection, sequence validation, and gap detection
-* **Redis Integration**: High-speed caching for sub-millisecond data access
+* **Kafka Integration**: High-speed caching for sub-millisecond data access
 
 ## 🚀 Quick Start
 

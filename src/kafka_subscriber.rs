@@ -16,7 +16,7 @@ use tracing::{debug, error, info, warn};
 use jackbot_sensor::api::{OrderResponse, BalanceData, PositionData};
 use jackbot_sensor::streaming::StreamingManager;
 
-/// Kafka topics (replacing Redis channels)
+/// Kafka topics (replacing Kafka channels)
 pub mod topics {
     pub const ORDER_COMMANDS: &str = "user.orders";
     pub const STRATEGY_COMMANDS: &str = "strategy.execution";

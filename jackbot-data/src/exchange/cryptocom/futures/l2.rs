@@ -4,7 +4,7 @@ use crate::{
     Identifier,
     books::{Canonicalizer, Level, OrderBook},
     event::{MarketEvent, MarketIter},
-    redis_store::RedisStore,
+    kafka_store::KafkaStore,
 };
 use chrono::{DateTime, Utc};
 use jackbot_instrument::exchange::ExchangeId;
@@ -39,8 +39,8 @@ impl Canonicalizer for CryptocomFuturesOrderBookL2 {
 }
 
 impl CryptocomFuturesOrderBookL2 {
-    /// Persist this order book snapshot to the provided [`RedisStore`].
-    pub fn store_snapshot<Store: RedisStore>(&self, store: &Store) {
+    /// Persist this order book snapshot to the provided [`KafkaStore`].
+    pub fn store_snapshot<Store: KafkaStore>(&self, store: &Store) {
         let snapshot = self.canonicalize(self.time);
         store.store_snapshot(
             ExchangeId::Cryptocom,
@@ -49,8 +49,8 @@ impl CryptocomFuturesOrderBookL2 {
         );
     }
 
-    /// Persist this order book update to the provided [`RedisStore`].
-    pub fn store_delta<Store: RedisStore>(&self, store: &Store) {
+    /// Persist this order book update to the provided [`KafkaStore`].
+    pub fn store_delta<Store: KafkaStore>(&self, store: &Store) {
         let delta = OrderBookEvent::Update(self.canonicalize(self.time));
         store.store_delta(ExchangeId::Cryptocom, self.subscription_id.as_ref(), &delta);
     }
@@ -76,18 +76,18 @@ impl<InstrumentKey> From<(ExchangeId, InstrumentKey, CryptocomFuturesOrderBookL2
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::redis_store::RedisStore;
+    use crate::kafka_store::KafkaStore;
     use std::collections::HashMap;
     use std::sync::{Arc, Mutex};
 
     // Mock store for testing
     #[derive(Clone, Debug)]
-    pub struct MockRedisStore {
+    pub struct MockKafkaStore {
         snapshots: Arc<Mutex<HashMap<String, String>>>,
         deltas: Arc<Mutex<HashMap<String, Vec<String>>>>,
     }
 
-    impl MockRedisStore {
+    impl MockKafkaStore {
         pub fn new() -> Self {
             Self {
                 snapshots: Arc::new(Mutex::new(HashMap::new())),
@@ -111,7 +111,7 @@ mod tests {
         }
     }
 
-    impl RedisStore for MockRedisStore {
+    impl KafkaStore for MockKafkaStore {
         fn store_snapshot(&self, exchange: ExchangeId, symbol: &str, snapshot: &OrderBook) {
             let key = format!("{}:{}", exchange, symbol);
             if let Ok(serialized) = serde_json::to_string(snapshot) {
@@ -146,7 +146,7 @@ mod tests {
 
     #[test]
     fn test_store_methods() {
-        let store = MockRedisStore::new();
+        let store = MockKafkaStore::new();
         let book = CryptocomFuturesOrderBookL2 {
             subscription_id: "BTC_USDT".into(),
             time: Utc::now(),

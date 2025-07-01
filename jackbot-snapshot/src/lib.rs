@@ -10,7 +10,7 @@ use std::{
     sync::Arc,
     time::{Duration, SystemTime},
 };
-// Removed FakeRedis and mocks - mission critical project uses real Redis only
+// Removed FakeKafka and mocks - mission critical project uses real Kafka only
 use tokio::time;
 type HmacSha256 = Hmac<Sha256>;
 
@@ -28,7 +28,7 @@ pub struct DataRecord {
     pub value: String,
 }
 
-// FakeRedis removed - mission critical project requires real Redis only
+// FakeKafka removed - mission critical project requires real Kafka only
 
 pub fn write_parquet(records: &[DataRecord], path: &Path) -> io::Result<()> {
     let mut file = File::create(path)?;
@@ -279,7 +279,7 @@ pub struct SnapshotConfig {
 }
 
 pub struct SnapshotScheduler {
-    // FakeRedis removed - mission critical project requires real Redis only
+    // FakeKafka removed - mission critical project requires real Kafka only
     store: Arc<dyn ObjectStore>,
     iceberg_metadata: PathBuf,
     config: SnapshotConfig,
@@ -299,7 +299,7 @@ impl SnapshotScheduler {
     }
 
     pub async fn snapshot_once(&self) -> io::Result<()> {
-        // FakeRedis removed - implement real Redis data fetching
+        // FakeKafka removed - implement real Kafka data fetching
         let records: Vec<DataRecord> = Vec::new(); // Placeholder
         if records.is_empty() {
             return Ok(());

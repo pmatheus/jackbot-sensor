@@ -30,4 +30,4 @@ At a high level, an `ExchangeStream` is made up of a few major components:
 * Transformer that transforms from exchange specific message into an iterator of the desired outputs type.
 
 ## Roadmap
-* Add new default StreamParser implementations to enable integration with redis and s3 (parquet + iceberg)
+* Add new default StreamParser implementations to enable integration with kafka and s3 (parquet + iceberg)

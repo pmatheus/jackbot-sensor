@@ -109,16 +109,6 @@ impl DeFiEngine {
         } else {
             None
         };
-                max_position_size: U256::from(500_000) * U256::exp10(18), // $500K max position
-                max_delta_exposure: 100.0, // Max delta exposure
-                max_gamma_exposure: 50.0, // Max gamma exposure
-                max_vega_exposure: 1000.0, // Max vega exposure
-                volatility_threshold: 0.5, // 50% volatility threshold
-                funding_rate_threshold: 0.01, // 1% funding rate threshold
-                cross_chain_enabled: true,
-                synthetic_creation_enabled: true,
-            }).await?
-        );
 
         Ok(Self {
             config,

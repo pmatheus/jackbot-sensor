@@ -9,7 +9,7 @@ use crate::{
     error::DataError,
     event::{MarketEvent, MarketIter},
     exchange::{hyperliquid::channel::HyperliquidChannel, subscription::ExchangeSub},
-    redis_store::RedisStore,
+    kafka_store::KafkaStore,
 };
 use chrono::{DateTime, Utc};
 use jackbot_instrument::exchange::ExchangeId;
@@ -45,8 +45,8 @@ impl Canonicalizer for HyperliquidFuturesOrderBookL2 {
 }
 
 impl HyperliquidFuturesOrderBookL2 {
-    /// Persist this order book snapshot to the provided [`RedisStore`].
-    pub fn store_snapshot<Store: RedisStore>(&self, store: &Store) {
+    /// Persist this order book snapshot to the provided [`KafkaStore`].
+    pub fn store_snapshot<Store: KafkaStore>(&self, store: &Store) {
         let snapshot = self.canonicalize(self.time);
         store.store_snapshot(
             ExchangeId::Hyperliquid,
@@ -55,8 +55,8 @@ impl HyperliquidFuturesOrderBookL2 {
         );
     }
 
-    /// Persist this order book update to the provided [`RedisStore`].
-    pub fn store_delta<Store: RedisStore>(&self, store: &Store) {
+    /// Persist this order book update to the provided [`KafkaStore`].
+    pub fn store_delta<Store: KafkaStore>(&self, store: &Store) {
         let delta = OrderBookEvent::Update(self.canonicalize(self.time));
         store.store_delta(
             ExchangeId::Hyperliquid,
@@ -124,7 +124,7 @@ impl L2Sequencer<HyperliquidFuturesOrderBookL2> for HyperliquidFuturesOrderBookL
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{books::Level, redis_store::DefaultRedisStore};
+    use crate::{books::Level, kafka_store::DefaultKafkaStore};
     use rust_decimal_macros::dec;
 
     #[test]
@@ -151,7 +151,7 @@ mod tests {
         let book: HyperliquidFuturesOrderBookL2 = serde_json::from_str(input).unwrap();
 
         // TODO: Fix store initialization for async
-        // let store = DefaultRedisStore::new();
+        // let store = DefaultKafkaStore::new();
         book.store_snapshot(&store);
 
         // Use the actual subscription_id generated during deserialization
