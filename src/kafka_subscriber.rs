@@ -13,8 +13,8 @@ use std::sync::Arc;
 use tokio::sync::{mpsc, RwLock};
 use tracing::{debug, error, info, warn};
 
-use crate::api::{OrderResponse, BalanceData, PositionData};
-use crate::streaming::StreamingManager;
+use jackbot_sensor::api::{OrderResponse, BalanceData, PositionData};
+use jackbot_sensor::streaming::StreamingManager;
 
 /// Kafka topics (replacing Redis channels)
 pub mod topics {

@@ -1,14 +1,14 @@
-use anyhow::{Result, anyhow};
+use anyhow::Result;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
-use tracing::{warn, debug};
-use chrono::{DateTime, Utc, NaiveDateTime};
+use tracing::debug;
+use chrono::{DateTime, NaiveDateTime};
 
 use crate::api::{
-    ErrorCode, PlaceOrderRequest, OrderType, OrderSide,
-    TickerData, OrderBookData, TradeData, KlineData, BalanceData, PositionData
+    ErrorCode, PlaceOrderRequest, OrderType,
+    TickerData, OrderBookData, TradeData, KlineData
 };
 
 /// Data validation and sanitization utilities according to API contract
@@ -300,7 +300,8 @@ impl DataNormalizer {
         }
         
         // Fallback: try to split concatenated format with common quote assets
-        let common_quotes = vec!["USDT", "USDC", "USD", "EUR", "BTC", "ETH", "BNB", "BUSD", "DAI"];
+        let common_quotes: Vec<String> = vec!["USDT", "USDC", "USD", "EUR", "BTC", "ETH", "BNB", "BUSD", "DAI"]
+            .into_iter().map(|s| s.to_string()).collect();
         if let Some(result) = self.split_concatenated_symbol(symbol, &common_quotes) {
             return result;
         }
@@ -362,10 +363,10 @@ impl DataNormalizer {
         let symbol = symbol.to_uppercase();
         
         // Sort quote assets by length (longest first) to avoid partial matches
-        let mut sorted_quotes = quote_assets.clone();
+        let mut sorted_quotes = quote_assets.to_vec();
         sorted_quotes.sort_by(|a, b| b.len().cmp(&a.len()));
         
-        for quote in &sorted_quotes {
+        for quote in sorted_quotes.iter() {
             if symbol.ends_with(quote) && symbol.len() > quote.len() {
                 let base = &symbol[..symbol.len() - quote.len()];
                 if !base.is_empty() && base.len() >= 2 { // Minimum 2 chars for base
@@ -856,7 +857,7 @@ impl DataValidator {
     
     /// Comprehensive order validation
     pub fn validate_order(&self, order: &PlaceOrderRequest) -> Result<PlaceOrderRequest, ValidationError> {
-        let mut validated_order = order.clone();
+        let mut validated_order = (*order).clone();
         
         // Validate and normalize symbol
         validated_order.symbol = self.validate_symbol(&order.symbol)?;

@@ -198,12 +198,11 @@ impl PairDistributor {
         // Move pairs from overloaded to underloaded instances
         for (over_instance, _) in overloaded {
             for (under_instance, _) in &underloaded {
-                if let (Some(over_pairs), Some(under_pairs)) = (
-                    distribution.get_mut(&over_instance),
-                    distribution.get(&under_instance),
-                ) {
-                    let over_load = over_pairs.len();
-                    let under_load = under_pairs.len();
+                // First get the lengths to avoid borrowing conflicts
+                let over_load = distribution.get(&over_instance).map(|pairs| pairs.len()).unwrap_or(0);
+                let under_load = distribution.get(under_instance).map(|pairs| pairs.len()).unwrap_or(0);
+                
+                if over_load > 0 && under_load >= 0 {
                     
                     if over_load > target_load + tolerance && under_load < target_load - tolerance {
                         // Calculate how many pairs to move
@@ -214,14 +213,16 @@ impl PairDistributor {
 
                         if pairs_to_move > 0 {
                             // Move pairs (take from the end to avoid reshuffling base asset groups)
-                            let moved_pairs: Vec<String> = over_pairs
-                                .drain(over_pairs.len().saturating_sub(pairs_to_move)..)
-                                .collect();
+                            if let Some(over_pairs) = distribution.get_mut(&over_instance) {
+                                let moved_pairs: Vec<String> = over_pairs
+                                    .drain(over_pairs.len().saturating_sub(pairs_to_move)..)
+                                    .collect();
 
                             if let Some(under_pairs) = distribution.get_mut(under_instance) {
                                 under_pairs.extend(moved_pairs);
                                 debug!("Moved {} pairs from {} to {}", 
                                       pairs_to_move, over_instance, under_instance);
+                                }
                             }
                         }
                     }

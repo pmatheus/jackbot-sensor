@@ -16,19 +16,19 @@ use tokio::sync::{RwLock, mpsc};
 use tower::ServiceBuilder;
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
-use tracing::{info, warn, error, debug};
+use tracing::{info, warn, debug};
 use uuid::Uuid;
-use regex::Regex;
+// use regex::Regex;
 use jsonwebtoken::{decode, decode_header, jwk::{Jwk, JwkSet}, Algorithm, DecodingKey, Validation};
 use reqwest;
-use std::sync::OnceLock;
+// use std::sync::OnceLock;
 use std::time::{SystemTime, UNIX_EPOCH};
 use base64::{Engine as _, engine::general_purpose};
 
 use crate::config::ApiConfig;
 use crate::sensor::{InstanceInfo, NewPairAlert};
-use crate::validation::{DataValidator, ValidationError};
-use crate::rate_limit::{RateLimitManager, RateLimitConfig, RateLimitBucket, get_rate_limit_bucket_from_path};
+use crate::validation::DataValidator;
+use crate::rate_limit::{RateLimitManager, RateLimitConfig, get_rate_limit_bucket_from_path};
 
 #[derive(Clone)]
 pub struct ApiState {
@@ -175,7 +175,7 @@ pub enum ErrorCode {
     InternalError,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct PlaceOrderRequest {
     pub exchange: String,
     pub symbol: String, // Standard format: BTC/USDT
@@ -191,7 +191,7 @@ pub struct PlaceOrderRequest {
     pub post_only: Option<bool>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum OrderSide {
     #[serde(rename = "buy")]
     Buy,
@@ -199,7 +199,7 @@ pub enum OrderSide {
     Sell,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum OrderType {
     #[serde(rename = "market")]
     Market,
@@ -211,7 +211,7 @@ pub enum OrderType {
     StopLimit,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum OrderStatus {
     #[serde(rename = "new")]
     New,
@@ -227,7 +227,7 @@ pub enum OrderStatus {
     Rejected,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum TimeInForce {
     #[serde(rename = "GTC")]
     GoodTillCancelled,
@@ -1641,8 +1641,8 @@ async fn get_strategy_status_handler(
             "drawdown": -125.50
         },
         "runtime": {
-            "startTime": chrono::Utc::now().timestamp_millis() - 2592000000, // 30 days ago
-            "uptime": 2592000000, // 30 days in ms
+            "startTime": chrono::Utc::now().timestamp_millis() - 2592000000i64, // 30 days ago
+            "uptime": 2592000000i64, // 30 days in ms
             "errors": 0,
             "lastSignal": chrono::Utc::now().timestamp_millis() - 3600000 // 1 hour ago
         },
@@ -2319,8 +2319,10 @@ impl JwtValidator {
         let jwks = jwks.as_ref()?;
         
         for key in &jwks.keys {
-            if key.kid.as_ref() == Some(&kid.to_string()) {
-                return self.jwk_to_decoding_key(key);
+            if let Some(key_id) = &key.common.key_id {
+                if key_id == &kid.to_string() {
+                    return self.jwk_to_decoding_key(key);
+                }
             }
         }
         
@@ -2361,11 +2363,11 @@ impl JwtValidator {
     
     /// Convert a JWK to a DecodingKey
     fn jwk_to_decoding_key(&self, jwk: &Jwk) -> Option<DecodingKey> {
-        match &jwk.algorithm {
-            Some(alg) if alg.as_str() == "RS256" => {
+        match &jwk.common.key_algorithm {
+            Some(alg) => {
                 // For RS256, we need the modulus (n) and exponent (e)
-                if let (Some(n), Some(e)) = (&jwk.n, &jwk.e) {
-                    match DecodingKey::from_rsa_components(n, e) {
+                if let jsonwebtoken::jwk::AlgorithmParameters::RSA(rsa_params) = &jwk.algorithm {
+                    match DecodingKey::from_rsa_components(&rsa_params.n, &rsa_params.e) {
                         Ok(key) => Some(key),
                         Err(e) => {
                             warn!("Failed to create decoding key from RSA components: {}", e);
@@ -2373,12 +2375,12 @@ impl JwtValidator {
                         }
                     }
                 } else {
-                    warn!("RSA JWK missing required components (n, e)");
+                    warn!("JWK is not RSA type");
                     None
                 }
             },
             _ => {
-                warn!("Unsupported JWK algorithm: {:?}", jwk.algorithm);
+                warn!("Unsupported JWK algorithm: {:?}", jwk.common.key_algorithm);
                 None
             }
         }
@@ -2488,7 +2490,7 @@ async fn rate_limit_middleware(
         });
     
     // Get the rate limit bucket for this request
-    if let Some(bucket) = get_rate_limit_bucket_from_path(path, user_id, Some(ip)) {
+    if let Some(bucket) = get_rate_limit_bucket_from_path(path, user_id.as_deref(), Some(ip)) {
         match state.rate_limiter.check_rate_limit(bucket).await {
             Ok(rate_limit_info) => {
                 // Add rate limit headers to response

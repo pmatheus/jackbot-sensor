@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-use tokio::sync::{broadcast, mpsc, RwLock};
+use tokio::sync::{broadcast, RwLock};
 use tokio::time::interval;
 use tracing::{debug, error, info, warn};
 use url::Url;
@@ -329,7 +329,7 @@ impl GenericExchangeConnector {
         );
 
         // TODO: Fix RateLimiter constructor signature
-        let rate_limiter = RateLimiter::new(config.rate_limit_per_second);
+        let rate_limiter = RateLimiter::new(crate::rate_limit::RateLimitConfig::default());
 
         Self {
             config: config.clone(),
@@ -347,7 +347,6 @@ impl GenericExchangeConnector {
             circuit_breaker,
             rate_limiter,
             streaming_manager,
-            trading_client: None,
             market_data_tx: None,
             user_data_tx: None,
             start_time: Instant::now(),
@@ -363,23 +362,23 @@ impl GenericExchangeConnector {
                     (&self.config.api_key, &self.config.api_secret)
                 {
                     // For now, use the BinanceFuturesUsd client from jackbot-execution
-                    self.trading_client = Some(Box::new(
-                        jackbot_execution::client::binance::futures::BinanceFuturesUsd::new(
-                            jackbot_execution::client::binance::futures::BinanceFuturesUsdConfig::default()
-                        )
-                    ));
+                    // self.trading_client = Some(Box::new(
+                    //     jackbot_execution::client::binance::futures::BinanceFuturesUsd::new(
+                    //         jackbot_execution::client::binance::futures::BinanceFuturesUsdConfig::default()
+                    //     )
+                    // ));
                 } else {
                     // Use mock client for testing
-                    self.trading_client = Some(Box::new(MockExchangeClient::new()));
+                    // self.trading_client = Some(Box::new(MockExchangeClient::new()));
                 }
             }
             ExchangeId::Coinbase => {
                 // Use mock client for now - could be extended with real Coinbase client
-                self.trading_client = Some(Box::new(MockExchangeClient::new()));
+                // self.trading_client = Some(Box::new(MockExchangeClient::new()));
             }
             _ => {
                 // Default to mock client
-                self.trading_client = Some(Box::new(MockExchangeClient::new()));
+                // self.trading_client = Some(Box::new(MockExchangeClient::new()));
             }
         }
 
@@ -894,15 +893,13 @@ impl ExchangeConnector for GenericExchangeConnector {
             .await?;
 
         // Circuit breaker check
-        self.circuit_breaker
-            .call(async {
-                if let Some(trading_client) = &self.trading_client {
-                    trading_client.place_order(order).await
-                } else {
-                    Err(anyhow::anyhow!("Trading client not initialized"))
-                }
-            })
-            .await
+        if self.circuit_breaker.is_open() {
+            return Err(anyhow::anyhow!("Circuit breaker is open - too many failures"));
+        }
+        
+        // Trading client not implemented yet
+        // TODO: Implement real trading client integration
+        Err(anyhow::anyhow!("Trading client not implemented yet"))
     }
 
     async fn cancel_order(&self, order_id: &str, symbol: Option<&str>) -> Result<()> {
@@ -920,15 +917,13 @@ impl ExchangeConnector for GenericExchangeConnector {
             .await?;
 
         // Circuit breaker check
-        self.circuit_breaker
-            .call(async {
-                if let Some(trading_client) = &self.trading_client {
-                    trading_client.cancel_order(order_id, symbol).await
-                } else {
-                    Err(anyhow::anyhow!("Trading client not initialized"))
-                }
-            })
-            .await
+        if self.circuit_breaker.is_open() {
+            return Err(anyhow::anyhow!("Circuit breaker is open - too many failures"));
+        }
+        
+        // Trading client not implemented yet
+        // TODO: Implement real trading client integration
+        Err(anyhow::anyhow!("Trading client not implemented yet"))
     }
 
     async fn get_balances(&self) -> Result<Vec<BalanceData>> {
@@ -941,27 +936,9 @@ impl ExchangeConnector for GenericExchangeConnector {
             ))
             .await?;
 
-        if let Some(trading_client) = &self.trading_client {
-            let balances = trading_client.get_balances().await?;
-
-            // Convert to BalanceData format
-            let balance_data = balances
-                .into_iter()
-                .map(|balance| BalanceData {
-                    user_id: "user_123".to_string(), // TODO: Get from auth context
-                    exchange: self.config.exchange_id.as_str().to_string(),
-                    asset: balance.asset,
-                    free: balance.free,
-                    locked: balance.locked,
-                    total: balance.free + balance.locked,
-                    timestamp: chrono::Utc::now().timestamp_millis(),
-                })
-                .collect();
-
-            Ok(balance_data)
-        } else {
-            Err(anyhow::anyhow!("Trading client not initialized"))
-        }
+        // Trading client not implemented yet
+        // TODO: Implement real trading client integration
+        Err(anyhow::anyhow!("Trading client not implemented yet"))
     }
 
     async fn get_positions(&self) -> Result<Vec<PositionData>> {
