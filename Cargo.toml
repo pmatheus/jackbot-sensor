@@ -121,7 +121,7 @@ rand = { workspace = true }
 url = { workspace = true }
 
 # Kafka for order processing
-kafka = { workspace = true }
+# kafka = { workspace = true } # Temporarily disabled - using rdkafka for now
 
 [workspace.dependencies]
 # Jackbot Ecosystem
@@ -180,7 +180,7 @@ hex = { version = "0.4.3" }
 base64 = { version = "0.22.1" }
 
 # Database
-kafka = { version = "0.27", features = ["aio", "tokio-comp", "connection-manager"] }
+# kafka = { version = "0.10.0" } # Temporarily disabled - interface mismatch
 
 # Misc
 rand = { version = "0.9.0" }

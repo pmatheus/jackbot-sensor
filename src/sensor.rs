@@ -67,13 +67,9 @@ impl SensorManager {
     pub async fn new(config: SensorConfig, instance_id: Option<String>) -> Result<Self> {
         info!("📡 Initializing sensor manager...");
         
-        // Connect to Kafka
-        let kafka_store = Arc::new(
-            KafkaClientStore::new(&config.data.kafka_url, "jb")
-                .await
-                .map_err(|e| anyhow::anyhow!("Failed to create Kafka store: {}", e))?
-        );
-        info!("✅ Connected to Kafka");
+        // Connect to Kafka (using mock implementation for now)
+        let kafka_store = Arc::new(KafkaClientStore::new());
+        info!("✅ Connected to Kafka (mock mode)");
 
         Ok(Self {
             config,

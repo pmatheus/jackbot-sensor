@@ -50,7 +50,7 @@ serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 
 # Kafka interaction
-kafka = { workspace = true }
+# kafka = { workspace = true } # Temporarily disabled
 
 # Data Structures
 parking_lot = { workspace = true }
