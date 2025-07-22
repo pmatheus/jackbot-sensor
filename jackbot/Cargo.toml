@@ -30,6 +30,7 @@ jackbot-integration = { workspace = true }
 jackbot-instrument = { workspace = true }
 jackbot-data = { workspace = true }
 jackbot-execution = { workspace = true }
+jackbot-risk = { workspace = true }
 serde_json = { workspace = true }
 
 # Logging

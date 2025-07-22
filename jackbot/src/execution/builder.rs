@@ -6,6 +6,7 @@ use crate::{
         request::ExecutionRequest,
     },
 };
+use std::future::Future;
 use fnv::FnvHashMap;
 use futures::{FutureExt, future::join_all};
 use jackbot_data::streams::consumer::STREAM_RECONNECTION_POLICY;
