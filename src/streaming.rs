@@ -76,7 +76,7 @@ const BROADCAST_CHANNEL_CAPACITY: usize = 50_000;
 const BACKPRESSURE_TIMEOUT_MS: u64 = 100;
 
 /// Backpressure metrics
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Default)]
 pub struct BackpressureMetrics {
     pub dropped_messages: std::sync::atomic::AtomicU64,
     pub backpressure_events: std::sync::atomic::AtomicU64,

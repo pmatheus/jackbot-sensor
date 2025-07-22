@@ -117,12 +117,12 @@ libc = "0.2"
 url = "2.5.0"
 rand = "0.8.5"
 
-[target.'cfg(windows)'.dependencies]
-winapi = { version = "0.3", features = ["processthreadsapi", "winbase"] }
-
 # Cryptographic libraries for exchange authentication
 hmac = "0.12"
 sha2 = "0.10"
+
+[target.'cfg(windows)'.dependencies]
+winapi = { version = "0.3", features = ["processthreadsapi", "winbase"] }
 
 
 

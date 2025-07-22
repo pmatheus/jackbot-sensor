@@ -16,19 +16,20 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tracing::{debug, error, info, warn};
 
-pub mod analysis;
-pub mod chat;
-pub mod client;
-pub mod insights;
-pub mod models;
-pub mod strategy;
+// TODO: Implement these AI assistant modules
+// pub mod analysis;
+// pub mod chat;
+// pub mod client;
+// pub mod insights;
+// pub mod models;
+// pub mod strategy;
 
-pub use analysis::*;
-pub use chat::*;
-pub use client::*;
-pub use insights::*;
-pub use models::*;
-pub use strategy::*;
+// pub use analysis::*;
+// pub use chat::*;
+// pub use client::*;
+// pub use insights::*;
+// pub use models::*;
+// pub use strategy::*;
 
 /// AI Assistant service configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -308,9 +308,10 @@ impl MexcConnector {
         let mut order_book = OrderBookData {
             exchange: "mexc".to_string(),
             symbol: Self::normalize_symbol(&book.symbol),
-            timestamp: chrono::Utc::now().timestamp_millis() as u64,
+            timestamp: chrono::Utc::now().timestamp_millis(),
             bids: Vec::with_capacity(book.bids.len()),
             asks: Vec::with_capacity(book.asks.len()),
+            sequence_id: None,
         };
 
         // Parse bids
@@ -340,10 +341,11 @@ impl MexcConnector {
         Ok(TradeData {
             exchange: "mexc".to_string(),
             symbol: symbol.to_string(),
-            trade_id: trade.t.to_string(),
+            id: trade.t.to_string(),
             price: trade.p.parse()?,
             quantity: trade.v.parse()?,
-            is_buyer_maker: trade.S == 2,
+            side: if trade.S == 2 { "sell" } else { "buy" }.to_string(),
+            is_maker: trade.S == 2,
             timestamp: trade.t as i64,
         })
     }

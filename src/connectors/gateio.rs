@@ -173,9 +173,10 @@ impl GateioConnector {
         let mut order_book = OrderBookData {
             exchange: "gateio".to_string(),
             symbol: Self::normalize_symbol(&book.s),
-            timestamp: book.t,
+            timestamp: book.t as i64,
             bids: Vec::with_capacity(book.bids.len()),
             asks: Vec::with_capacity(book.asks.len()),
+            sequence_id: None,
         };
 
         // Parse bids
@@ -197,8 +198,8 @@ impl GateioConnector {
         }
 
         // Sort for consistency
-        order_book.bids.sort_by(|a, b| b.0.cmp(&a.0)); // Descending
-        order_book.asks.sort_by(|a, b| a.0.cmp(&b.0)); // Ascending
+        order_book.bids.sort_by(|a, b| b[0].partial_cmp(&a[0]).unwrap_or(std::cmp::Ordering::Equal)); // Descending
+        order_book.asks.sort_by(|a, b| a[0].partial_cmp(&b[0]).unwrap_or(std::cmp::Ordering::Equal)); // Ascending
 
         Ok(order_book)
     }

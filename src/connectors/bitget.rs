@@ -21,7 +21,7 @@ use crate::connector::{
 use crate::streaming::StreamingManager;
 
 use jackbot_execution::client::{
-    bitget::{BitgetClient, BitgetConfig},
+    bitget::{BitgetClient, BitgetConfig, types::TradingMode},
     ExecutionClient,
 };
 use jackbot_instrument::{
@@ -182,7 +182,7 @@ impl Exchange for BitgetConnector {
                 passphrase: api_passphrase.clone(),
                 rest_url: "https://api.bitget.com".to_string(),
                 ws_url: "wss://ws.bitget.com/spot/v1/stream".to_string(),
-                trading_mode: jackbot_execution::TradingMode::Spot,
+                trading_mode: TradingMode::Spot,
             }
         } else {
             BitgetConfig {
@@ -191,7 +191,7 @@ impl Exchange for BitgetConnector {
                 passphrase: "demo".to_string(),
                 rest_url: "https://api.bitget.com".to_string(),
                 ws_url: "wss://ws.bitget.com/spot/v1/stream".to_string(),
-                trading_mode: jackbot_execution::TradingMode::Spot,
+                trading_mode: TradingMode::Spot,
             }
         };
         

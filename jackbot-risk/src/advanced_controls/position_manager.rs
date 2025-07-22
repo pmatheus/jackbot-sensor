@@ -18,7 +18,7 @@ pub struct PositionManager {
     position_analytics: PositionAnalytics,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct ExchangePositions {
     /// Net position
     pub net_position: Decimal,
@@ -295,6 +295,15 @@ impl KellySizing {
     }
 }
 
+impl Default for RiskParitySizing {
+    fn default() -> Self {
+        Self {
+            risk_contributions: HashMap::new(),
+            target_allocations: HashMap::new(),
+            current_allocations: HashMap::new(),
+        }
+    }
+}
 
 impl RiskParitySizing {
     pub fn new() -> Self {

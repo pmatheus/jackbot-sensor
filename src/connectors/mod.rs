@@ -25,7 +25,7 @@ pub mod okx;
 pub use crate::connector::{Exchange, Connection, OrderResult, Order, OrderId, Balance};
 
 /// Supported exchanges enum matching the specification
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum SupportedExchange {
     Binance,      // Spot & Futures
     Coinbase,     // Institutional grade
@@ -70,9 +70,9 @@ impl SupportedExchange {
             SupportedExchange::Kraken => jackbot_instrument::exchange::ExchangeId::Kraken,
             SupportedExchange::OKX => jackbot_instrument::exchange::ExchangeId::Okx,
             // TODO: Add proper ExchangeId mappings when available in jackbot_instrument
-            SupportedExchange::Gateio => jackbot_instrument::exchange::ExchangeId::Binance, // Temporary mapping
-            SupportedExchange::MEXC => jackbot_instrument::exchange::ExchangeId::Binance, // Temporary mapping
-            SupportedExchange::BingX => jackbot_instrument::exchange::ExchangeId::Binance, // Temporary mapping
+            SupportedExchange::Gateio => jackbot_instrument::exchange::ExchangeId::Gateio,
+            SupportedExchange::MEXC => jackbot_instrument::exchange::ExchangeId::Mexc,
+            SupportedExchange::BingX => jackbot_instrument::exchange::ExchangeId::BitgetSpot, // Using BitgetSpot as fallback for BingX
         }
     }
 }

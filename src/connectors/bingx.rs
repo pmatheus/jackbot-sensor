@@ -279,9 +279,10 @@ impl BingXConnector {
         let mut order_book = OrderBookData {
             exchange: "bingx".to_string(),
             symbol: symbol.to_string(),
-            timestamp: book.timestamp,
+            timestamp: book.timestamp as i64,
             bids: Vec::with_capacity(book.bids.len()),
             asks: Vec::with_capacity(book.asks.len()),
+            sequence_id: None,
         };
 
         // Parse bids
@@ -311,10 +312,11 @@ impl BingXConnector {
         Ok(TradeData {
             exchange: "bingx".to_string(),
             symbol: Self::normalize_symbol(&trade.s),
-            trade_id: trade.timestamp.to_string(),
+            id: trade.timestamp.to_string(),
             price: trade.p.parse()?,
             quantity: trade.q.parse()?,
-            is_buyer_maker: trade.m,
+            side: if trade.m { "sell" } else { "buy" }.to_string(),
+            is_maker: trade.m,
             timestamp: trade.timestamp as i64,
         })
     }

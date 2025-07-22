@@ -34,8 +34,8 @@ use crate::connector::ConnectorManager;
 #[derive(Clone)]
 pub struct ApiState {
     instances: Arc<RwLock<HashMap<String, InstanceInfo>>>,
-    alert_channel: mpsc::Sender<NewPairAlert>, // BOUNDED CHANNEL
-    ws_connections: Arc<RwLock<HashMap<String, mpsc::Sender<String>>>>, // BOUNDED CHANNELS
+    alert_channel: mpsc::UnboundedSender<NewPairAlert>,
+    ws_connections: Arc<RwLock<HashMap<String, mpsc::UnboundedSender<String>>>>,
     validator: Arc<DataValidator>,
     rate_limiter: Arc<RateLimitManager>,
     jwt_validator: Arc<JwtValidator>,

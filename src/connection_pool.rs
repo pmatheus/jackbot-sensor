@@ -107,7 +107,7 @@ impl ConnectionPool {
         {
             let mut conn = redis_pool.get().await
                 .context("Failed to get Redis connection")?;
-            let _: String = conn.ping().await
+            let _: String = redis::cmd("PING").query_async(&mut *conn).await
                 .context("Redis ping failed")?;
             info!("Redis connection established successfully");
         }
@@ -404,7 +404,7 @@ impl ConnectionPool {
                 
                 match redis_pool.get().await {
                     Ok(mut conn) => {
-                        match conn.ping::<String>().await {
+                        match redis::cmd("PING").query_async::<_, String>(&mut *conn).await {
                             Ok(_) => {
                                 debug!("Redis health check passed");
                             }

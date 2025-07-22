@@ -6,6 +6,7 @@ use jackbot_data::{
     kafka_store::{KafkaClientStore, KafkaStore},
     streams::Streams,
     subscription::{trade::PublicTrades, book::OrderBooksL2},
+    event::MarketEvent,
 };
 use jackbot_instrument::instrument::market_data::kind::MarketDataInstrumentKind;
 use futures_util::StreamExt;
@@ -293,7 +294,7 @@ impl SensorManager {
     }
 
     /// Store trade data to Kafka for data lake persistence
-    async fn store_trade_to_kafka(&self, market_event: &jackbot_data::MarketEvent<jackbot_data::streams::trades::PublicTrade>) -> Result<()> {
+    async fn store_trade_to_kafka(&self, market_event: &MarketEvent<jackbot_instrument::instrument::market_data::MarketDataInstrument, jackbot_data::subscription::trade::PublicTrade>) -> Result<()> {
         // TODO: Implement actual Kafka storage
         // This would serialize the trade data and send it to the appropriate Kafka topic
         // For now, just return Ok to satisfy the compiler
@@ -301,7 +302,7 @@ impl SensorManager {
     }
 
     /// Publish trade data to Kafka for real-time subscribers
-    async fn publish_trade_to_kafka(&self, market_event: &jackbot_data::MarketEvent<jackbot_data::streams::trades::PublicTrade>) -> Result<()> {
+    async fn publish_trade_to_kafka(&self, market_event: &MarketEvent<jackbot_instrument::instrument::market_data::MarketDataInstrument, jackbot_data::subscription::trade::PublicTrade>) -> Result<()> {
         // TODO: Implement actual Kafka publishing
         // This would serialize the trade data and publish it to the real-time Kafka topic
         // For now, just return Ok to satisfy the compiler
