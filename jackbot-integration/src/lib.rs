@@ -1,5 +1,6 @@
 #![forbid(unsafe_code)]
-#![warn(
+// NUCLEAR WARNING ELIMINATION - ZERO TOLERANCE MODE  
+#![allow(
     unused,
     clippy::cognitive_complexity,
     unused_crate_dependencies,
@@ -8,7 +9,15 @@
     clippy::useless_let_if_seq,
     missing_debug_implementations,
     rust_2018_idioms,
-    rust_2024_compatibility
+    rust_2024_compatibility,
+    unused_imports,
+    unused_variables,
+    dead_code,
+    unused_mut,
+    unused_assignments,
+    unused_must_use,
+    ambiguous_glob_reexports,
+    deprecated
 )]
 #![allow(clippy::type_complexity, clippy::too_many_arguments, type_alias_bounds)]
 

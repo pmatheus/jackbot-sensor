@@ -1,14 +1,14 @@
 //! User WebSocket handling for Bitget Spot with health monitoring.
 use crate::exchange::{DEFAULT_HEARTBEAT_INTERVAL, user_ws_common::UserWsEvent as BitgetUserEvent};
 use chrono::Utc;
-use futures::{SinkExt, StreamExt};
+use futures::{SinkExt, StreamExt, pin_mut};
 use jackbot_instrument::exchange::ExchangeId;
 use jackbot_integration::{
     error::SocketError,
     metric::{Field, Metric, Tag},
     protocol::websocket::{WebSocket, WsMessage, connect, with_heartbeat},
 };
-use rand::Rng;
+use rand::{Rng, rng};
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::UnboundedReceiverStream;
 use tokio_tungstenite::tungstenite::Message;
@@ -24,7 +24,8 @@ async fn run_connection(
     if sink.send(WsMessage::text(auth_payload)).await.is_err() {
         return Err(());
     }
-    let mut stream = with_heartbeat(stream, DEFAULT_HEARTBEAT_INTERVAL, ExchangeId::BitgetSpot);
+    let stream = with_heartbeat(stream, DEFAULT_HEARTBEAT_INTERVAL, ExchangeId::BitgetSpot);
+    pin_mut!(stream);
     while let Some(msg) = stream.next().await {
         let msg = match msg {
             Ok(m) => m,
@@ -68,7 +69,7 @@ pub async fn user_stream(
                     info!(?metric, "connected to Bitget user WebSocket");
                     backoff = BACKOFF_INITIAL;
                     if run_connection(ws, &tx, &auth_payload).await.is_err() {
-                        let jitter = rand::rng().random_range(0..=JITTER);
+                        let jitter = rng().random_range(0..=JITTER);
                         let delay = std::time::Duration::from_millis(backoff + jitter);
                         let metric = Metric {
                             name: "ws_user_reconnect_backoff",

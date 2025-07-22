@@ -19,10 +19,14 @@ use jackbot_instrument::{
 use std::future::Future;
 
 pub mod binance;
+pub mod bitget;
+pub mod bybit;
 pub mod coinbase;
 pub mod cryptocom;
 pub mod gateio;
+pub mod hyperliquid;
 pub mod kraken;
+pub mod kucoin;
 pub mod mexc;
 pub mod mock;
 pub mod okx;

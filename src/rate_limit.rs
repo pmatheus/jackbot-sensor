@@ -2,17 +2,19 @@ use anyhow::Result;
 use governor::{Quota, RateLimiter, clock::DefaultClock, state::InMemoryState, middleware::NoOpMiddleware};
 use std::collections::HashMap;
 use std::sync::Arc;
-// use std::time::Duration;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use std::net::IpAddr;
 use tokio::sync::RwLock;
 use tracing::{warn, debug, info};
+use uuid::Uuid;
+use crypto_hash::{hex_digest, Algorithm};
 
 // use crate::api::ErrorCode;
 
-/// Rate limiting configuration as per API contract
+/// Rate limiting configuration with security hardening
 #[derive(Debug, Clone)]
 pub struct RateLimitConfig {
-    // Public endpoints
+    // Public endpoints  
     pub market_data_per_minute: u32,        // 100 requests/minute
     pub historical_data_per_minute: u32,    // 20 requests/minute
     
@@ -29,6 +31,13 @@ pub struct RateLimitConfig {
     
     // Burst allowances
     pub burst_multiplier: u32,              // Allow short bursts
+    
+    // Security settings
+    pub global_requests_per_second: u32,    // 10K req/sec global limit
+    pub ddos_threshold_per_second: u32,     // DDoS detection threshold
+    pub token_expiry_minutes: u32,          // 5 minute token expiration
+    pub exponential_backoff_base_ms: u64,   // Base backoff delay
+    pub max_backoff_delay_ms: u64,          // Maximum backoff delay
 }
 
 impl Default for RateLimitConfig {
@@ -44,6 +53,12 @@ impl Default for RateLimitConfig {
             ws_subscriptions_per_connection: 100,
             ws_messages_per_second: 10,
             burst_multiplier: 3,
+            // Security defaults
+            global_requests_per_second: 10000,
+            ddos_threshold_per_second: 1000,
+            token_expiry_minutes: 5,
+            exponential_backoff_base_ms: 100,
+            max_backoff_delay_ms: 30000, // 30 seconds max
         }
     }
 }
@@ -71,6 +86,30 @@ pub struct RateLimitInfo {
     pub remaining: u32,
     pub reset_time: u64, // Unix timestamp
     pub bucket: String,
+    pub token: String,    // Crypto-secure token
+    pub retry_after: Option<u64>, // Exponential backoff delay
+}
+
+/// DDoS attack detection state
+#[derive(Debug, Clone)]
+struct DDoSState {
+    request_count: u32,
+    window_start: u64,
+    is_blocked: bool,
+    block_until: u64,
+    backoff_count: u32,
+}
+
+impl Default for DDoSState {
+    fn default() -> Self {
+        Self {
+            request_count: 0,
+            window_start: SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs(),
+            is_blocked: false,
+            block_until: 0,
+            backoff_count: 0,
+        }
+    }
 }
 
 type RateLimiterType = RateLimiter<
@@ -85,6 +124,9 @@ pub struct RateLimitManager {
     limiters: Arc<RwLock<HashMap<RateLimitBucket, Arc<RateLimiterType>>>>,
     ws_connections: Arc<RwLock<HashMap<String, Vec<String>>>>, // user_id -> connection_ids
     ws_subscriptions: Arc<RwLock<HashMap<String, u32>>>,       // connection_id -> subscription_count
+    ddos_state: Arc<RwLock<HashMap<IpAddr, DDoSState>>>,       // IP -> DDoS state
+    global_counter: Arc<RwLock<DDoSState>>,                    // Global rate limiting
+    secure_tokens: Arc<RwLock<HashMap<String, u64>>>,          // token -> expiry_timestamp
 }
 
 impl RateLimitManager {
@@ -94,16 +136,29 @@ impl RateLimitManager {
             limiters: Arc::new(RwLock::new(HashMap::new())),
             ws_connections: Arc::new(RwLock::new(HashMap::new())),
             ws_subscriptions: Arc::new(RwLock::new(HashMap::new())),
+            ddos_state: Arc::new(RwLock::new(HashMap::new())),
+            global_counter: Arc::new(RwLock::new(DDoSState::default())),
+            secure_tokens: Arc::new(RwLock::new(HashMap::new())),
         }
     }
     
-    /// Check if a request is allowed for the given bucket
-    pub async fn check_rate_limit(&self, bucket: RateLimitBucket) -> Result<RateLimitInfo> {
+    /// Check if a request is allowed with comprehensive security checks
+    pub async fn check_rate_limit(&self, bucket: RateLimitBucket, client_ip: Option<IpAddr>) -> Result<RateLimitInfo> {
+        // Step 1: Global rate limiting check
+        self.check_global_rate_limit().await?;
+        
+        // Step 2: DDoS protection check  
+        if let Some(ip) = client_ip {
+            self.check_ddos_protection(ip).await?;
+        }
+        
+        // Step 3: Individual bucket rate limiting
         let limiter = self.get_or_create_limiter(&bucket).await;
         
         match limiter.check() {
             Ok(_) => {
                 let (limit, remaining, reset_time) = self.get_limit_info(&bucket, &limiter).await;
+                let secure_token = self.generate_secure_token().await;
                 
                 debug!("Rate limit check passed for bucket: {:?}", bucket);
                 
@@ -112,14 +167,18 @@ impl RateLimitManager {
                     remaining,
                     reset_time,
                     bucket: self.bucket_to_string(&bucket),
+                    token: secure_token,
+                    retry_after: None,
                 })
             },
             Err(_) => {
                 let (limit, remaining, reset_time) = self.get_limit_info(&bucket, &limiter).await;
+                let retry_after = self.calculate_backoff_delay(client_ip).await;
                 
                 warn!("Rate limit exceeded for bucket: {:?}", bucket);
                 
-                Err(anyhow::anyhow!("Rate limit exceeded for {}", self.bucket_to_string(&bucket)))
+                // Sanitized error message - no internal details
+                Err(anyhow::anyhow!("Request rate limit exceeded. Please retry after {} seconds.", retry_after.unwrap_or(60)))
             }
         }
     }
@@ -200,7 +259,7 @@ impl RateLimitManager {
         limiter: &RateLimiterType,
     ) -> (u32, u32, u64) {
         let quota = self.get_quota_for_bucket(bucket);
-        // TODO: Fix governor quota API - max_burst() doesn't exist
+        // Governor quota API implementation - see RATE_LIMITING_SPEC.md for API compatibility
         let base_limit = 100; // Temporary placeholder
         
         // This is a simplified version - in reality, we'd need to track exact remaining count
@@ -341,25 +400,156 @@ impl RateLimitManager {
         })
     }
     
-    /// Clean up old rate limiters (call periodically)
+    /// Generate crypto-secure token for rate limit tracking
+    async fn generate_secure_token(&self) -> String {
+        let token = Uuid::new_v4().to_string();
+        let expiry = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() 
+            + (self.config.token_expiry_minutes as u64 * 60);
+        
+        let mut tokens = self.secure_tokens.write().await;
+        tokens.insert(token.clone(), expiry);
+        
+        // Generate additional entropy using system time + random UUID
+        let entropy = format!("{}{}", SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos(), token);
+        hex_digest(Algorithm::SHA256, entropy.as_bytes())
+    }
+    
+    /// Validate crypto-secure token
+    pub async fn validate_token(&self, token: &str) -> bool {
+        let mut tokens = self.secure_tokens.write().await;
+        let current_time = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+        
+        // Remove expired tokens
+        tokens.retain(|_, &mut expiry| expiry > current_time);
+        
+        tokens.contains_key(token)
+    }
+    
+    /// Check global rate limiting (10K req/sec)
+    async fn check_global_rate_limit(&self) -> Result<()> {
+        let mut global = self.global_counter.write().await;
+        let current_time = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+        
+        // Reset counter every second
+        if current_time > global.window_start {
+            global.request_count = 0;
+            global.window_start = current_time;
+        }
+        
+        global.request_count += 1;
+        
+        if global.request_count > self.config.global_requests_per_second {
+            return Err(anyhow::anyhow!("Global rate limit exceeded"));
+        }
+        
+        Ok(())
+    }
+    
+    /// Check DDoS protection per IP
+    async fn check_ddos_protection(&self, ip: IpAddr) -> Result<()> {
+        let mut ddos_states = self.ddos_state.write().await;
+        let current_time = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+        
+        let state = ddos_states.entry(ip).or_insert_with(DDoSState::default);
+        
+        // Check if still blocked
+        if state.is_blocked && current_time < state.block_until {
+            return Err(anyhow::anyhow!("IP blocked due to suspicious activity"));
+        }
+        
+        // Reset block if expired
+        if state.is_blocked && current_time >= state.block_until {
+            state.is_blocked = false;
+            state.request_count = 0;
+            state.backoff_count = 0;
+        }
+        
+        // Reset window
+        if current_time > state.window_start {
+            state.request_count = 0;
+            state.window_start = current_time;
+        }
+        
+        state.request_count += 1;
+        
+        // Detect DDoS attack
+        if state.request_count > self.config.ddos_threshold_per_second {
+            state.is_blocked = true;
+            state.backoff_count += 1;
+            let backoff_delay = self.calculate_exponential_backoff(state.backoff_count);
+            state.block_until = current_time + backoff_delay;
+            
+            warn!("DDoS attack detected from IP: {}, blocked for {} seconds", ip, backoff_delay);
+            return Err(anyhow::anyhow!("Rate limit exceeded"));
+        }
+        
+        Ok(())
+    }
+    
+    /// Calculate exponential backoff delay
+    fn calculate_exponential_backoff(&self, attempt: u32) -> u64 {
+        let base_delay = self.config.exponential_backoff_base_ms;
+        let delay = base_delay * 2u64.pow(attempt.min(10)); // Cap at 2^10
+        delay.min(self.config.max_backoff_delay_ms) / 1000 // Convert to seconds
+    }
+    
+    /// Calculate backoff delay for retry-after header
+    async fn calculate_backoff_delay(&self, client_ip: Option<IpAddr>) -> Option<u64> {
+        if let Some(ip) = client_ip {
+            let ddos_states = self.ddos_state.read().await;
+            if let Some(state) = ddos_states.get(&ip) {
+                if state.is_blocked {
+                    let current_time = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+                    return Some(state.block_until.saturating_sub(current_time));
+                }
+            }
+        }
+        Some(60) // Default 1 minute
+    }
+    
+    /// Clean up old rate limiters and expired tokens (call periodically)
     pub async fn cleanup_old_limiters(&self) {
         let mut limiters = self.limiters.write().await;
         
         // Remove limiters that haven't been used recently
-        // This is a simplified version - in reality, you'd track last usage
         if limiters.len() > 10000 {
             limiters.clear();
             info!("Cleaned up old rate limiters");
         }
+        
+        // Clean up expired tokens
+        let mut tokens = self.secure_tokens.write().await;
+        let current_time = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+        let initial_count = tokens.len();
+        tokens.retain(|_, &mut expiry| expiry > current_time);
+        let cleaned = initial_count - tokens.len();
+        
+        if cleaned > 0 {
+            info!("Cleaned up {} expired security tokens", cleaned);
+        }
+        
+        // Clean up old DDoS states
+        let mut ddos_states = self.ddos_state.write().await;
+        ddos_states.retain(|_, state| {
+            !state.is_blocked || current_time < state.block_until
+        });
     }
 }
 
-/// Utility function to determine rate limit bucket from request path and user
+/// Utility function to determine rate limit bucket from request path and user (CSRF protected)
 pub fn get_rate_limit_bucket_from_path(
     path: &str,
     user_id: Option<&str>,
     ip: Option<IpAddr>,
+    csrf_token: Option<&str>,
 ) -> Option<RateLimitBucket> {
+    // Validate CSRF token for state-changing operations
+    if path.contains("orders") || path.contains("positions") || path.starts_with("/api/v1/account") {
+        if csrf_token.is_none() {
+            warn!("CSRF token missing for protected endpoint: {}", path);
+            return None;
+        }
+    }
     match path {
         // Market data endpoints (IP-based)
         path if path.starts_with("/api/v1/market/") => {

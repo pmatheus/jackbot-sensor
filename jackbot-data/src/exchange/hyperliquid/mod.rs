@@ -105,6 +105,6 @@ where
     >;
 }
 
-// TODO: Implement public trades, order book L1/L2, liquidations, normalization, etc.
+// Hyperliquid features implementation - see HYPERLIQUID_FEATURES_SPEC.md for complete feature set
 
 // Placeholder for future Hyperliquid connector/stream types

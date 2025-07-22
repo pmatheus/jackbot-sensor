@@ -1,7 +1,7 @@
 [package]
 name = "jackbot"
 version = "0.12.2"
-edition = "2024"
+edition = "2021"
 authors = ["Jack <mail@jackbot.app>"]
 license = "MIT"
 documentation = "https://docs.rs/jackbot"
@@ -50,6 +50,7 @@ serde = { workspace = true, features = ["derive"] }
 # Data Structures
 smol_str = { workspace = true }
 rust_decimal = { workspace = true }
+rust_decimal_macros = { workspace = true }
 fnv = { workspace = true }
 indexmap = { workspace = true, features = ["serde"]}
 

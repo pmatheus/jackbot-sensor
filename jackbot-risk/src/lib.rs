@@ -42,6 +42,11 @@ pub struct RiskMetrics {
     pub portfolio_volatility: Decimal,
     /// Sharpe ratio
     pub sharpe_ratio: Decimal,
+    /// Additional fields for advanced risk controller
+    pub value_at_risk: Decimal,
+    pub total_exposure: Decimal,
+    pub current_pnl: Decimal,
+    pub liquidity_score: f64,
 }
 
 impl Default for RiskMetrics {
@@ -55,6 +60,10 @@ impl Default for RiskMetrics {
             risk_level: RiskLevel::Low,
             portfolio_volatility: Decimal::ZERO,
             sharpe_ratio: Decimal::ZERO,
+            value_at_risk: Decimal::ZERO,
+            total_exposure: Decimal::ZERO,
+            current_pnl: Decimal::ZERO,
+            liquidity_score: 1.0,
         }
     }
 }

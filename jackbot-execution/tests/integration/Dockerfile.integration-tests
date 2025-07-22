@@ -1,0 +1,62 @@
+# Dockerfile for running integration tests
+FROM rust:1.75-bullseye as builder
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    pkg-config \
+    libssl-dev \
+    libpq-dev \
+    curl \
+    netcat \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Copy workspace configuration
+COPY Cargo.toml Cargo.lock ./
+
+# Copy source code
+COPY . .
+
+# Build integration tests
+RUN cargo build --tests --package jackbot-execution
+
+# Create final runtime image
+FROM debian:bullseye-slim
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    libssl1.1 \
+    libpq5 \
+    ca-certificates \
+    curl \
+    netcat \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create app user
+RUN useradd -m -u 1001 testuser
+
+# Set working directory
+WORKDIR /app
+
+# Copy built binaries
+COPY --from=builder /app/target/debug/deps/integration* ./
+COPY --from=builder /app/target/debug/jackbot* ./
+
+# Copy test configuration
+COPY tests/integration/test-config ./test-config/
+
+# Create directories for test outputs
+RUN mkdir -p test-results test-reports && \
+    chown -R testuser:testuser /app
+
+# Switch to non-root user
+USER testuser
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8081/health || exit 1
+
+# Default command runs integration tests
+CMD ["cargo", "test", "--package", "jackbot-execution", "--test", "integration", "--", "--nocapture", "--test-threads=1"]

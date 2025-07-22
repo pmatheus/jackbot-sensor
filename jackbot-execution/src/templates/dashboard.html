@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JackBot Performance Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .metric-value { font-size: 2em; font-weight: bold; color: #2ecc71; }
+        .chart { height: 200px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; }
+    </style>
+</head>
+<body>
+    <h1>JackBot Performance Dashboard</h1>
+    <div class="dashboard">
+        <div class="card">
+            <h3>Average Latency</h3>
+            <div class="metric-value">{{avg_latency}}</div>
+        </div>
+        <div class="card">
+            <h3>Messages/Second</h3>
+            <div class="metric-value">{{msg_per_sec}}</div>
+        </div>
+        <div class="card">
+            <h3>System Health</h3>
+            <div class="chart">{{health_chart}}</div>
+        </div>
+    </div>
+</body>
+</html>

@@ -25,6 +25,12 @@ impl BitgetChannel {
     }
 }
 
+impl AsRef<str> for BitgetChannel {
+    fn as_ref(&self) -> &str {
+        self.0
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

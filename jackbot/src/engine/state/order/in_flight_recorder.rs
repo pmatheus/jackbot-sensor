@@ -1,6 +1,12 @@
-use crate::engine::state::EngineState;
-use jackbot_execution::order::request::{OrderRequestCancel, OrderRequestOpen};
+use crate::engine::state::{EngineState, order::orders::Orders};
+use jackbot_execution::order::{
+    Order,
+    request::{OrderRequestCancel, OrderRequestOpen},
+    state::{ActiveOrderState, CancelInFlight},
+};
 use jackbot_instrument::{exchange::ExchangeIndex, instrument::InstrumentIndex};
+use std::fmt::Debug;
+use tracing::error;
 
 /// Synchronous in-flight open and in-flight cancel order request tracker.
 ///
@@ -33,6 +39,43 @@ pub trait InFlightRequestRecorder<ExchangeKey = ExchangeIndex, InstrumentKey = I
     fn record_in_flight_cancel(&mut self, request: &OrderRequestCancel<ExchangeKey, InstrumentKey>);
 
     fn record_in_flight_open(&mut self, request: &OrderRequestOpen<ExchangeKey, InstrumentKey>);
+}
+
+impl<ExchangeKey, InstrumentKey> InFlightRequestRecorder<ExchangeKey, InstrumentKey>
+    for Orders<ExchangeKey, InstrumentKey>
+where
+    ExchangeKey: Debug + Clone,
+    InstrumentKey: Debug + Clone,
+{
+    fn record_in_flight_cancel(
+        &mut self,
+        request: &OrderRequestCancel<ExchangeKey, InstrumentKey>,
+    ) {
+        let Some(order) = self.0.get_mut(&request.key.cid) else {
+            error!(
+                cid = %request.key.cid,
+                event = ?request,
+                "OrderManager cannot mark CancelInFlight for untracked Order - ignoring"
+            );
+            return;
+        };
+
+        order.state = ActiveOrderState::CancelInFlight(CancelInFlight {
+            order: order.state.open_meta().cloned(),
+        });
+    }
+
+    fn record_in_flight_open(&mut self, request: &OrderRequestOpen<ExchangeKey, InstrumentKey>) {
+        if let Some(duplicate_cid_order) =
+            self.0.insert(request.key.cid.clone(), Order::from(request))
+        {
+            error!(
+                cid = %duplicate_cid_order.key.cid,
+                event = ?duplicate_cid_order,
+                "OrderManager upserted Order OpenInFlight with duplicate ClientOrderId"
+            );
+        }
+    }
 }
 
 impl<GlobalData, InstrumentData> InFlightRequestRecorder<ExchangeIndex, InstrumentIndex>

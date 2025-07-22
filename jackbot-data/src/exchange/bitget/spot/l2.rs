@@ -76,11 +76,10 @@ impl SnapshotFetcher<BitgetSpot, OrderBooksL2> for BitgetSpotOrderBooksL2Snapsho
     + Send
     where
         Instrument: InstrumentData,
-        Subscription<BitgetSpot, Instrument, OrderBooksL2>: Identifier<BitgetMarket>,
     {
         let l2_snapshot_futures = subscriptions.iter().map(|subscription| {
             // Construct initial OrderBook snapshot GET url
-            let market = subscription.id();
+            let market = Identifier::<BitgetMarket>::id(subscription);
             let snapshot_url = format!(
                 "{}?symbol={}&limit=150",
                 HTTP_BOOK_L2_SNAPSHOT_URL_BITGET_SPOT, market.0,

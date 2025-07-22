@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Technical Report - JackBot Performance Analysis</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .section { margin: 30px 0; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>Technical Performance Report</h1>
+    <div class="section">
+        <h2>Latency Analysis</h2>
+        <table>
+            <tr><th>Metric</th><th>Value</th></tr>
+            <tr><td>P50 Latency</td><td>{{latency_p50}}</td></tr>
+            <tr><td>P95 Latency</td><td>{{latency_p95}}</td></tr>
+            <tr><td>P99 Latency</td><td>{{latency_p99}}</td></tr>
+        </table>
+    </div>
+</body>
+</html>

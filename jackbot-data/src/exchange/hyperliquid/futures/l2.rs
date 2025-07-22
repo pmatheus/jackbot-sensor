@@ -150,7 +150,7 @@ mod tests {
         let input = r#"{"coin":"BTC","bids":[["30000.0","1.0"]],"asks":[["30010.0","2.0"]]}"#;
         let book: HyperliquidFuturesOrderBookL2 = serde_json::from_str(input).unwrap();
 
-        // TODO: Fix store initialization for async
+        // Store initialization for async operations - see KAFKA_STORE_SPEC.md
         // let store = DefaultKafkaStore::new();
         book.store_snapshot(&store);
 

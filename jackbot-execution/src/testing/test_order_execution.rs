@@ -280,6 +280,11 @@ impl TestOrderExecutionEngine {
         }
     }
 
+    /// Get access to active orders for read operations
+    pub fn get_active_orders(&self) -> &Arc<RwLock<HashMap<ClientOrderId, TestOrder>>> {
+        &self.active_orders
+    }
+
     /// Start the execution engine
     pub async fn start(&mut self) -> Result<(), ExecutionError> {
         info!("Starting test order execution engine");

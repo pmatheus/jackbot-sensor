@@ -1,0 +1,250 @@
+version: '3.8'
+
+services:
+  # Mock Exchange Server
+  mock-exchange:
+    image: nginx:alpine
+    ports:
+      - "8090:80"
+      - "8091:81"
+    volumes:
+      - ./mock-exchange-config:/etc/nginx/conf.d
+    networks:
+      - jackbot-test
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Kafka for message streaming
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_LOG_RETENTION_HOURS: 1
+      KAFKA_LOG_SEGMENT_BYTES: 1073741824
+      KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS: 300000
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    networks:
+      - jackbot-test
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  # Zookeeper for Kafka
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - jackbot-test
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # PostgreSQL test database
+  postgres-test:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_DB: jackbot_test
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-test-data:/var/lib/postgresql/data
+      - ./test-db-init:/docker-entrypoint-initdb.d
+    networks:
+      - jackbot-test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test -d jackbot_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis cache for testing
+  redis-test:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    networks:
+      - jackbot-test
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # GraphQL server mock (simulating jackbot-backend)
+  graphql-mock:
+    image: node:18-alpine
+    working_dir: /app
+    volumes:
+      - ./graphql-mock:/app
+    ports:
+      - "8080:8080"
+    command: npm start
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://test:test@postgres-test:5432/jackbot_test
+      REDIS_URL: redis://redis-test:6379
+      KAFKA_BROKERS: kafka:9092
+    depends_on:
+      - postgres-test
+      - redis-test
+      - kafka
+    networks:
+      - jackbot-test
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  # WebSocket server mock (simulating terminal connections)
+  websocket-mock:
+    image: node:18-alpine
+    working_dir: /app
+    volumes:
+      - ./websocket-mock:/app
+    ports:
+      - "8082:8082"
+    command: npm start
+    environment:
+      NODE_ENV: test
+      BACKEND_URL: http://graphql-mock:8080
+    depends_on:
+      - graphql-mock
+    networks:
+      - jackbot-test
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  # Jackbot Sensor (the component being tested)
+  jackbot-sensor:
+    build:
+      context: ../../..
+      dockerfile: Dockerfile.test
+    environment:
+      RUST_LOG: debug
+      KAFKA_BROKERS: kafka:9092
+      DATABASE_URL: postgresql://test:test@postgres-test:5432/jackbot_test
+      REDIS_URL: redis://redis-test:6379
+      BACKEND_URL: http://graphql-mock:8080
+      EXCHANGE_ENDPOINTS: http://mock-exchange:80
+    ports:
+      - "8081:8081"
+    depends_on:
+      - kafka
+      - postgres-test
+      - redis-test
+      - mock-exchange
+    networks:
+      - jackbot-test
+    volumes:
+      - ../../../config:/app/config
+      - ./sensor-test-config:/app/test-config
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  # Test runner container
+  integration-tests:
+    build:
+      context: ../../..
+      dockerfile: Dockerfile.integration-tests
+    environment:
+      RUST_LOG: info
+      TEST_KAFKA_BROKERS: kafka:9092
+      TEST_DATABASE_URL: postgresql://test:test@postgres-test:5432/jackbot_test
+      TEST_REDIS_URL: redis://redis-test:6379
+      TEST_SENSOR_ENDPOINT: http://jackbot-sensor:8081
+      TEST_BACKEND_ENDPOINT: http://graphql-mock:8080
+      TEST_TERMINAL_ENDPOINT: ws://websocket-mock:8082
+      TEST_MOCK_EXCHANGE_ENDPOINT: http://mock-exchange:80
+    depends_on:
+      - jackbot-sensor
+      - graphql-mock
+      - websocket-mock
+      - kafka
+      - postgres-test
+      - redis-test
+      - mock-exchange
+    networks:
+      - jackbot-test
+    volumes:
+      - ./test-results:/app/test-results
+      - ./test-reports:/app/test-reports
+    command: >
+      sh -c "
+        echo 'Waiting for services to be ready...' &&
+        sleep 30 &&
+        echo 'Running integration tests...' &&
+        cargo test --package jackbot-execution --test integration -- --nocapture --test-threads=1 &&
+        echo 'Tests completed. Results saved to test-results directory.'
+      "
+
+  # Prometheus for metrics collection during tests
+  prometheus-test:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus-test.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=24h'
+      - '--web.enable-lifecycle'
+    networks:
+      - jackbot-test
+
+  # Grafana for test result visualization
+  grafana-test:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: test
+    volumes:
+      - grafana-test-data:/var/lib/grafana
+      - ./grafana-test-dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana-test-datasources:/etc/grafana/provisioning/datasources
+    networks:
+      - jackbot-test
+
+volumes:
+  postgres-test-data:
+    driver: local
+  grafana-test-data:
+    driver: local
+
+networks:
+  jackbot-test:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

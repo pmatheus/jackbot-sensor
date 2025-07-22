@@ -1,118 +1,148 @@
-# SENSOR DEVELOPMENT AGENT - HIGH-PERFORMANCE TRADING ENGINE
+# SENSOR AGENT - RUST EXCHANGE CONNECTIVITY COMPONENT
 
-## 🎯 AGENT IDENTITY & MISSION
+## 🎯 COMPONENT MISSION
 
-**Name**: Rust Sensor Agent (RSA)  
-**Role**: Market Data & Trading Engine Specialist  
-**Mission**: Build the fastest, most reliable multi-exchange trading engine that processes millions of market events with <50ms latency while executing sophisticated trading strategies.
+**DELIVERABLE**: Production Rust trading engine supporting all 8 exchanges  
+**WORKING DIRECTORY**: `/jackbot-sensor/`  
+**DOCS**: Read `/jackbot-sensor/docs/` before starting
 
-## 🏗️ TECHNICAL RESPONSIBILITIES
+**Mission**: Build a high-performance multi-exchange trading engine that connects to all 8 major crypto exchanges with unified order management and real-time market data aggregation.
 
-### Core Development Areas
-1. **Exchange Integration**
-   - WebSocket connections to 11 exchanges
-   - Order book management and aggregation
-   - Trade execution across all venues
-   - Exchange-specific API handling
-   - Failover and redundancy
+## 🚀 CORE TASKS & DELIVERABLES
 
-2. **Data Collection & Processing**
-   - Real-time market data ingestion
-   - Order book reconstruction
-   - Trade data normalization
-   - Tick data aggregation
-   - Historical data management
+### 1. Core Exchange Abstraction Layer
+**Objective**: Unified trading interface across all exchanges
+- Create unified exchange interface and error handling
+- Implement rate limiting framework for each exchange
+- Set up async runtime architecture with tokio
+- Build connection management with auto-reconnection
+- Establish common data structures for all exchanges
 
-3. **Trading Engine**
-   - Order routing and execution
-   - Smart order routing (SOR)
-   - Risk checks and limits
-   - Position management
-   - P&L calculations
+### 2. Priority Exchange Integrations
+**Objective**: Major exchange connectivity (4 exchanges)
+- **Binance Integration**: REST + WebSocket for spot and futures
+- **Coinbase Integration**: Advanced Trade API with real-time feeds
+- **Bybit Integration**: Unified trading API v5 implementation
+- **Bitget Integration**: Spot and futures trading support
+- Build REST API clients with proper authentication
+- Establish WebSocket connections for real-time data
+- Add order placement and cancellation functionality
+- Implement market data streaming (orderbook, trades, tickers)
 
-4. **Strategy Framework**
-   - Event-driven architecture
-   - Strategy backtesting engine
-   - Paper trading simulation
-   - Performance analytics
-   - ML-free algorithms
+### 3. Remaining Exchange Integrations
+**Objective**: Complete exchange coverage (4 additional exchanges)
+- **Hyperliquid Integration**: On-chain perpetuals connectivity
+- **KuCoin Integration**: Spot and futures API implementation
+- **Kraken Integration**: WebSocket API v2 with advanced features
+- **OKX Integration**: Unified API v5 for all trading pairs
+- Handle exchange-specific requirements and rate limits
+- Ensure unified error handling across all exchanges
+- Implement exchange-specific order types and features
 
-5. **Performance Optimization**
-   - Lock-free data structures
-   - Zero-copy networking
-   - Memory pool allocation
-   - CPU pinning strategies
-   - SIMD optimizations
+### 4. Unified Order Management System
+**Objective**: Cross-exchange trading capabilities
+- Build cross-exchange order routing logic
+- Implement position tracking across all 8 venues
+- Create trade history aggregation and reconciliation
+- Add smart order routing for best execution
+- Build unified balance and portfolio tracking
+- Implement cross-exchange arbitrage detection
 
-## 🚀 ARCHITECTURE OVERVIEW
+### 5. Market Data Aggregation
+**Objective**: Real-time data optimization and distribution
+- Implement real-time orderbook aggregation across exchanges
+- Create optimized data streams for backend consumption
+- Add auto-reconnection with exponential backoff
+- Build market data normalization and validation
+- Implement data caching and persistence layer
+- Create Kafka publisher for real-time data distribution
 
-### Core Engine Structure
-```rust
-pub struct TradingEngine {
-    // Exchange connections
-    exchanges: HashMap<Exchange, ExchangeConnection>,
-    
-    // Market data
-    order_books: Arc<DashMap<Symbol, OrderBook>>,
-    trade_streams: Arc<DashMap<Symbol, TradeStream>>,
-    
-    // Trading components
-    order_manager: OrderManager,
-    position_tracker: PositionTracker,
-    risk_engine: RiskEngine,
-    
-    // Data distribution
-    kafka_publisher: KafkaPublisher,
-    data_lake_writer: DataLakeWriter,
-    
-    // Performance monitoring
-    metrics: MetricsCollector,
-}
-```
+## 🏦 SUPPORTED EXCHANGES (ALL 8 REQUIRED)
 
-### Directory Structure
-```
-jackbot-sensor/
-├── src/
-│   ├── exchanges/
-│   │   ├── binance/        # Binance integration
-│   │   ├── bybit/          # Bybit integration
-│   │   ├── okx/            # OKX integration
-│   │   ├── kraken/         # Kraken integration
-│   │   ├── coinbase/       # Coinbase integration
-│   │   ├── bitget/         # Bitget integration
-│   │   ├── kucoin/         # KuCoin integration
-│   │   └── hyperliquid/    # Hyperliquid integration
-│   ├── market_data/
-│   │   ├── orderbook/      # Order book management
-│   │   ├── trades/         # Trade data processing
-│   │   ├── ticker/         # Ticker aggregation
-│   │   └── candles/        # OHLCV data
-│   ├── trading/
-│   │   ├── orders/         # Order management
-│   │   ├── execution/      # Execution engine
-│   │   ├── routing/        # Smart order routing
-│   │   └── settlement/     # Trade settlement
-│   ├── strategies/
-│   │   ├── framework/      # Strategy base classes
-│   │   ├── market_making/  # MM strategies
-│   │   ├── arbitrage/      # Arb strategies
-│   │   └── momentum/       # Momentum strategies
-│   ├── risk/
-│   │   ├── limits/         # Risk limits
-│   │   ├── monitoring/     # Real-time monitoring
-│   │   └── analytics/      # Risk analytics
-│   └── infrastructure/
-│       ├── networking/     # Low-latency networking
-│       ├── storage/        # Data persistence
-│       └── monitoring/     # System monitoring
-├── benches/                # Performance benchmarks
-└── tests/                  # Unit and integration tests
-```
+### Exchange Priority List
+1. **Binance**: World's largest crypto exchange by volume
+2. **Coinbase**: Premier US-regulated crypto exchange  
+3. **Bybit**: Leading derivatives and spot trading platform
+4. **Bitget**: Popular copy trading and futures exchange
+5. **Hyperliquid**: High-performance decentralized perpetuals
+6. **KuCoin**: Global exchange with extensive altcoin selection
+7. **Kraken**: Trusted US-based exchange with advanced features
+8. **OKX**: Major exchange with comprehensive trading tools
+
+### Exchange-Specific Requirements
+- **REST API Integration**: Order placement, cancellation, account data
+- **WebSocket Streams**: Real-time market data and order updates
+- **Authentication**: Secure API key handling for each exchange
+- **Rate Limiting**: Respect each exchange's specific limits
+- **Error Handling**: Exchange-specific error codes and recovery
+- **Order Types**: Support for market, limit, and stop orders
+- **Market Data**: Orderbook, trades, tickers, and OHLCV data
+
+## 🧪 MANDATORY TEST-DRIVEN DEVELOPMENT
+
+### TDD Red-Green-Refactor Cycle
+Every feature implementation follows strict TDD:
+1. **RED**: Write failing test that defines desired behavior
+2. **GREEN**: Write minimal code to make test pass
+3. **REFACTOR**: Improve code quality while keeping tests passing
+
+### Testing Requirements Per Component
+- **Exchange Connectors**: Unit tests for each exchange's API client.
+- **Order Execution**: Integration tests for placing and canceling orders on each exchange.
+- **Data Streams**: End-to-end tests verifying the real-time data pipeline from exchange to Kafka.
+
+### Quality Gates Before Any Feature Ships
+- All tests passing for all 8 supported exchanges
+- Zero unsafe code warnings
+- All exchange connections are resilient and handle reconnections gracefully
+
+## ✅ SUCCESS CRITERIA
+
+### Technical Requirements
+- [ ] All integration tests pass for each of the 8 exchanges
+- [ ] Zero unsafe code warnings in Rust compilation
+- [ ] All 8 exchanges execute orders successfully in testnet
+- [ ] Market data maintains low latency from exchange to output
+- [ ] Auto-reconnection works for all WebSocket connections
+- [ ] Order routing correctly selects optimal exchange
+- [ ] Position tracking accurate across all venues
+- [ ] Error handling graceful for all exchange-specific issues
+
+### Exchange Integration Requirements
+- [ ] **Binance**: Spot and futures trading functional
+- [ ] **Coinbase**: Advanced Trade API integrated
+- [ ] **Bybit**: Unified API v5 working for all order types
+- [ ] **Bitget**: Spot and futures connectivity established
+- [ ] **Hyperliquid**: On-chain perpetuals integration complete
+- [ ] **KuCoin**: API v2 with WebSocket feeds operational
+- [ ] **Kraken**: WebSocket API v2 with advanced features
+- [ ] **OKX**: Unified API v5 supporting all trading pairs
+
+### Performance Requirements
+- [ ] Order execution optimized across all exchanges
+- [ ] Market data processing handles high-frequency updates
+- [ ] Memory usage stable under trading loads
+- [ ] CPU usage optimized with async/await patterns
+- [ ] Network connections resilient to temporary outages
+
+### Integration Requirements
+- [ ] Kafka publisher streams data to backend successfully
+- [ ] Terminal component receives real-time market data
+- [ ] Backend component can route orders through sensor
+- [ ] Cross-exchange arbitrage detection functional
+
+## 🎯 COMPLETION SIGNAL
+
+**Create `/tasks/sensor_agent_complete.md` when all success criteria are met**
+
+The completion file should include:
+- [ ] Exchange integration test results for all 8 exchanges
+- [ ] Order execution success rates per exchange
+- [ ] Market data quality and completeness validation
 
 ## 🔌 EXCHANGE INTEGRATIONS
 
-### Supported Exchanges (11 Total)
+### Supported Exchanges (8 Total)
 ```rust
 #[derive(Debug, Clone)]
 pub enum Exchange {

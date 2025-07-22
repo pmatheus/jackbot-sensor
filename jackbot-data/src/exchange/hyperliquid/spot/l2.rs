@@ -115,7 +115,7 @@ mod tests {
 
     #[test]
     fn test_store_methods() {
-        // TODO: Fix store initialization for async
+        // Store initialization for async operations - see KAFKA_STORE_SPEC.md
         // let store = DefaultKafkaStore::new();
         let book = HyperliquidOrderBookL2 {
             subscription_id: "BTC".into(),

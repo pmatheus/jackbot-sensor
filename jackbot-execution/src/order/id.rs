@@ -43,6 +43,21 @@ impl ClientOrderId<SmolStr> {
 
         Self(SmolStr::new_inline(random_utf8_str))
     }
+
+    /// Check if this is an unknown client order id
+    pub fn is_unknown(&self) -> bool {
+        self.0.as_str() == "unknown"
+    }
+
+    /// Create an unknown client order id
+    pub fn unknown() -> Self {
+        Self::new("unknown")
+    }
+
+    /// Get the client order id as a string reference
+    pub fn as_ref(&self) -> &str {
+        self.0.as_str()
+    }
 }
 
 impl Default for ClientOrderId<SmolStr> {
@@ -59,6 +74,16 @@ pub struct OrderId<T = SmolStr>(pub T);
 impl OrderId {
     pub fn new<S: AsRef<str>>(id: S) -> Self {
         Self(SmolStr::new(id))
+    }
+
+    /// Create a default (unknown) order id
+    pub fn default() -> Self {
+        Self::new("unknown")
+    }
+
+    /// Get the order id as a string reference
+    pub fn as_ref(&self) -> &str {
+        self.0.as_str()
     }
 }
 
@@ -81,5 +106,11 @@ impl StrategyId {
 
     pub fn unknown() -> Self {
         Self::new("unknown")
+    }
+}
+
+impl Default for StrategyId {
+    fn default() -> Self {
+        Self::unknown()
     }
 }

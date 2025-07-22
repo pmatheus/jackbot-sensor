@@ -1,0 +1,2833 @@
+warning: unused import: `jackbot_integration::subscription::SubscriptionId`
+ --> jackbot-sensor/jackbot-data/src/exchange/bitget/market.rs:4:5
+  |
+4 | use jackbot_integration::subscription::SubscriptionId;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+note: the lint level is defined here
+ --> jackbot-sensor/jackbot-data/src/lib.rs:3:5
+  |
+3 |     unused,
+  |     ^^^^^^
+  = note: `#[warn(unused_imports)]` implied by `#[warn(unused)]`
+
+warning: use of deprecated function `rand::thread_rng`: Renamed to `rng`
+  --> jackbot-sensor/jackbot-data/src/exchange/bitget/futures/user_ws.rs:76:44
+   |
+76 |                         let jitter = rand::thread_rng().gen_range(0..=JITTER);
+   |                                            ^^^^^^^^^^
+   |
+   = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated function `rand::thread_rng`: Renamed to `rng`
+  --> jackbot-sensor/jackbot-data/src/exchange/bitget/futures/user_ws.rs:94:40
+   |
+94 |                     let jitter = rand::thread_rng().gen_range(0..=JITTER);
+   |                                        ^^^^^^^^^^
+
+warning: use of deprecated function `rand::thread_rng`: Renamed to `rng`
+  --> jackbot-sensor/jackbot-data/src/exchange/bitget/spot/user_ws.rs:72:44
+   |
+72 |                         let jitter = rand::thread_rng().gen_range(0..=JITTER);
+   |                                            ^^^^^^^^^^
+
+warning: use of deprecated method `rand::Rng::gen_range`: Renamed to `random_range`
+  --> jackbot-sensor/jackbot-data/src/exchange/bitget/futures/user_ws.rs:76:57
+   |
+76 |                         let jitter = rand::thread_rng().gen_range(0..=JITTER);
+   |                                                         ^^^^^^^^^
+
+warning: use of deprecated method `rand::Rng::gen_range`: Renamed to `random_range`
+  --> jackbot-sensor/jackbot-data/src/exchange/bitget/futures/user_ws.rs:94:53
+   |
+94 |                     let jitter = rand::thread_rng().gen_range(0..=JITTER);
+   |                                                     ^^^^^^^^^
+
+warning: use of deprecated method `rand::Rng::gen_range`: Renamed to `random_range`
+  --> jackbot-sensor/jackbot-data/src/exchange/bitget/spot/user_ws.rs:72:57
+   |
+72 |                         let jitter = rand::thread_rng().gen_range(0..=JITTER);
+   |                                                         ^^^^^^^^^
+
+warning: `jackbot-data` (lib) generated 7 warnings (run `cargo fix --lib -p jackbot-data` to apply 1 suggestion)
+warning: unused import: `RequestBuilder`
+  --> jackbot-sensor/jackbot-execution/src/client/bitget/rest.rs:25:31
+   |
+25 | use reqwest::{Client, Method, RequestBuilder};
+   |                               ^^^^^^^^^^^^^^
+   |
+note: the lint level is defined here
+  --> jackbot-sensor/jackbot-execution/src/lib.rs:3:5
+   |
+3  |     unused,
+   |     ^^^^^^
+   = note: `#[warn(unused_imports)]` implied by `#[warn(unused)]`
+
+warning: unused imports: `debug`, `error`, and `warn`
+  --> jackbot-sensor/jackbot-execution/src/client/bitget/rest.rs:29:15
+   |
+29 | use tracing::{debug, error, warn};
+   |               ^^^^^  ^^^^^  ^^^^
+
+warning: unused imports: `Balance`, `Cancelled`, `ClientOrderId`, `OrderId`, `OrderKey`, and `StrategyId`
+  --> jackbot-sensor/jackbot-execution/src/client/bitget/mod.rs:14:29
+   |
+14 |     balance::{AssetBalance, Balance},
+   |                             ^^^^^^^
+...
+18 |         id::{ClientOrderId, OrderId, StrategyId},
+   |              ^^^^^^^^^^^^^  ^^^^^^^  ^^^^^^^^^^
+19 |         request::{OrderRequestCancel, OrderRequestOpen, UnindexedOrderResponseCancel},
+20 |         state::{Cancelled, Open},
+   |                 ^^^^^^^^^
+21 |         Order, OrderKey,
+   |                ^^^^^^^^
+
+warning: unused import: `futures::Stream`
+  --> jackbot-sensor/jackbot-execution/src/client/bitget/mod.rs:27:5
+   |
+27 | use futures::Stream;
+   |     ^^^^^^^^^^^^^^^
+
+warning: unused import: `std::pin::Pin`
+  --> jackbot-sensor/jackbot-execution/src/client/bitget/mod.rs:34:5
+   |
+34 | use std::pin::Pin;
+   |     ^^^^^^^^^^^^^
+
+warning: unused import: `Serialize`
+  --> jackbot-sensor/jackbot-execution/src/client/bybit/rest.rs:22:26
+   |
+22 | use serde::{Deserialize, Serialize};
+   |                          ^^^^^^^^^
+
+warning: unused import: `error`
+ --> jackbot-sensor/jackbot-execution/src/client/coinbase/orderbook.rs:7:22
+  |
+7 | use tracing::{debug, error, warn};
+  |                      ^^^^^
+
+warning: unused import: `std::collections::HashMap`
+  --> jackbot-sensor/jackbot-execution/src/client/coinbase/rest.rs:24:5
+   |
+24 | use std::collections::HashMap;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `request::OrderRequestOpen`
+ --> jackbot-sensor/jackbot-execution/src/client/hyperliquid/rest.rs:8:9
+  |
+8 |         request::OrderRequestOpen,
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `name::AssetNameExchange`
+  --> jackbot-sensor/jackbot-execution/src/client/hyperliquid/rest.rs:17:13
+   |
+17 |     asset::{name::AssetNameExchange, QuoteAsset},
+   |             ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Method`
+  --> jackbot-sensor/jackbot-execution/src/client/hyperliquid/rest.rs:23:23
+   |
+23 | use reqwest::{Client, Method};
+   |                       ^^^^^^
+
+warning: unused imports: `debug`, `error`, and `warn`
+  --> jackbot-sensor/jackbot-execution/src/client/hyperliquid/rest.rs:26:15
+   |
+26 | use tracing::{debug, error, warn};
+   |               ^^^^^  ^^^^^  ^^^^
+
+warning: unused import: `std::str::FromStr`
+  --> jackbot-sensor/jackbot-execution/src/client/hyperliquid/web3.rs:22:5
+   |
+22 | use std::str::FromStr;
+   |     ^^^^^^^^^^^^^^^^^
+
+warning: unused import: `error`
+  --> jackbot-sensor/jackbot-execution/src/client/hyperliquid/web3.rs:23:22
+   |
+23 | use tracing::{debug, error, warn};
+   |                      ^^^^^
+
+warning: unused imports: `Balance`, `Cancelled`, `ClientOrderId`, `OrderId`, `OrderKey`, and `StrategyId`
+  --> jackbot-sensor/jackbot-execution/src/client/hyperliquid/mod.rs:15:29
+   |
+15 |     balance::{AssetBalance, Balance},
+   |                             ^^^^^^^
+...
+19 |         id::{ClientOrderId, OrderId, StrategyId},
+   |              ^^^^^^^^^^^^^  ^^^^^^^  ^^^^^^^^^^
+20 |         request::{OrderRequestCancel, OrderRequestOpen, UnindexedOrderResponseCancel},
+21 |         state::{Cancelled, Open},
+   |                 ^^^^^^^^^
+22 |         Order, OrderKey,
+   |                ^^^^^^^^
+
+warning: unused import: `futures::Stream`
+  --> jackbot-sensor/jackbot-execution/src/client/hyperliquid/mod.rs:28:5
+   |
+28 | use futures::Stream;
+   |     ^^^^^^^^^^^^^^^
+
+warning: unused imports: `debug`, `error`, and `warn`
+  --> jackbot-sensor/jackbot-execution/src/client/kucoin/rest.rs:29:15
+   |
+29 | use tracing::{debug, error, warn};
+   |               ^^^^^  ^^^^^  ^^^^
+
+warning: unused import: `sync::Arc`
+  --> jackbot-sensor/jackbot-execution/src/client/kucoin/orderbook.rs:16:48
+   |
+16 | use std::{collections::BTreeMap, str::FromStr, sync::Arc};
+   |                                                ^^^^^^^^^
+
+warning: unused imports: `Balance`, `Cancelled`, `ClientOrderId`, `OrderId`, `OrderKey`, and `StrategyId`
+  --> jackbot-sensor/jackbot-execution/src/client/kucoin/mod.rs:12:29
+   |
+12 |     balance::{AssetBalance, Balance},
+   |                             ^^^^^^^
+...
+16 |         id::{ClientOrderId, OrderId, StrategyId},
+   |              ^^^^^^^^^^^^^  ^^^^^^^  ^^^^^^^^^^
+17 |         request::{OrderRequestCancel, OrderRequestOpen, UnindexedOrderResponseCancel},
+18 |         state::{Cancelled, Open},
+   |                 ^^^^^^^^^
+19 |         Order, OrderKey,
+   |                ^^^^^^^^
+
+warning: unused import: `futures::Stream`
+  --> jackbot-sensor/jackbot-execution/src/client/kucoin/mod.rs:25:5
+   |
+25 | use futures::Stream;
+   |     ^^^^^^^^^^^^^^^
+
+warning: unused imports: `ConnectorError`, `CorePerformanceMetrics`, `ExchangeConnector`, `MarketDataUpdate`, `OrderExecutionMetrics`, `OrderKind`, `OrderRequestOpen`, `PriceData`, `RequestOpen`, `SensorOrderConfig`, `Side`, and `TimeInForce`
+  --> jackbot-sensor/jackbot-execution/src/performance/end_to_end_validation.rs:12:19
+   |
+12 |         request::{OrderRequestOpen, RequestOpen},
+   |                   ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^
+13 |         OrderKind, Side, TimeInForce,
+   |         ^^^^^^^^^  ^^^^  ^^^^^^^^^^^
+14 |         sensor::{OrderExecutionMetrics, SensorOrderConfig},
+   |                  ^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^
+...
+17 |         market_data_collector::{MarketDataCollector, MarketDataUpdate, PriceData},
+   |                                                      ^^^^^^^^^^^^^^^^  ^^^^^^^^^
+18 |         exchange_connector::{ExchangeConnector, ConnectorError},
+   |                              ^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^
+19 |     },
+20 |     performance::real_time_diagnostics::{RealTimePerformanceMonitor, CorePerformanceMetrics},
+   |                                                                      ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Duration as ChronoDuration`
+  --> jackbot-sensor/jackbot-execution/src/performance/end_to_end_validation.rs:24:29
+   |
+24 | use chrono::{DateTime, Utc, Duration as ChronoDuration};
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `exchange::ExchangeId` and `instrument::name::InstrumentNameExchange`
+  --> jackbot-sensor/jackbot-execution/src/performance/end_to_end_validation.rs:25:26
+   |
+25 | use jackbot_instrument::{exchange::ExchangeId, instrument::name::InstrumentNameExchange};
+   |                          ^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `rust_decimal::Decimal`
+  --> jackbot-sensor/jackbot-execution/src/performance/end_to_end_validation.rs:26:5
+   |
+26 | use rust_decimal::Decimal;
+   |     ^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `AtomicBool`, `AtomicU64`, and `Ordering`
+  --> jackbot-sensor/jackbot-execution/src/performance/end_to_end_validation.rs:31:18
+   |
+31 |         atomic::{AtomicU64, AtomicBool, Ordering},
+   |                  ^^^^^^^^^  ^^^^^^^^^^  ^^^^^^^^
+
+warning: unused imports: `Semaphore` and `interval`
+  --> jackbot-sensor/jackbot-execution/src/performance/end_to_end_validation.rs:37:31
+   |
+37 |     sync::{broadcast, RwLock, Semaphore},
+   |                               ^^^^^^^^^
+38 |     task::JoinSet,
+39 |     time::{interval, sleep},
+   |            ^^^^^^^^
+
+warning: unused import: `debug`
+  --> jackbot-sensor/jackbot-execution/src/performance/end_to_end_validation.rs:41:15
+   |
+41 | use tracing::{debug, error, info, warn};
+   |               ^^^^^
+
+warning: unused imports: `CorePerformanceMetrics`, `LatencyMetrics`, `RealTimePerformanceMonitor`, `ResourceMetrics`, `ThroughputMetrics`, and `ValidationResults`
+  --> jackbot-sensor/jackbot-execution/src/performance/monitoring_dashboard.rs:8:9
+   |
+8  |         ValidationResults, ScenarioMetrics, PerformanceTargets, BloombergBaseline,
+   |         ^^^^^^^^^^^^^^^^^
+9  |         ComparisonResults, LatencyMetrics, ThroughputMetrics, ResourceMetrics
+   |                            ^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^
+10 |     },
+11 |     real_time_diagnostics::{RealTimePerformanceMonitor, CorePerformanceMetrics}
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `HashMap` and `Instant`
+  --> jackbot-sensor/jackbot-execution/src/performance/monitoring_dashboard.rs:17:19
+   |
+17 |     collections::{HashMap, VecDeque},
+   |                   ^^^^^^^
+18 |     sync::Arc,
+19 |     time::{Duration, Instant},
+   |                      ^^^^^^^
+
+warning: unused import: `warn`
+  --> jackbot-sensor/jackbot-execution/src/performance/monitoring_dashboard.rs:25:35
+   |
+25 | use tracing::{debug, error, info, warn};
+   |                                   ^^^^
+
+warning: unused imports: `OrderKind`, `OrderRequestOpen`, `RequestOpen`, `Side`, and `TimeInForce`
+  --> jackbot-sensor/jackbot-execution/src/performance/load_testing.rs:13:19
+   |
+13 |         request::{OrderRequestOpen, RequestOpen},
+   |                   ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^
+14 |         OrderKind, Side, TimeInForce,
+   |         ^^^^^^^^^  ^^^^  ^^^^^^^^^^^
+
+warning: unused import: `rust_decimal::Decimal`
+  --> jackbot-sensor/jackbot-execution/src/performance/load_testing.rs:21:5
+   |
+21 | use rust_decimal::Decimal;
+   |     ^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `AtomicBool`, `AtomicU64`, `Ordering`, and `VecDeque`
+  --> jackbot-sensor/jackbot-execution/src/performance/load_testing.rs:24:28
+   |
+24 |     collections::{HashMap, VecDeque},
+   |                            ^^^^^^^^
+25 |     sync::{
+26 |         atomic::{AtomicU64, AtomicBool, Ordering},
+   |                  ^^^^^^^^^  ^^^^^^^^^^  ^^^^^^^^
+
+warning: unused imports: `Semaphore`, `interval`, and `sleep`
+  --> jackbot-sensor/jackbot-execution/src/performance/load_testing.rs:32:31
+   |
+32 |     sync::{broadcast, RwLock, Semaphore},
+   |                               ^^^^^^^^^
+33 |     task::JoinSet,
+34 |     time::{interval, sleep},
+   |            ^^^^^^^^  ^^^^^
+
+warning: unused import: `debug`
+  --> jackbot-sensor/jackbot-execution/src/performance/load_testing.rs:36:15
+   |
+36 | use tracing::{debug, error, info, warn};
+   |               ^^^^^
+
+warning: unused imports: `ComparisonResults`, `ScenarioMetrics`, `ScenarioResults`, `SuccessEvaluation`, and `ValidationStatus`
+ --> jackbot-sensor/jackbot-execution/src/performance/reporting.rs:7:48
+  |
+7 |     end_to_end_validation::{ValidationResults, ValidationStatus, ScenarioMetrics, ComparisonResults},
+  |                                                ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^
+8 |     load_testing::{LoadTestResults, ScenarioResults, SuccessEvaluation},
+  |                                     ^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Path`
+  --> jackbot-sensor/jackbot-execution/src/performance/reporting.rs:17:12
+   |
+17 |     path::{Path, PathBuf},
+   |            ^^^^
+
+warning: unused imports: `debug` and `warn`
+  --> jackbot-sensor/jackbot-execution/src/performance/reporting.rs:21:15
+   |
+21 | use tracing::{debug, error, info, warn};
+   |               ^^^^^               ^^^^
+
+warning: ambiguous glob re-exports
+  --> jackbot-sensor/jackbot-execution/src/performance/mod.rs:16:9
+   |
+16 | pub use real_time_diagnostics::*;
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^ the name `LatencyMetrics` in the type namespace is first re-exported here
+17 | pub use end_to_end_validation::*;
+   |         ------------------------ but the name `LatencyMetrics` in the type namespace is also re-exported here
+   |
+   = note: `#[warn(ambiguous_glob_reexports)]` on by default
+
+warning: ambiguous glob re-exports
+  --> jackbot-sensor/jackbot-execution/src/performance/mod.rs:16:9
+   |
+16 | pub use real_time_diagnostics::*;
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^ the name `PerformanceTrend` in the type namespace is first re-exported here
+...
+19 | pub use load_testing::*;
+   |         --------------- but the name `PerformanceTrend` in the type namespace is also re-exported here
+
+warning: ambiguous glob re-exports
+  --> jackbot-sensor/jackbot-execution/src/performance/mod.rs:16:9
+   |
+16 | pub use real_time_diagnostics::*;
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^ the name `TrendDirection` in the type namespace is first re-exported here
+...
+20 | pub use reporting::*;
+   |         ------------ but the name `TrendDirection` in the type namespace is also re-exported here
+
+warning: ambiguous glob re-exports
+  --> jackbot-sensor/jackbot-execution/src/performance/mod.rs:16:9
+   |
+16 | pub use real_time_diagnostics::*;
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^ the name `RootCause` in the type namespace is first re-exported here
+...
+20 | pub use reporting::*;
+   |         ------------ but the name `RootCause` in the type namespace is also re-exported here
+
+warning: ambiguous glob re-exports
+  --> jackbot-sensor/jackbot-execution/src/performance/mod.rs:16:9
+   |
+16 | pub use real_time_diagnostics::*;
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^ the name `RegressionSeverity` in the type namespace is first re-exported here
+...
+20 | pub use reporting::*;
+   |         ------------ but the name `RegressionSeverity` in the type namespace is also re-exported here
+
+warning: ambiguous glob re-exports
+  --> jackbot-sensor/jackbot-execution/src/performance/mod.rs:16:9
+   |
+16 | pub use real_time_diagnostics::*;
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^ the name `DistributionAnalysis` in the type namespace is first re-exported here
+...
+20 | pub use reporting::*;
+   |         ------------ but the name `DistributionAnalysis` in the type namespace is also re-exported here
+
+warning: ambiguous glob re-exports
+  --> jackbot-sensor/jackbot-execution/src/performance/mod.rs:16:9
+   |
+16 | pub use real_time_diagnostics::*;
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^ the name `DistributionType` in the type namespace is first re-exported here
+...
+20 | pub use reporting::*;
+   |         ------------ but the name `DistributionType` in the type namespace is also re-exported here
+
+warning: ambiguous glob re-exports
+  --> jackbot-sensor/jackbot-execution/src/performance/mod.rs:16:9
+   |
+16 | pub use real_time_diagnostics::*;
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^ the name `TrendAnalysis` in the type namespace is first re-exported here
+...
+20 | pub use reporting::*;
+   |         ------------ but the name `TrendAnalysis` in the type namespace is also re-exported here
+
+warning: ambiguous glob re-exports
+  --> jackbot-sensor/jackbot-execution/src/performance/mod.rs:16:9
+   |
+16 | pub use real_time_diagnostics::*;
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^ the name `AlertSeverity` in the type namespace is first re-exported here
+17 | pub use end_to_end_validation::*;
+18 | pub use monitoring_dashboard::*;
+   |         ----------------------- but the name `AlertSeverity` in the type namespace is also re-exported here
+
+warning: ambiguous glob re-exports
+  --> jackbot-sensor/jackbot-execution/src/performance/mod.rs:16:9
+   |
+16 | pub use real_time_diagnostics::*;
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^ the name `TrendData` in the type namespace is first re-exported here
+...
+20 | pub use reporting::*;
+   |         ------------ but the name `TrendData` in the type namespace is also re-exported here
+
+warning: ambiguous glob re-exports
+  --> jackbot-sensor/jackbot-execution/src/performance/mod.rs:16:9
+   |
+16 | pub use real_time_diagnostics::*;
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^ the name `SeasonalPattern` in the type namespace is first re-exported here
+...
+20 | pub use reporting::*;
+   |         ------------ but the name `SeasonalPattern` in the type namespace is also re-exported here
+
+warning: ambiguous glob re-exports
+  --> jackbot-sensor/jackbot-execution/src/performance/mod.rs:17:9
+   |
+17 | pub use end_to_end_validation::*;
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^ the name `ResourceMetrics` in the type namespace is first re-exported here
+...
+20 | pub use reporting::*;
+   |         ------------ but the name `ResourceMetrics` in the type namespace is also re-exported here
+
+warning: ambiguous glob re-exports
+  --> jackbot-sensor/jackbot-execution/src/performance/mod.rs:17:9
+   |
+17 | pub use end_to_end_validation::*;
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^ the name `ExportFormat` in the type namespace is first re-exported here
+18 | pub use monitoring_dashboard::*;
+   |         ----------------------- but the name `ExportFormat` in the type namespace is also re-exported here
+
+warning: ambiguous glob re-exports
+  --> jackbot-sensor/jackbot-execution/src/performance/mod.rs:18:9
+   |
+18 | pub use monitoring_dashboard::*;
+   |         ^^^^^^^^^^^^^^^^^^^^^^^ the name `ResourceSnapshot` in the type namespace is first re-exported here
+19 | pub use load_testing::*;
+   |         --------------- but the name `ResourceSnapshot` in the type namespace is also re-exported here
+
+warning: ambiguous glob re-exports
+  --> jackbot-sensor/jackbot-execution/src/performance/mod.rs:19:9
+   |
+19 | pub use load_testing::*;
+   |         ^^^^^^^^^^^^^^^ the name `RegressionAnalysis` in the type namespace is first re-exported here
+20 | pub use reporting::*;
+   |         ------------ but the name `RegressionAnalysis` in the type namespace is also re-exported here
+
+warning: ambiguous glob re-exports
+  --> jackbot-sensor/jackbot-execution/src/performance/mod.rs:19:9
+   |
+19 | pub use load_testing::*;
+   |         ^^^^^^^^^^^^^^^ the name `BaselineComparison` in the type namespace is first re-exported here
+20 | pub use reporting::*;
+   |         ------------ but the name `BaselineComparison` in the type namespace is also re-exported here
+
+warning: use of deprecated function `base64::encode`: Use Engine::encode
+   --> jackbot-sensor/jackbot-execution/src/client/bitget/rest.rs:408:17
+    |
+408 |         base64::encode(mac.finalize().into_bytes())
+    |                 ^^^^^^
+    |
+    = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated function `base64::encode`: Use Engine::encode
+   --> jackbot-sensor/jackbot-execution/src/client/bitget/websocket.rs:139:29
+    |
+139 |     let signature = base64::encode(mac.finalize().into_bytes());
+    |                             ^^^^^^
+
+warning: unused variable: `symbol`
+   --> jackbot-sensor/jackbot-execution/src/client/binance/client.rs:136:9
+    |
+136 |         symbol: &str,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_symbol`
+    |
+    = note: `#[warn(unused_variables)]` implied by `#[warn(unused)]`
+
+warning: unused variable: `limit`
+   --> jackbot-sensor/jackbot-execution/src/client/binance/client.rs:137:9
+    |
+137 |         limit: u32,
+    |         ^^^^^ help: if this is intentional, prefix it with an underscore: `_limit`
+
+warning: variable does not need to be mutable
+   --> jackbot-sensor/jackbot-execution/src/client/bitget/rest.rs:120:13
+    |
+120 |         let mut order_req = BitgetOrderRequest {
+    |             ----^^^^^^^^^
+    |             |
+    |             help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` implied by `#[warn(unused)]`
+
+warning: unused variable: `response`
+   --> jackbot-sensor/jackbot-execution/src/client/bitget/rest.rs:286:13
+    |
+286 |         let response = self.signed_request(Method::GET, endpoint, None).await?;
+    |             ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_response`
+
+warning: unused variable: `response`
+   --> jackbot-sensor/jackbot-execution/src/client/bitget/rest.rs:302:13
+    |
+302 |         let response = self
+    |             ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_response`
+
+warning: unused variable: `response`
+   --> jackbot-sensor/jackbot-execution/src/client/bitget/rest.rs:319:13
+    |
+319 |         let response = self
+    |             ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_response`
+
+warning: unused variable: `response`
+   --> jackbot-sensor/jackbot-execution/src/client/bitget/rest.rs:332:13
+    |
+332 |         let response = self.signed_request(Method::GET, endpoint, None).await?;
+    |             ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_response`
+
+warning: unused variable: `response`
+   --> jackbot-sensor/jackbot-execution/src/client/bitget/rest.rs:354:13
+    |
+354 |         let response = self
+    |             ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_response`
+
+warning: unused variable: `assets`
+   --> jackbot-sensor/jackbot-execution/src/client/bitget/websocket.rs:184:5
+    |
+184 |     assets: &[AssetNameExchange],
+    |     ^^^^^^ help: if this is intentional, prefix it with an underscore: `_assets`
+
+warning: unused variable: `data`
+   --> jackbot-sensor/jackbot-execution/src/client/bitget/websocket.rs:253:25
+    |
+253 |         WsMessage::Ping(data) => {
+    |                         ^^^^ help: if this is intentional, prefix it with an underscore: `_data`
+
+warning: variable does not need to be mutable
+  --> jackbot-sensor/jackbot-execution/src/client/bybit/rest.rs:80:13
+   |
+80 |         let mut query_params = params.unwrap_or_default();
+   |             ----^^^^^^^^^^^^
+   |             |
+   |             help: remove this `mut`
+
+warning: unused variable: `product_id`
+   --> jackbot-sensor/jackbot-execution/src/client/coinbase/client.rs:109:9
+    |
+109 |         product_id: &str,
+    |         ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_product_id`
+
+warning: unused variable: `level`
+   --> jackbot-sensor/jackbot-execution/src/client/coinbase/client.rs:110:9
+    |
+110 |         level: u32,
+    |         ^^^^^ help: if this is intentional, prefix it with an underscore: `_level`
+
+warning: unused variable: `conn_type`
+   --> jackbot-sensor/jackbot-execution/src/client/coinbase/websocket.rs:353:5
+    |
+353 |     conn_type: ConnectionType,
+    |     ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_conn_type`
+
+warning: unused variable: `assets`
+   --> jackbot-sensor/jackbot-execution/src/client/hyperliquid/websocket.rs:138:5
+    |
+138 |     assets: &[AssetNameExchange],
+    |     ^^^^^^ help: if this is intentional, prefix it with an underscore: `_assets`
+
+warning: unused variable: `instruments`
+   --> jackbot-sensor/jackbot-execution/src/client/hyperliquid/websocket.rs:139:5
+    |
+139 |     instruments: &[InstrumentNameExchange],
+    |     ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_instruments`
+
+warning: unused variable: `ws`
+   --> jackbot-sensor/jackbot-execution/src/client/hyperliquid/websocket.rs:228:23
+    |
+228 | async fn authenticate(ws: &mut WebSocket, api_key: &str) -> Result<(), SocketError> {
+    |                       ^^ help: if this is intentional, prefix it with an underscore: `_ws`
+
+warning: unused variable: `api_key`
+   --> jackbot-sensor/jackbot-execution/src/client/hyperliquid/websocket.rs:228:43
+    |
+228 | async fn authenticate(ws: &mut WebSocket, api_key: &str) -> Result<(), SocketError> {
+    |                                           ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_api_key`
+
+warning: unused variable: `config`
+   --> jackbot-sensor/jackbot-execution/src/client/hyperliquid/websocket.rs:282:5
+    |
+282 |     config: &HyperliquidConfig,
+    |     ^^^^^^ help: if this is intentional, prefix it with an underscore: `_config`
+
+warning: unused variable: `data`
+   --> jackbot-sensor/jackbot-execution/src/client/hyperliquid/websocket.rs:311:25
+    |
+311 |         WsMessage::Ping(data) => {
+    |                         ^^^^ help: if this is intentional, prefix it with an underscore: `_data`
+
+warning: unused variable: `tx`
+   --> jackbot-sensor/jackbot-execution/src/client/hyperliquid/websocket.rs:178:5
+    |
+178 |     tx: &mpsc::UnboundedSender<super::Liquidation>,
+    |     ^^ help: if this is intentional, prefix it with an underscore: `_tx`
+
+warning: unused variable: `config`
+   --> jackbot-sensor/jackbot-execution/src/client/hyperliquid/websocket.rs:179:5
+    |
+179 |     config: &HyperliquidConfig,
+    |     ^^^^^^ help: if this is intentional, prefix it with an underscore: `_config`
+
+warning: unused variable: `positions`
+  --> jackbot-sensor/jackbot-execution/src/client/hyperliquid/mod.rs:74:13
+   |
+74 |         let positions = if instruments.is_empty() {
+   |             ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_positions`
+
+warning: variable does not need to be mutable
+   --> jackbot-sensor/jackbot-execution/src/client/kucoin/rest.rs:137:13
+    |
+137 |         let mut order_req = KuCoinOrderRequest {
+    |             ----^^^^^^^^^
+    |             |
+    |             help: remove this `mut`
+
+warning: unused variable: `config`
+   --> jackbot-sensor/jackbot-execution/src/client/kucoin/websocket.rs:114:5
+    |
+114 |     config: &KuCoinConfig,
+    |     ^^^^^^ help: if this is intentional, prefix it with an underscore: `_config`
+
+warning: unused variable: `assets`
+   --> jackbot-sensor/jackbot-execution/src/client/kucoin/websocket.rs:166:5
+    |
+166 |     assets: &[AssetNameExchange],
+    |     ^^^^^^ help: if this is intentional, prefix it with an underscore: `_assets`
+
+warning: unused variable: `instruments`
+   --> jackbot-sensor/jackbot-execution/src/client/kucoin/websocket.rs:167:5
+    |
+167 |     instruments: &[InstrumentNameExchange],
+    |     ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_instruments`
+
+warning: unused variable: `data`
+   --> jackbot-sensor/jackbot-execution/src/client/kucoin/websocket.rs:243:25
+    |
+243 |         WsMessage::Ping(data) => {
+    |                         ^^^^ help: if this is intentional, prefix it with an underscore: `_data`
+
+warning: unused variable: `start_time`
+   --> jackbot-sensor/jackbot-execution/src/performance/end_to_end_validation.rs:655:13
+    |
+655 |         let start_time = Instant::now();
+    |             ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_start_time`
+
+warning: unused variable: `order_cancellation_rate`
+   --> jackbot-sensor/jackbot-execution/src/performance/end_to_end_validation.rs:710:13
+    |
+710 |         let order_cancellation_rate = config.order_rate * 10; // High cancellation rate
+    |             ^^^^^^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_order_cancellation_rate`
+
+warning: variable `last_check` is assigned to, but never used
+   --> jackbot-sensor/jackbot-execution/src/performance/end_to_end_validation.rs:745:17
+    |
+745 |         let mut last_check = start_time;
+    |                 ^^^^^^^^^^
+    |
+    = note: consider using `_last_check` instead
+
+warning: value assigned to `last_check` is never read
+   --> jackbot-sensor/jackbot-execution/src/performance/end_to_end_validation.rs:770:13
+    |
+770 |             last_check = Instant::now();
+    |             ^^^^^^^^^^
+    |
+    = help: maybe it is overwritten before being read?
+    = note: `#[warn(unused_assignments)]` implied by `#[warn(unused)]`
+
+warning: unused variable: `performance_variance`
+   --> jackbot-sensor/jackbot-execution/src/performance/end_to_end_validation.rs:775:13
+    |
+775 |         let performance_variance = 5.0; // Should stay within 5% of baseline
+    |             ^^^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_performance_variance`
+
+warning: unused variable: `config`
+   --> jackbot-sensor/jackbot-execution/src/performance/end_to_end_validation.rs:873:55
+    |
+873 |     async fn run_bloomberg_comparison_scenario(&self, config: &TestScenarioConfig) -> Result<ScenarioMetrics, ValidationError> {
+    |                                                       ^^^^^^ help: if this is intentional, prefix it with an underscore: `_config`
+
+warning: unused variable: `results`
+    --> jackbot-sensor/jackbot-execution/src/performance/load_testing.rs:1074:77
+     |
+1074 |     async fn execute_steady_state_phase(&self, scenario: &LoadTestScenario, results: &mut ExecutionResults) -> Result<(), ValidationError> {
+     |                                                                             ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_results`
+
+warning: unused variable: `steady_duration`
+    --> jackbot-sensor/jackbot-execution/src/performance/load_testing.rs:1077:13
+     |
+1077 |         let steady_duration = scenario.duration;
+     |             ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_steady_duration`
+
+warning: unused variable: `dashboard_state`
+   --> jackbot-sensor/jackbot-execution/src/performance/reporting.rs:992:9
+    |
+992 |         dashboard_state: &DashboardState,
+    |         ^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_dashboard_state`
+
+warning: unused variable: `report`
+    --> jackbot-sensor/jackbot-execution/src/performance/reporting.rs:1485:46
+     |
+1485 |     async fn export_executive_summary(&self, report: &PerformanceReport) -> Result<ExportResult, ReportError> {
+     |                                              ^^^^^^ help: if this is intentional, prefix it with an underscore: `_report`
+
+warning: unused variable: `report`
+    --> jackbot-sensor/jackbot-execution/src/performance/reporting.rs:1503:45
+     |
+1503 |     async fn export_technical_report(&self, report: &PerformanceReport) -> Result<ExportResult, ReportError> {
+     |                                             ^^^^^^ help: if this is intentional, prefix it with an underscore: `_report`
+
+warning: unused variable: `report`
+    --> jackbot-sensor/jackbot-execution/src/performance/reporting.rs:1519:50
+     |
+1519 |     async fn export_interactive_dashboard(&self, report: &PerformanceReport) -> Result<ExportResult, ReportError> {
+     |                                                  ^^^^^^ help: if this is intentional, prefix it with an underscore: `_report`
+
+warning: unused variable: `report`
+    --> jackbot-sensor/jackbot-execution/src/performance/reporting.rs:1535:37
+     |
+1535 |     async fn export_csv_data(&self, report: &PerformanceReport) -> Result<ExportResult, ReportError> {
+     |                                     ^^^^^^ help: if this is intentional, prefix it with an underscore: `_report`
+
+warning: unused variable: `report`
+    --> jackbot-sensor/jackbot-execution/src/performance/reporting.rs:1575:41
+     |
+1575 |     async fn export_presentation(&self, report: &PerformanceReport) -> Result<ExportResult, ReportError> {
+     |                                         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_report`
+
+warning: unused import: `TimeZone`
+  --> jackbot-sensor/jackbot-execution/src/client/coinbase/rest.rs:12:24
+   |
+12 | use chrono::{DateTime, TimeZone, Utc};
+   |                        ^^^^^^^^
+
+warning: unused import: `TimeZone`
+ --> jackbot-sensor/jackbot-execution/src/client/coinbase/websocket.rs:2:24
+  |
+2 | use chrono::{DateTime, TimeZone, Utc};
+  |                        ^^^^^^^^
+
+warning: unused variable: `trade`
+   --> jackbot-sensor/jackbot-execution/src/client/bitget/rest.rs:510:9
+    |
+510 |         trade: BitgetTradeHistory,
+    |         ^^^^^ help: if this is intentional, prefix it with an underscore: `_trade`
+
+warning: unused variable: `config`
+   --> jackbot-sensor/jackbot-execution/src/client/bitget/websocket.rs:317:5
+    |
+317 |     config: &BitgetConfig,
+    |     ^^^^^^ help: if this is intentional, prefix it with an underscore: `_config`
+
+warning: unused variable: `fill`
+   --> jackbot-sensor/jackbot-execution/src/client/hyperliquid/rest.rs:240:9
+    |
+240 |         fill: HyperliquidFill,
+    |         ^^^^ help: if this is intentional, prefix it with an underscore: `_fill`
+
+warning: unused variable: `message`
+   --> jackbot-sensor/jackbot-execution/src/client/hyperliquid/web3.rs:156:32
+    |
+156 |     pub fn sign_message(&self, message: &[u8]) -> Result<Vec<u8>, UnindexedClientError> {
+    |                                ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_message`
+
+warning: unused variable: `message`
+   --> jackbot-sensor/jackbot-execution/src/client/hyperliquid/web3.rs:167:9
+    |
+167 |         message: &[u8],
+    |         ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_message`
+
+warning: unused variable: `signature`
+   --> jackbot-sensor/jackbot-execution/src/client/hyperliquid/web3.rs:168:9
+    |
+168 |         signature: &[u8],
+    |         ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_signature`
+
+warning: unused variable: `address`
+   --> jackbot-sensor/jackbot-execution/src/client/hyperliquid/web3.rs:169:9
+    |
+169 |         address: &str,
+    |         ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_address`
+
+warning: unused variable: `domain`
+   --> jackbot-sensor/jackbot-execution/src/client/hyperliquid/web3.rs:267:9
+    |
+267 |         domain: &DomainSeparator,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_domain`
+
+warning: unused variable: `data`
+   --> jackbot-sensor/jackbot-execution/src/client/hyperliquid/web3.rs:268:9
+    |
+268 |         data: &[u8],
+    |         ^^^^ help: if this is intentional, prefix it with an underscore: `_data`
+
+warning: unused variable: `private_key`
+   --> jackbot-sensor/jackbot-execution/src/client/hyperliquid/web3.rs:269:9
+    |
+269 |         private_key: &str,
+    |         ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_private_key`
+
+warning: unused variable: `holds`
+   --> jackbot-sensor/jackbot-execution/src/client/kucoin/rest.rs:646:13
+    |
+646 |         let holds = Decimal::from_str(&balance.holds).ok()?;
+    |             ^^^^^ help: if this is intentional, prefix it with an underscore: `_holds`
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> jackbot-sensor/jackbot-execution/src/client/binance/client.rs:37:1
+   |
+37 | / pub struct BinanceConfig {
+38 | |     pub api_key: String,
+39 | |     pub api_secret: String,
+40 | |     pub testnet: bool,
+41 | |     pub ws_auth_payload: String,
+42 | | }
+   | |_^
+   |
+note: the lint level is defined here
+  --> jackbot-sensor/jackbot-execution/src/lib.rs:9:5
+   |
+9  |     missing_debug_implementations,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> jackbot-sensor/jackbot-execution/src/client/binance/client.rs:46:1
+   |
+46 | / pub struct BinanceClient {
+47 | |     rest_client: Arc<BinanceRestClient>,
+48 | |     ws_client: Arc<BinanceWsClient>,
+49 | |     ws_manager: Arc<BinanceWsManager>,
+50 | |     rate_limiter: Arc<BinanceRateLimit>,
+51 | |     exchange_id: ExchangeId,
+52 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> jackbot-sensor/jackbot-execution/src/client/binance/rest.rs:34:1
+   |
+34 | / pub struct BinanceRestConfig {
+35 | |     pub api_key: String,
+36 | |     pub api_secret: String,
+37 | |     pub testnet: bool,
+38 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> jackbot-sensor/jackbot-execution/src/client/binance/rest.rs:41:1
+   |
+41 | / pub struct BinanceRestClient {
+42 | |     config: BinanceRestConfig,
+43 | |     client: Client,
+44 | |     base_url: String,
+45 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> jackbot-sensor/jackbot-execution/src/client/binance/websocket.rs:35:1
+   |
+35 | / pub struct BinanceWsManager {
+36 | |     spot_url: Url,
+37 | |     futures_url: Url,
+38 | |     connections: Arc<RwLock<HashMap<String, WebSocket>>>,
+39 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> jackbot-sensor/jackbot-execution/src/client/bybit/rest.rs:34:1
+   |
+34 | / pub struct BybitRestConfig {
+35 | |     pub api_key: String,
+36 | |     pub api_secret: String,
+37 | |     pub testnet: bool,
+38 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> jackbot-sensor/jackbot-execution/src/client/bybit/rest.rs:41:1
+   |
+41 | / pub struct BybitRestClient {
+42 | |     config: BybitRestConfig,
+43 | |     client: Client,
+44 | |     base_url: String,
+45 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> jackbot-sensor/jackbot-execution/src/client/coinbase/client.rs:37:1
+   |
+37 | / pub struct CoinbaseConfig {
+38 | |     pub api_key: String,
+39 | |     pub api_secret: String,
+40 | |     pub api_passphrase: String,
+41 | |     pub sandbox: bool,
+42 | |     pub ws_auth_payload: String,
+43 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> jackbot-sensor/jackbot-execution/src/client/coinbase/client.rs:47:1
+   |
+47 | / pub struct CoinbaseClient {
+48 | |     rest_client: Arc<CoinbaseRestClient>,
+49 | |     ws_client: Arc<CoinbaseWsClient>,
+50 | |     ws_manager: Arc<CoinbaseWsManager>,
+51 | |     rate_limiter: Arc<CoinbaseRateLimit>,
+52 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> jackbot-sensor/jackbot-execution/src/client/coinbase/orderbook.rs:29:1
+   |
+29 | / pub struct CoinbaseOrderBook {
+30 | |     product_id: String,
+31 | |     inner: Arc<RwLock<OrderBookInner>>,
+32 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> jackbot-sensor/jackbot-execution/src/client/coinbase/rest.rs:34:1
+   |
+34 | / pub struct CoinbaseRestConfig {
+35 | |     pub api_key: String,
+36 | |     pub api_secret: String,
+37 | |     pub api_passphrase: String,  // Coinbase requires passphrase in addition to key/secret
+38 | |     pub sandbox: bool,
+39 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> jackbot-sensor/jackbot-execution/src/client/coinbase/rest.rs:42:1
+   |
+42 | / pub struct CoinbaseRestClient {
+43 | |     config: CoinbaseRestConfig,
+44 | |     client: Client,
+45 | |     base_url: String,
+46 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+  --> jackbot-sensor/jackbot-execution/src/client/coinbase/websocket.rs:40:1
+   |
+40 | / pub struct CoinbaseWsManager {
+41 | |     url: Url,
+42 | |     auth_url: Url,
+43 | |     connections: Arc<RwLock<HashMap<String, WebSocket>>>,
+44 | |     auth_credentials: Option<CoinbaseAuth>,
+45 | | }
+   | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+   --> jackbot-sensor/jackbot-execution/src/client/hyperliquid/web3.rs:188:1
+    |
+188 | / pub struct HyperliquidContracts {
+189 | |     pub exchange: &'static str,
+190 | |     pub clearing_house: &'static str,
+191 | |     pub usdc: &'static str,
+192 | | }
+    | |_^
+
+warning: type does not implement `std::fmt::Debug`; consider adding `#[derive(Debug)]` or a manual implementation
+   --> jackbot-sensor/jackbot-execution/src/client/hyperliquid/web3.rs:240:5
+    |
+240 | /     pub struct DomainSeparator {
+241 | |         pub name: String,
+242 | |         pub version: String,
+243 | |         pub chain_id: u64,
+244 | |         pub verifying_contract: String,
+245 | |     }
+    | |_____^
+
+warning: `jackbot-execution` (lib) generated 126 warnings (run `cargo fix --lib -p jackbot-execution` to apply 41 suggestions)
+   Compiling aws-sdk-ec2 v1.148.0
+   Compiling jackbot-sensor v1.0.0 (/Users/user/jackbot/jackbot-sensor)
+error[E0407]: method `validate_order` is not a member of trait `Exchange`
+   --> jackbot-sensor/src/connectors/binance.rs:313:5
+    |
+313 | /     fn validate_order(&self, order: &Order) -> Result<()> {
+314 | |         // Validate quantity
+315 | |         if order.quantity <= 0.0 {
+316 | |             return Err(anyhow::anyhow!("Order quantity must be positive"));
+...   |
+335 | |         Ok(())
+336 | |     }
+    | |_____^ not a member of trait `Exchange`
+
+error[E0407]: method `place_order_rest` is not a member of trait `Exchange`
+   --> jackbot-sensor/src/connectors/binance.rs:339:5
+    |
+339 |       async fn place_order_rest(&self, client: &BinanceRestClient, order: Order) -> Result<OrderResult> {
+    |       ^        ---------------- help: there is an associated function with a similar name: `place_order`
+    |  _____|
+    | |
+340 | |         use jackbot_execution::order::{
+341 | |             id::{ClientOrderId, StrategyId},
+342 | |             request::{OrderRequestOpen, RequestOpen},
+...   |
+372 | |     }
+    | |_____^ not a member of trait `Exchange`
+
+error[E0408]: variable `e` is not bound in all patterns
+   --> jackbot-sensor/src/network_resilience.rs:360:26
+    |
+360 |             Ok(Err(e)) | Err(_) => {
+    |                    -     ^^^^^^ pattern doesn't bind `e`
+    |                    |
+    |                    variable not in all patterns
+
+error[E0532]: expected unit struct, unit variant or constant, found tuple variant `Rebalance::Revoke`
+  --> jackbot-sensor/src/order_processor.rs:59:13
+   |
+59 |             Rebalance::Revoke => {
+   |             ^^^^^^^^^^^^^^^^^ help: use the tuple variant pattern syntax instead: `Rebalance::Revoke(_)`
+   |
+  ::: /Users/user/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rdkafka-0.36.2/src/consumer/mod.rs:34:5
+   |
+34 |     Revoke(&'a TopicPartitionList),
+   |     ------ `Rebalance::Revoke` defined here
+
+error[E0532]: expected unit struct, unit variant or constant, found tuple variant `Rebalance::Revoke`
+  --> jackbot-sensor/src/order_processor.rs:73:13
+   |
+73 |             Rebalance::Revoke => {
+   |             ^^^^^^^^^^^^^^^^^ help: use the tuple variant pattern syntax instead: `Rebalance::Revoke(_)`
+   |
+  ::: /Users/user/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rdkafka-0.36.2/src/consumer/mod.rs:34:5
+   |
+34 |     Revoke(&'a TopicPartitionList),
+   |     ------ `Rebalance::Revoke` defined here
+
+warning: unused import: `Duration`
+ --> jackbot-sensor/src/streaming.rs:5:17
+  |
+5 | use std::time::{Duration, Instant};
+  |                 ^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused imports: `connect_async` and `tungstenite::Message`
+ --> jackbot-sensor/src/streaming.rs:7:25
+  |
+7 | use tokio_tungstenite::{connect_async, tungstenite::Message};
+  |                         ^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `url::Url`
+  --> jackbot-sensor/src/streaming.rs:11:5
+   |
+11 | use url::Url;
+   |     ^^^^^^^^
+
+warning: unused import: `futures_util::StreamExt`
+ --> jackbot-sensor/src/order_processor.rs:4:5
+  |
+4 | use futures_util::StreamExt;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `rdkafka::error::KafkaResult`
+ --> jackbot-sensor/src/order_processor.rs:9:5
+  |
+9 | use rdkafka::error::KafkaResult;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `ConnectionStatus` and `OrderResponse`
+  --> jackbot-sensor/src/order_processor.rs:20:56
+   |
+20 | use crate::connector::{ConnectorManager, OrderRequest, OrderResponse, ConnectionStatus};
+   |                                                        ^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^
+
+warning: unused import: `warn`
+ --> jackbot-sensor/src/monitor.rs:7:21
+  |
+7 | use tracing::{info, warn, error};
+  |                     ^^^^
+
+warning: unused import: `rand::seq::SliceRandom`
+   --> jackbot-sensor/src/discovery.rs:394:5
+    |
+394 | use rand::seq::SliceRandom;
+    |     ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Context`
+ --> jackbot-sensor/src/smart_routing.rs:6:14
+  |
+6 | use anyhow::{Context, Result};
+  |              ^^^^^^^
+
+warning: unused import: `async_trait::async_trait`
+ --> jackbot-sensor/src/smart_routing.rs:7:5
+  |
+7 | use async_trait::async_trait;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `debug`
+  --> jackbot-sensor/src/smart_routing.rs:14:15
+   |
+14 | use tracing::{debug, info, warn};
+   |               ^^^^^
+
+warning: unused imports: `OrderId` and `OrderType`
+  --> jackbot-sensor/src/smart_routing.rs:18:43
+   |
+18 |     Balance, Exchange, MarketData, Order, OrderId, OrderResult, OrderSide, OrderStatus, OrderType,
+   |                                           ^^^^^^^                                       ^^^^^^^^^
+
+warning: unused import: `Context`
+ --> jackbot-sensor/src/order_book_aggregator.rs:6:14
+  |
+6 | use anyhow::{Context, Result};
+  |              ^^^^^^^
+
+warning: unused import: `Stream`
+ --> jackbot-sensor/src/order_book_aggregator.rs:7:15
+  |
+7 | use futures::{Stream, StreamExt};
+  |               ^^^^^^
+
+warning: unused import: `std::pin::Pin`
+  --> jackbot-sensor/src/order_book_aggregator.rs:10:5
+   |
+10 | use std::pin::Pin;
+   |     ^^^^^^^^^^^^^
+
+warning: unused import: `info`
+  --> jackbot-sensor/src/order_book_aggregator.rs:15:22
+   |
+15 | use tracing::{debug, info, warn};
+   |                      ^^^^
+
+warning: unused imports: `Exchange` and `MarketData`
+  --> jackbot-sensor/src/order_book_aggregator.rs:18:24
+   |
+18 | use crate::connector::{Exchange, MarketData};
+   |                        ^^^^^^^^  ^^^^^^^^^^
+
+warning: unused import: `Stream`
+ --> jackbot-sensor/src/performance_benchmarks.rs:7:23
+  |
+7 | use futures::{stream, Stream, StreamExt};
+  |                       ^^^^^^
+
+warning: unused import: `std::pin::Pin`
+  --> jackbot-sensor/src/performance_benchmarks.rs:10:5
+   |
+10 | use std::pin::Pin;
+   |     ^^^^^^^^^^^^^
+
+warning: unused import: `broadcast`
+  --> jackbot-sensor/src/performance_benchmarks.rs:14:19
+   |
+14 | use tokio::sync::{broadcast, Mutex};
+   |                   ^^^^^^^^^
+
+warning: unused import: `tokio::time::interval`
+  --> jackbot-sensor/src/performance_benchmarks.rs:15:5
+   |
+15 | use tokio::time::interval;
+   |     ^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `warn`
+  --> jackbot-sensor/src/performance_benchmarks.rs:16:21
+   |
+16 | use tracing::{info, warn};
+   |                     ^^^^
+
+warning: unused import: `PriceLevel`
+  --> jackbot-sensor/src/performance_benchmarks.rs:18:33
+   |
+18 | use crate::api::{OrderBookData, PriceLevel, TickerData};
+   |                                 ^^^^^^^^^^
+
+warning: unused import: `HashMap`
+ --> jackbot-sensor/src/circuit_breaker.rs:8:24
+  |
+8 | use std::collections::{HashMap, VecDeque};
+  |                        ^^^^^^^
+
+warning: unused import: `error`
+  --> jackbot-sensor/src/circuit_breaker.rs:14:34
+   |
+14 | use tracing::{debug, info, warn, error};
+   |                                  ^^^^^
+
+warning: unused import: `parking_lot::RwLock`
+ --> jackbot-sensor/src/performance/orderbook_ultra.rs:7:5
+  |
+7 | use parking_lot::RwLock;
+  |     ^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `async_trait::async_trait`
+ --> jackbot-sensor/src/connectors/mod.rs:7:5
+  |
+7 | use async_trait::async_trait;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `futures::Stream`
+ --> jackbot-sensor/src/connectors/mod.rs:8:5
+  |
+8 | use futures::Stream;
+  |     ^^^^^^^^^^^^^^^
+
+warning: unused import: `std::pin::Pin`
+ --> jackbot-sensor/src/connectors/mod.rs:9:5
+  |
+9 | use std::pin::Pin;
+  |     ^^^^^^^^^^^^^
+
+warning: unused import: `Stream`
+ --> jackbot-sensor/src/connectors/binance.rs:8:15
+  |
+8 | use futures::{Stream, StreamExt};
+  |               ^^^^^^
+
+warning: unused import: `std::pin::Pin`
+ --> jackbot-sensor/src/connectors/binance.rs:9:5
+  |
+9 | use std::pin::Pin;
+  |     ^^^^^^^^^^^^^
+
+warning: unused imports: `BalanceData`, `KlineData`, `OrderBookData`, and `TradeData`
+  --> jackbot-sensor/src/connectors/binance.rs:16:18
+   |
+16 | use crate::api::{BalanceData, KlineData, OrderBookData, TickerData, TradeData};
+   |                  ^^^^^^^^^^^  ^^^^^^^^^  ^^^^^^^^^^^^^              ^^^^^^^^^
+
+warning: unused import: `asset::name::AssetNameExchange`
+  --> jackbot-sensor/src/connectors/binance.rs:28:5
+   |
+28 |     asset::name::AssetNameExchange,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `ClientOrderId`, `OrderKey`, `OrderKind`, `OrderRequestOpen`, `RequestOpen`, and `StrategyId`
+   --> jackbot-sensor/src/connectors/binance.rs:341:18
+    |
+341 |             id::{ClientOrderId, StrategyId},
+    |                  ^^^^^^^^^^^^^  ^^^^^^^^^^
+342 |             request::{OrderRequestOpen, RequestOpen},
+    |                       ^^^^^^^^^^^^^^^^  ^^^^^^^^^^^
+343 |             OrderKey, OrderKind,
+    |             ^^^^^^^^  ^^^^^^^^^
+
+warning: unused import: `Stream`
+ --> jackbot-sensor/src/connectors/bitget.rs:8:15
+  |
+8 | use futures::{Stream, StreamExt};
+  |               ^^^^^^
+
+warning: unused import: `std::pin::Pin`
+ --> jackbot-sensor/src/connectors/bitget.rs:9:5
+  |
+9 | use std::pin::Pin;
+  |     ^^^^^^^^^^^^^
+
+warning: unused imports: `BalanceData`, `KlineData`, `OrderBookData`, and `TradeData`
+  --> jackbot-sensor/src/connectors/bitget.rs:16:18
+   |
+16 | use crate::api::{BalanceData, KlineData, OrderBookData, TickerData, TradeData};
+   |                  ^^^^^^^^^^^  ^^^^^^^^^  ^^^^^^^^^^^^^              ^^^^^^^^^
+
+warning: unused import: `asset::name::AssetNameExchange`
+  --> jackbot-sensor/src/connectors/bitget.rs:28:5
+   |
+28 |     asset::name::AssetNameExchange,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Stream`
+ --> jackbot-sensor/src/connectors/bybit.rs:8:15
+  |
+8 | use futures::{Stream, StreamExt};
+  |               ^^^^^^
+
+warning: unused import: `std::pin::Pin`
+ --> jackbot-sensor/src/connectors/bybit.rs:9:5
+  |
+9 | use std::pin::Pin;
+  |     ^^^^^^^^^^^^^
+
+warning: unused imports: `BalanceData`, `KlineData`, `OrderBookData`, and `TradeData`
+  --> jackbot-sensor/src/connectors/bybit.rs:16:18
+   |
+16 | use crate::api::{BalanceData, KlineData, OrderBookData, TickerData, TradeData};
+   |                  ^^^^^^^^^^^  ^^^^^^^^^  ^^^^^^^^^^^^^              ^^^^^^^^^
+
+warning: unused import: `asset::name::AssetNameExchange`
+  --> jackbot-sensor/src/connectors/bybit.rs:28:5
+   |
+28 |     asset::name::AssetNameExchange,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Stream`
+ --> jackbot-sensor/src/connectors/coinbase.rs:8:15
+  |
+8 | use futures::{Stream, StreamExt};
+  |               ^^^^^^
+
+warning: unused import: `std::pin::Pin`
+ --> jackbot-sensor/src/connectors/coinbase.rs:9:5
+  |
+9 | use std::pin::Pin;
+  |     ^^^^^^^^^^^^^
+
+warning: unused imports: `BalanceData`, `KlineData`, `OrderBookData`, and `TradeData`
+  --> jackbot-sensor/src/connectors/coinbase.rs:16:18
+   |
+16 | use crate::api::{BalanceData, KlineData, OrderBookData, TickerData, TradeData};
+   |                  ^^^^^^^^^^^  ^^^^^^^^^  ^^^^^^^^^^^^^              ^^^^^^^^^
+
+warning: unused import: `asset::name::AssetNameExchange`
+  --> jackbot-sensor/src/connectors/coinbase.rs:28:5
+   |
+28 |     asset::name::AssetNameExchange,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Stream`
+ --> jackbot-sensor/src/connectors/coinbase_production.rs:9:15
+  |
+9 | use futures::{Stream, StreamExt};
+  |               ^^^^^^
+
+warning: unused import: `std::pin::Pin`
+  --> jackbot-sensor/src/connectors/coinbase_production.rs:11:5
+   |
+11 | use std::pin::Pin;
+   |     ^^^^^^^^^^^^^
+
+warning: unused import: `AtomicBool`
+  --> jackbot-sensor/src/connectors/coinbase_production.rs:12:42
+   |
+12 | use std::sync::{Arc, atomic::{AtomicU64, AtomicBool, Ordering}};
+   |                                          ^^^^^^^^^^
+
+warning: unused imports: `BalanceData`, `KlineData`, and `TickerData`
+  --> jackbot-sensor/src/connectors/coinbase_production.rs:18:18
+   |
+18 | use crate::api::{BalanceData, KlineData, OrderBookData, TickerData, TradeData};
+   |                  ^^^^^^^^^^^  ^^^^^^^^^                 ^^^^^^^^^^
+
+warning: unused imports: `OrderSide`, `OrderType`, and `TimeInForce`
+  --> jackbot-sensor/src/connectors/coinbase_production.rs:21:5
+   |
+21 |     OrderSide, OrderStatus, OrderType, TimeInForce,
+   |     ^^^^^^^^^               ^^^^^^^^^  ^^^^^^^^^^^
+
+warning: unused import: `calculate_checksum_simd`
+  --> jackbot-sensor/src/connectors/coinbase_production.rs:24:59
+   |
+24 | use crate::performance::orderbook_ultra::{UltraOrderBook, calculate_checksum_simd};
+   |                                                           ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `trade::PublicTrade`
+  --> jackbot-sensor/src/connectors/coinbase_production.rs:30:9
+   |
+30 |         trade::PublicTrade,
+   |         ^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `CoinbaseClient` and `CoinbaseConfig`
+  --> jackbot-sensor/src/connectors/coinbase_production.rs:34:16
+   |
+34 |     coinbase::{CoinbaseClient, CoinbaseConfig, CoinbaseWsManager},
+   |                ^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^
+
+warning: unused imports: `asset::name::AssetNameExchange` and `exchange::ExchangeId`
+  --> jackbot-sensor/src/connectors/coinbase_production.rs:38:5
+   |
+38 |     asset::name::AssetNameExchange,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+39 |     exchange::ExchangeId,
+   |     ^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Stream`
+ --> jackbot-sensor/src/connectors/hyperliquid.rs:8:15
+  |
+8 | use futures::{Stream, StreamExt};
+  |               ^^^^^^
+
+warning: unused import: `std::pin::Pin`
+ --> jackbot-sensor/src/connectors/hyperliquid.rs:9:5
+  |
+9 | use std::pin::Pin;
+  |     ^^^^^^^^^^^^^
+
+warning: unused imports: `BalanceData`, `KlineData`, `OrderBookData`, and `TradeData`
+  --> jackbot-sensor/src/connectors/hyperliquid.rs:16:18
+   |
+16 | use crate::api::{BalanceData, KlineData, OrderBookData, TickerData, TradeData};
+   |                  ^^^^^^^^^^^  ^^^^^^^^^  ^^^^^^^^^^^^^              ^^^^^^^^^
+
+warning: unused import: `asset::name::AssetNameExchange`
+  --> jackbot-sensor/src/connectors/hyperliquid.rs:28:5
+   |
+28 |     asset::name::AssetNameExchange,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `futures::Stream`
+ --> jackbot-sensor/src/connectors/kraken.rs:7:5
+  |
+7 | use futures::Stream;
+  |     ^^^^^^^^^^^^^^^
+
+warning: unused import: `std::pin::Pin`
+  --> jackbot-sensor/src/connectors/kraken.rs:12:5
+   |
+12 | use std::pin::Pin;
+   |     ^^^^^^^^^^^^^
+
+warning: unused import: `uuid::Uuid`
+  --> jackbot-sensor/src/connectors/kraken.rs:18:5
+   |
+18 | use uuid::Uuid;
+   |     ^^^^^^^^^^
+
+warning: unused import: `futures::Stream`
+ --> jackbot-sensor/src/connectors/kucoin.rs:7:5
+  |
+7 | use futures::Stream;
+  |     ^^^^^^^^^^^^^^^
+
+warning: unused import: `std::collections::HashMap`
+  --> jackbot-sensor/src/connectors/kucoin.rs:11:5
+   |
+11 | use std::collections::HashMap;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::pin::Pin`
+  --> jackbot-sensor/src/connectors/kucoin.rs:12:5
+   |
+12 | use std::pin::Pin;
+   |     ^^^^^^^^^^^^^
+
+warning: unused import: `warn`
+  --> jackbot-sensor/src/connectors/kucoin.rs:14:35
+   |
+14 | use tracing::{debug, error, info, warn};
+   |                                   ^^^^
+
+warning: unused import: `url::Url`
+  --> jackbot-sensor/src/connectors/kucoin.rs:15:5
+   |
+15 | use url::Url;
+   |     ^^^^^^^^
+
+warning: unused import: `Hmac`
+  --> jackbot-sensor/src/connectors/kucoin.rs:16:12
+   |
+16 | use hmac::{Hmac, Mac};
+   |            ^^^^
+
+warning: unused import: `sha2::Sha256`
+  --> jackbot-sensor/src/connectors/kucoin.rs:17:5
+   |
+17 | use sha2::Sha256;
+   |     ^^^^^^^^^^^^
+
+warning: unused import: `engine::general_purpose`
+  --> jackbot-sensor/src/connectors/kucoin.rs:18:27
+   |
+18 | use base64::{Engine as _, engine::general_purpose};
+   |                           ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `futures::Stream`
+ --> jackbot-sensor/src/connectors/okx.rs:7:5
+  |
+7 | use futures::Stream;
+  |     ^^^^^^^^^^^^^^^
+
+warning: unused import: `std::collections::HashMap`
+  --> jackbot-sensor/src/connectors/okx.rs:11:5
+   |
+11 | use std::collections::HashMap;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::pin::Pin`
+  --> jackbot-sensor/src/connectors/okx.rs:12:5
+   |
+12 | use std::pin::Pin;
+   |     ^^^^^^^^^^^^^
+
+warning: unused import: `warn`
+  --> jackbot-sensor/src/connectors/okx.rs:14:35
+   |
+14 | use tracing::{debug, error, info, warn};
+   |                                   ^^^^
+
+warning: unused import: `url::Url`
+  --> jackbot-sensor/src/connectors/okx.rs:15:5
+   |
+15 | use url::Url;
+   |     ^^^^^^^^
+
+warning: unused import: `Hmac`
+  --> jackbot-sensor/src/connectors/okx.rs:16:12
+   |
+16 | use hmac::{Hmac, Mac};
+   |            ^^^^
+
+warning: unused import: `sha2::Sha256`
+  --> jackbot-sensor/src/connectors/okx.rs:17:5
+   |
+17 | use sha2::Sha256;
+   |     ^^^^^^^^^^^^
+
+warning: unused import: `engine::general_purpose`
+  --> jackbot-sensor/src/connectors/okx.rs:18:27
+   |
+18 | use base64::{Engine as _, engine::general_purpose};
+   |                           ^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Context`
+ --> jackbot-sensor/src/network_resilience.rs:9:14
+  |
+9 | use anyhow::{Context, Result};
+  |              ^^^^^^^
+
+warning: unused import: `tokio::sync::RwLock`
+  --> jackbot-sensor/src/streaming_real.rs:10:5
+   |
+10 | use tokio::sync::RwLock;
+   |     ^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `debug`
+  --> jackbot-sensor/src/streaming_real.rs:12:15
+   |
+12 | use tracing::{debug, error, info, warn};
+   |               ^^^^^
+
+warning: unused import: `crate::websocket_connection_pool::WebSocketConnectionPool`
+  --> jackbot-sensor/src/streaming_real.rs:17:5
+   |
+17 | use crate::websocket_connection_pool::WebSocketConnectionPool;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated function `rand::thread_rng`: Renamed to `rng`
+   --> jackbot-sensor/src/monitor.rs:217:29
+    |
+217 |         let mut rng = rand::thread_rng();
+    |                             ^^^^^^^^^^
+    |
+    = note: `#[warn(deprecated)]` on by default
+
+warning: unused variable: `connections`
+   --> jackbot-sensor/src/api.rs:886:9
+    |
+886 |     let connections = state.ws_connections.read().await;
+    |         ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_connections`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `instance`
+   --> jackbot-sensor/src/api.rs:889:23
+    |
+889 |     for (instance_id, instance) in instances.iter() {
+    |                       ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_instance`
+
+error[E0308]: mismatched types
+    --> jackbot-sensor/src/api.rs:964:42
+     |
+964  |             return create_error_response(400, &format!("Unsupported exchange: {}", exchange_name)).into_response();
+     |                    --------------------- ^^^ expected `ErrorCode`, found integer
+     |                    |
+     |                    arguments to this function are incorrect
+     |
+note: function defined here
+    --> jackbot-sensor/src/api.rs:2692:4
+     |
+2692 | fn create_error_response(code: ErrorCode, message: &str) -> impl IntoResponse {
+     |    ^^^^^^^^^^^^^^^^^^^^^ ---------------
+
+error[E0308]: mismatched types
+    --> jackbot-sensor/src/api.rs:1011:38
+     |
+1011 |         return create_error_response(503, &format!("Exchange {} is not available", exchange_name)).into_response();
+     |                --------------------- ^^^ expected `ErrorCode`, found integer
+     |                |
+     |                arguments to this function are incorrect
+     |
+note: function defined here
+    --> jackbot-sensor/src/api.rs:2692:4
+     |
+2692 | fn create_error_response(code: ErrorCode, message: &str) -> impl IntoResponse {
+     |    ^^^^^^^^^^^^^^^^^^^^^ ---------------
+
+warning: unused variable: `limit`
+    --> jackbot-sensor/src/api.rs:1064:9
+     |
+1064 |     let limit = params.limit.unwrap_or(20).min(1000);
+     |         ^^^^^ help: if this is intentional, prefix it with an underscore: `_limit`
+
+warning: unused variable: `exchange`
+    --> jackbot-sensor/src/api.rs:1154:9
+     |
+1154 |     let exchange = params.exchange.unwrap_or("binance".to_string());
+     |         ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_exchange`
+
+warning: unused variable: `params`
+    --> jackbot-sensor/src/api.rs:1207:11
+     |
+1207 |     Query(params): Query<QueryParams>,
+     |           ^^^^^^ help: if this is intentional, prefix it with an underscore: `_params`
+
+warning: unused variable: `params`
+    --> jackbot-sensor/src/api.rs:1221:11
+     |
+1221 |     Query(params): Query<QueryParams>,
+     |           ^^^^^^ help: if this is intentional, prefix it with an underscore: `_params`
+
+warning: unused variable: `params`
+    --> jackbot-sensor/src/api.rs:1283:11
+     |
+1283 |     Query(params): Query<QueryParams>,
+     |           ^^^^^^ help: if this is intentional, prefix it with an underscore: `_params`
+
+warning: unused variable: `params`
+    --> jackbot-sensor/src/api.rs:1324:11
+     |
+1324 |     Query(params): Query<QueryParams>,
+     |           ^^^^^^ help: if this is intentional, prefix it with an underscore: `_params`
+
+warning: unused variable: `params`
+    --> jackbot-sensor/src/api.rs:1331:11
+     |
+1331 |     Query(params): Query<QueryParams>,
+     |           ^^^^^^ help: if this is intentional, prefix it with an underscore: `_params`
+
+warning: unused variable: `state`
+    --> jackbot-sensor/src/api.rs:1339:11
+     |
+1339 |     State(state): State<ApiState>,
+     |           ^^^^^ help: if this is intentional, prefix it with an underscore: `_state`
+
+warning: unused variable: `state`
+    --> jackbot-sensor/src/api.rs:1363:11
+     |
+1363 |     State(state): State<ApiState>,
+     |           ^^^^^ help: if this is intentional, prefix it with an underscore: `_state`
+
+warning: unused variable: `state`
+    --> jackbot-sensor/src/api.rs:1388:11
+     |
+1388 |     State(state): State<ApiState>,
+     |           ^^^^^ help: if this is intentional, prefix it with an underscore: `_state`
+
+warning: unused variable: `exchange`
+    --> jackbot-sensor/src/api.rs:1495:9
+     |
+1495 |     let exchange = params.exchange;
+     |         ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_exchange`
+
+warning: unused variable: `exchange`
+    --> jackbot-sensor/src/api.rs:1520:9
+     |
+1520 |     let exchange = params.exchange;
+     |         ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_exchange`
+
+warning: unused variable: `params`
+    --> jackbot-sensor/src/api.rs:1554:11
+     |
+1554 |     Query(params): Query<QueryParams>,
+     |           ^^^^^^ help: if this is intentional, prefix it with an underscore: `_params`
+
+warning: unused variable: `params`
+    --> jackbot-sensor/src/api.rs:1561:11
+     |
+1561 |     Query(params): Query<QueryParams>,
+     |           ^^^^^^ help: if this is intentional, prefix it with an underscore: `_params`
+
+warning: unused variable: `params`
+    --> jackbot-sensor/src/api.rs:1660:11
+     |
+1660 |     Query(params): Query<QueryParams>,
+     |           ^^^^^^ help: if this is intentional, prefix it with an underscore: `_params`
+
+warning: unused variable: `params`
+    --> jackbot-sensor/src/api.rs:1685:11
+     |
+1685 |     Query(params): Query<QueryParams>,
+     |           ^^^^^^ help: if this is intentional, prefix it with an underscore: `_params`
+
+warning: unused variable: `state`
+    --> jackbot-sensor/src/api.rs:1866:11
+     |
+1866 |     State(state): State<ApiState>,
+     |           ^^^^^ help: if this is intentional, prefix it with an underscore: `_state`
+
+warning: unused variable: `state`
+    --> jackbot-sensor/src/api.rs:1895:11
+     |
+1895 |     State(state): State<ApiState>,
+     |           ^^^^^ help: if this is intentional, prefix it with an underscore: `_state`
+
+warning: unused variable: `headers`
+    --> jackbot-sensor/src/api.rs:1896:5
+     |
+1896 |     headers: HeaderMap,
+     |     ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_headers`
+
+warning: unused variable: `instance`
+    --> jackbot-sensor/src/api.rs:2009:23
+     |
+2009 |     for (instance_id, instance) in instances.iter() {
+     |                       ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_instance`
+
+warning: unused variable: `params`
+    --> jackbot-sensor/src/api.rs:2050:11
+     |
+2050 |     Query(params): Query<QueryParams>,
+     |           ^^^^^^ help: if this is intentional, prefix it with an underscore: `_params`
+
+error[E0599]: no function or associated item named `new_with_config` found for struct `StreamingManager` in the current scope
+  --> jackbot-sensor/src/sensor.rs:83:60
+   |
+83 |         let streaming_manager = Arc::new(StreamingManager::new_with_config(production_config.clone()));
+   |                                                            ^^^^^^^^^^^^^^^ function or associated item not found in `StreamingManager`
+   |
+  ::: jackbot-sensor/src/streaming.rs:73:1
+   |
+73 | pub struct StreamingManager {
+   | --------------------------- function or associated item `new_with_config` not found for this struct
+   |
+note: if you're trying to build a new `StreamingManager`, consider using `StreamingManager::new` which returns `StreamingManager`
+  --> jackbot-sensor/src/streaming.rs:90:5
+   |
+90 |     pub fn new() -> Self {
+   |     ^^^^^^^^^^^^^^^^^^^^
+
+error[E0061]: this function takes 2 arguments but 1 argument was supplied
+   --> jackbot-sensor/src/sensor.rs:100:31
+    |
+100 |         let order_processor = OrderProcessor::new(self.kafka_store.clone()).await?;
+    |                               ^^^^^^^^^^^^^^^^^^^-------------------------- argument #2 of type `std::option::Option<Arc<ConnectorManager>>` is missing
+    |
+note: associated function defined here
+   --> jackbot-sensor/src/order_processor.rs:96:18
+    |
+96  |     pub async fn new(
+    |                  ^^^
+97  |         kafka_store: Arc<KafkaClientStore>, 
+98  |         connector_manager: Option<Arc<ConnectorManager>>
+    |         ------------------------------------------------
+help: provide the argument
+    |
+100 -         let order_processor = OrderProcessor::new(self.kafka_store.clone()).await?;
+100 +         let order_processor = OrderProcessor::new(self.kafka_store.clone(), /* std::option::Option<Arc<ConnectorManager>> */).await?;
+    |
+
+warning: unused variable: `kafka_store_trades`
+   --> jackbot-sensor/src/sensor.rs:149:13
+    |
+149 |         let kafka_store_trades = self.kafka_store.clone();
+    |             ^^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_kafka_store_trades`
+
+warning: unused variable: `connection`
+   --> jackbot-sensor/src/connector.rs:389:21
+    |
+389 |         if let Some(connection) = connections.remove(&key) {
+    |                     ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_connection`
+
+warning: unused variable: `connection`
+   --> jackbot-sensor/src/connector.rs:400:19
+    |
+400 |         for (key, connection) in connections.iter() {
+    |                   ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_connection`
+
+warning: unused variable: `exchange_id`
+    --> jackbot-sensor/src/connector.rs:1189:9
+     |
+1189 |         exchange_id: ExchangeId,
+     |         ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_exchange_id`
+
+warning: unused variable: `connectors`
+    --> jackbot-sensor/src/connector.rs:1191:13
+     |
+1191 |         let connectors = self.connectors.read().await;
+     |             ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_connectors`
+
+warning: unused variable: `limit`
+   --> jackbot-sensor/src/rate_limit.rs:118:22
+    |
+118 |                 let (limit, remaining, reset_time) = self.get_limit_info(&bucket, &limiter).await;
+    |                      ^^^^^ help: if this is intentional, prefix it with an underscore: `_limit`
+
+warning: unused variable: `remaining`
+   --> jackbot-sensor/src/rate_limit.rs:118:29
+    |
+118 |                 let (limit, remaining, reset_time) = self.get_limit_info(&bucket, &limiter).await;
+    |                             ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_remaining`
+
+warning: unused variable: `reset_time`
+   --> jackbot-sensor/src/rate_limit.rs:118:40
+    |
+118 |                 let (limit, remaining, reset_time) = self.get_limit_info(&bucket, &limiter).await;
+    |                                        ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_reset_time`
+
+warning: unused variable: `limiter`
+   --> jackbot-sensor/src/rate_limit.rs:200:9
+    |
+200 |         limiter: &RateLimiterType,
+    |         ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_limiter`
+
+warning: unused variable: `quota`
+   --> jackbot-sensor/src/rate_limit.rs:202:13
+    |
+202 |         let quota = self.get_quota_for_bucket(bucket);
+    |             ^^^^^ help: if this is intentional, prefix it with an underscore: `_quota`
+
+warning: use of deprecated method `rand::Rng::gen_range`: Renamed to `random_range`
+   --> jackbot-sensor/src/monitor.rs:220:28
+    |
+220 |             cpu_usage: rng.gen_range(20.0..80.0),
+    |                            ^^^^^^^^^
+
+warning: use of deprecated method `rand::Rng::gen_range`: Renamed to `random_range`
+   --> jackbot-sensor/src/monitor.rs:221:31
+    |
+221 |             memory_usage: rng.gen_range(40.0..90.0),
+    |                               ^^^^^^^^^
+
+warning: use of deprecated method `rand::Rng::gen_range`: Renamed to `random_range`
+   --> jackbot-sensor/src/monitor.rs:223:44
+    |
+223 |                 inbound_bytes_per_sec: rng.gen_range(1000.0..50000.0),
+    |                                            ^^^^^^^^^
+
+warning: use of deprecated method `rand::Rng::gen_range`: Renamed to `random_range`
+   --> jackbot-sensor/src/monitor.rs:224:45
+    |
+224 |                 outbound_bytes_per_sec: rng.gen_range(500.0..25000.0),
+    |                                             ^^^^^^^^^
+
+warning: use of deprecated method `rand::Rng::gen_range`: Renamed to `random_range`
+   --> jackbot-sensor/src/monitor.rs:225:40
+    |
+225 |                 connections_count: rng.gen_range(10..100),
+    |                                        ^^^^^^^^^
+
+warning: use of deprecated method `rand::Rng::gen_range`: Renamed to `random_range`
+   --> jackbot-sensor/src/monitor.rs:227:29
+    |
+227 |             disk_usage: rng.gen_range(30.0..80.0),
+    |                             ^^^^^^^^^
+
+warning: use of deprecated method `rand::Rng::gen_range`: Renamed to `random_range`
+   --> jackbot-sensor/src/monitor.rs:228:31
+    |
+228 |             load_average: rng.gen_range(0.5..4.0),
+    |                               ^^^^^^^^^
+
+warning: unused variable: `data_type`
+   --> jackbot-sensor/src/monitor.rs:267:59
+    |
+267 |     pub async fn record_data_point(&self, exchange: &str, data_type: &str, latency: f64) {
+    |                                                           ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_data_type`
+
+warning: unused variable: `instance_loads`
+   --> jackbot-sensor/src/distribution.rs:176:9
+    |
+176 |         instance_loads: &mut [usize],
+    |         ^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_instance_loads`
+
+warning: unused variable: `target_instances`
+   --> jackbot-sensor/src/distribution.rs:297:9
+    |
+297 |         target_instances: usize,
+    |         ^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_target_instances`
+
+warning: unused variable: `metrics`
+   --> jackbot-sensor/src/distribution.rs:299:13
+    |
+299 |         let metrics = self.calculate_load_metrics(current_distribution);
+    |             ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_metrics`
+
+error[E0308]: mismatched types
+   --> jackbot-sensor/src/order_book_aggregator.rs:310:39
+    |
+284 |                 aggregated_bids
+    |                 --------------- here the type of `aggregated_bids` is inferred to be `BTreeMap<i64, Vec<(std::string::String, [f64; 2], u64)>>`
+...
+310 |         let bids = Self::merge_levels(aggregated_bids, config, false);
+    |                    ------------------ ^^^^^^^^^^^^^^^ expected `BTreeMap<i64, Vec<(String, ..., u64)>>`, found `BTreeMap<i64, Vec<(..., [f64; 2], u64)>>`
+    |                    |
+    |                    arguments to this function are incorrect
+    |
+    = note: expected struct `BTreeMap<_, Vec<(std::string::String, api::PriceLevel, _)>>`
+               found struct `BTreeMap<_, Vec<(std::string::String, [f64; 2], _)>>`
+note: associated function defined here
+   --> jackbot-sensor/src/order_book_aggregator.rs:346:8
+    |
+346 |     fn merge_levels(
+    |        ^^^^^^^^^^^^
+347 |         levels_map: BTreeMap<i64, Vec<(String, PriceLevel, u64)>>,
+    |         ---------------------------------------------------------
+
+error[E0308]: mismatched types
+   --> jackbot-sensor/src/order_book_aggregator.rs:311:39
+    |
+298 |                 aggregated_asks
+    |                 --------------- here the type of `aggregated_asks` is inferred to be `BTreeMap<i64, Vec<(std::string::String, [f64; 2], u64)>>`
+...
+311 |         let asks = Self::merge_levels(aggregated_asks, config, true);
+    |                    ------------------ ^^^^^^^^^^^^^^^ expected `BTreeMap<i64, Vec<(String, ..., u64)>>`, found `BTreeMap<i64, Vec<(..., [f64; 2], u64)>>`
+    |                    |
+    |                    arguments to this function are incorrect
+    |
+    = note: expected struct `BTreeMap<_, Vec<(std::string::String, api::PriceLevel, _)>>`
+               found struct `BTreeMap<_, Vec<(std::string::String, [f64; 2], _)>>`
+note: associated function defined here
+   --> jackbot-sensor/src/order_book_aggregator.rs:346:8
+    |
+346 |     fn merge_levels(
+    |        ^^^^^^^^^^^^
+347 |         levels_map: BTreeMap<i64, Vec<(String, PriceLevel, u64)>>,
+    |         ---------------------------------------------------------
+
+error[E0616]: field `bids` of struct `jackbot_data::books::OrderBook` is private
+   --> jackbot-sensor/src/connectors/coinbase_production.rs:286:62
+    |
+286 |                         let bids: Vec<(f64, f64)> = snapshot.bids.iter()
+    |                                                              ^^^^ private field
+    |
+help: a method `bids` also exists, call it with parentheses
+    |
+286 |                         let bids: Vec<(f64, f64)> = snapshot.bids().iter()
+    |                                                                  ++
+
+error[E0616]: field `asks` of struct `jackbot_data::books::OrderBook` is private
+   --> jackbot-sensor/src/connectors/coinbase_production.rs:289:62
+    |
+289 |                         let asks: Vec<(f64, f64)> = snapshot.asks.iter()
+    |                                                              ^^^^ private field
+    |
+help: a method `asks` also exists, call it with parentheses
+    |
+289 |                         let asks: Vec<(f64, f64)> = snapshot.asks().iter()
+    |                                                                  ++
+
+error[E0616]: field `bids` of struct `jackbot_data::books::OrderBook` is private
+   --> jackbot-sensor/src/connectors/coinbase_production.rs:297:71
+    |
+297 |                         let updates: Vec<(String, f64, f64)> = update.bids.iter()
+    |                                                                       ^^^^ private field
+    |
+help: a method `bids` also exists, call it with parentheses
+    |
+297 |                         let updates: Vec<(String, f64, f64)> = update.bids().iter()
+    |                                                                           ++
+
+error[E0616]: field `asks` of struct `jackbot_data::books::OrderBook` is private
+   --> jackbot-sensor/src/connectors/coinbase_production.rs:299:43
+    |
+299 | ...                   .chain(update.asks.iter()
+    |                                     ^^^^ private field
+    |
+help: a method `asks` also exists, call it with parentheses
+    |
+299 |                             .chain(update.asks().iter()
+    |                                               ++
+
+error[E0277]: a value of type `Vec<[f64; 2]>` cannot be built from an iterator over elements of type `Vec<f64>`
+    --> jackbot-sensor/src/connectors/coinbase_production.rs:321:30
+     |
+321  | ...                   .collect(),
+     |                        ^^^^^^^ value of type `Vec<[f64; 2]>` cannot be built from `std::iter::Iterator<Item=Vec<f64>>`
+     |
+     = help: the trait `FromIterator<Vec<f64>>` is not implemented for `Vec<[f64; 2]>`
+             but trait `FromIterator<[f64; 2]>` is implemented for it
+     = help: for that trait implementation, expected `[f64; 2]`, found `Vec<f64>`
+note: the method call chain might not have had the expected associated types
+    --> jackbot-sensor/src/connectors/coinbase_production.rs:320:30
+     |
+319  |                         bids: bids.into_iter()
+     |                               ---- ----------- `Iterator::Item` is `(f64, f64)` here
+     |                               |
+     |                               this expression has type `Vec<(f64, f64)>`
+320  |                             .map(|(price, size)| vec![price, size])
+     |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Iterator::Item` changed to `Vec<f64>` here
+note: required by a bound in `std::iter::Iterator::collect`
+    --> /Users/user/.rustup/toolchains/stable-aarch64-apple-darwin/lib/rustlib/src/rust/library/core/src/iter/traits/iterator.rs:1967:19
+     |
+1967 |     fn collect<B: FromIterator<Self::Item>>(self) -> B
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `Iterator::collect`
+
+error[E0277]: a value of type `Vec<[f64; 2]>` cannot be built from an iterator over elements of type `Vec<f64>`
+    --> jackbot-sensor/src/connectors/coinbase_production.rs:324:30
+     |
+324  | ...                   .collect(),
+     |                        ^^^^^^^ value of type `Vec<[f64; 2]>` cannot be built from `std::iter::Iterator<Item=Vec<f64>>`
+     |
+     = help: the trait `FromIterator<Vec<f64>>` is not implemented for `Vec<[f64; 2]>`
+             but trait `FromIterator<[f64; 2]>` is implemented for it
+     = help: for that trait implementation, expected `[f64; 2]`, found `Vec<f64>`
+note: the method call chain might not have had the expected associated types
+    --> jackbot-sensor/src/connectors/coinbase_production.rs:323:30
+     |
+322  |                         asks: asks.into_iter()
+     |                               ---- ----------- `Iterator::Item` is `(f64, f64)` here
+     |                               |
+     |                               this expression has type `Vec<(f64, f64)>`
+323  |                             .map(|(price, size)| vec![price, size])
+     |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `Iterator::Item` changed to `Vec<f64>` here
+note: required by a bound in `std::iter::Iterator::collect`
+    --> /Users/user/.rustup/toolchains/stable-aarch64-apple-darwin/lib/rustlib/src/rust/library/core/src/iter/traits/iterator.rs:1967:19
+     |
+1967 |     fn collect<B: FromIterator<Self::Item>>(self) -> B
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `Iterator::collect`
+
+error[E0063]: missing field `is_maker` in initializer of `api::TradeData`
+   --> jackbot-sensor/src/connectors/coinbase_production.rs:333:35
+    |
+333 |                 MarketData::Trade(TradeData {
+    |                                   ^^^^^^^^^ missing `is_maker`
+
+error[E0593]: closure is expected to take 1 argument, but it takes 0 arguments
+   --> jackbot-sensor/src/connectors/okx.rs:179:49
+    |
+179 |             timestamp: ticker.timestamp.parse().unwrap_or_else(|| chrono::Utc::now().timestamp_millis()),
+    |                                                 ^^^^^^^^^^^^^^ -- takes 0 arguments
+    |                                                 |
+    |                                                 expected closure that takes 1 argument
+    |
+help: consider changing the closure to take and ignore the expected argument
+    |
+179 -             timestamp: ticker.timestamp.parse().unwrap_or_else(|| chrono::Utc::now().timestamp_millis()),
+179 +             timestamp: ticker.timestamp.parse().unwrap_or_else(|_| chrono::Utc::now().timestamp_millis()),
+    |
+
+error[E0308]: mismatched types
+   --> jackbot-sensor/src/websocket_connection_pool.rs:151:40
+    |
+151 |         conn.stream.send(Message::Text(message)).await
+    |                          ------------- ^^^^^^^ expected `Utf8Bytes`, found `String`
+    |                          |
+    |                          arguments to this enum variant are incorrect
+    |
+note: tuple variant defined here
+   --> /Users/user/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tungstenite-0.26.2/src/protocol/message.rs:160:5
+    |
+160 |     Text(Utf8Bytes),
+    |     ^^^^
+help: call `Into::into` on this expression to convert `std::string::String` into `Utf8Bytes`
+    |
+151 |         conn.stream.send(Message::Text(message.into())).await
+    |                                               +++++++
+
+error[E0596]: cannot borrow `ws_stream` as mutable, as it is not declared as mutable
+   --> jackbot-sensor/src/websocket_connection_pool.rs:286:21
+    |
+286 |             let _ = ws_stream.close(None).await;
+    |                     ^^^^^^^^^ cannot borrow as mutable
+    |
+help: consider changing this to be mutable
+    |
+284 |         if let Ok(Ok((mut ws_stream, _))) = result {
+    |                       +++
+
+error[E0658]: use of unstable library feature `duration_constructors`
+   --> jackbot-sensor/src/websocket_connection_pool.rs:318:57
+    |
+318 |                     .filter(|m| m.timestamp.elapsed() < Duration::from_mins(5))
+    |                                                         ^^^^^^^^^^^^^^^^^^^
+    |
+    = note: see issue #120301 <https://github.com/rust-lang/rust/issues/120301> for more information
+
+error[E0308]: mismatched types
+   --> jackbot-sensor/src/websocket_connection_pool.rs:451:46
+    |
+451 | ...                   message: text,
+    |                                ^^^^- help: try using a conversion method: `.to_string()`
+    |                                |
+    |                                expected `String`, found `Utf8Bytes`
+
+warning: unused variable: `e`
+   --> jackbot-sensor/src/network_resilience.rs:360:20
+    |
+360 |             Ok(Err(e)) | Err(_) => {
+    |                    ^ help: if this is intentional, prefix it with an underscore: `_e`
+
+warning: unused variable: `endpoint`
+   --> jackbot-sensor/src/network_resilience.rs:491:33
+    |
+491 |     async fn try_connect(&self, endpoint: &str) -> Result<()> {
+    |                                 ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_endpoint`
+
+error[E0308]: mismatched types
+   --> jackbot-sensor/src/streaming_real.rs:40:17
+    |
+36  |             if let Err(e) = binance_websocket_handler(
+    |                             ------------------------- arguments to this function are incorrect
+...
+40  |                 streaming_manager
+    |                 ^^^^^^^^^^^^^^^^^ expected `Arc<StreamingManager>`, found `Arc<&StreamingManager>`
+    |
+    = note: expected struct `Arc<StreamingManager>`
+               found struct `Arc<&StreamingManager>`
+note: function defined here
+   --> jackbot-sensor/src/streaming_real.rs:213:10
+    |
+213 | async fn binance_websocket_handler(
+    |          ^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+217 |     streaming_manager: Arc<StreamingManager>,
+    |     ----------------------------------------
+
+error[E0308]: mismatched types
+   --> jackbot-sensor/src/streaming_real.rs:67:17
+    |
+63  |             if let Err(e) = coinbase_websocket_handler(
+    |                             -------------------------- arguments to this function are incorrect
+...
+67  |                 streaming_manager
+    |                 ^^^^^^^^^^^^^^^^^ expected `Arc<StreamingManager>`, found `Arc<&StreamingManager>`
+    |
+    = note: expected struct `Arc<StreamingManager>`
+               found struct `Arc<&StreamingManager>`
+note: function defined here
+   --> jackbot-sensor/src/streaming_real.rs:277:10
+    |
+277 | async fn coinbase_websocket_handler(
+    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+281 |     streaming_manager: Arc<StreamingManager>,
+    |     ----------------------------------------
+
+error[E0308]: mismatched types
+   --> jackbot-sensor/src/streaming_real.rs:94:17
+    |
+90  |             if let Err(e) = bybit_websocket_handler(
+    |                             ----------------------- arguments to this function are incorrect
+...
+94  |                 streaming_manager
+    |                 ^^^^^^^^^^^^^^^^^ expected `Arc<StreamingManager>`, found `Arc<&StreamingManager>`
+    |
+    = note: expected struct `Arc<StreamingManager>`
+               found struct `Arc<&StreamingManager>`
+note: function defined here
+   --> jackbot-sensor/src/streaming_real.rs:353:10
+    |
+353 | async fn bybit_websocket_handler(
+    |          ^^^^^^^^^^^^^^^^^^^^^^^
+...
+357 |     streaming_manager: Arc<StreamingManager>,
+    |     ----------------------------------------
+
+error[E0308]: mismatched types
+   --> jackbot-sensor/src/streaming_real.rs:121:17
+    |
+117 |             if let Err(e) = bitget_websocket_handler(
+    |                             ------------------------ arguments to this function are incorrect
+...
+121 |                 streaming_manager
+    |                 ^^^^^^^^^^^^^^^^^ expected `Arc<StreamingManager>`, found `Arc<&StreamingManager>`
+    |
+    = note: expected struct `Arc<StreamingManager>`
+               found struct `Arc<&StreamingManager>`
+note: function defined here
+   --> jackbot-sensor/src/streaming_real.rs:364:10
+    |
+364 | async fn bitget_websocket_handler(
+    |          ^^^^^^^^^^^^^^^^^^^^^^^^
+...
+368 |     streaming_manager: Arc<StreamingManager>,
+    |     ----------------------------------------
+
+error[E0308]: mismatched types
+   --> jackbot-sensor/src/streaming_real.rs:148:17
+    |
+144 |             if let Err(e) = hyperliquid_websocket_handler(
+    |                             ----------------------------- arguments to this function are incorrect
+...
+148 |                 streaming_manager
+    |                 ^^^^^^^^^^^^^^^^^ expected `Arc<StreamingManager>`, found `Arc<&StreamingManager>`
+    |
+    = note: expected struct `Arc<StreamingManager>`
+               found struct `Arc<&StreamingManager>`
+note: function defined here
+   --> jackbot-sensor/src/streaming_real.rs:374:10
+    |
+374 | async fn hyperliquid_websocket_handler(
+    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+378 |     streaming_manager: Arc<StreamingManager>,
+    |     ----------------------------------------
+
+error[E0308]: mismatched types
+   --> jackbot-sensor/src/streaming_real.rs:175:17
+    |
+171 |             if let Err(e) = kraken_websocket_handler(
+    |                             ------------------------ arguments to this function are incorrect
+...
+175 |                 streaming_manager
+    |                 ^^^^^^^^^^^^^^^^^ expected `Arc<StreamingManager>`, found `Arc<&StreamingManager>`
+    |
+    = note: expected struct `Arc<StreamingManager>`
+               found struct `Arc<&StreamingManager>`
+note: function defined here
+   --> jackbot-sensor/src/streaming_real.rs:384:10
+    |
+384 | async fn kraken_websocket_handler(
+    |          ^^^^^^^^^^^^^^^^^^^^^^^^
+...
+388 |     streaming_manager: Arc<StreamingManager>,
+    |     ----------------------------------------
+
+error[E0308]: mismatched types
+   --> jackbot-sensor/src/streaming_real.rs:202:17
+    |
+198 |             if let Err(e) = okx_websocket_handler(
+    |                             --------------------- arguments to this function are incorrect
+...
+202 |                 streaming_manager
+    |                 ^^^^^^^^^^^^^^^^^ expected `Arc<StreamingManager>`, found `Arc<&StreamingManager>`
+    |
+    = note: expected struct `Arc<StreamingManager>`
+               found struct `Arc<&StreamingManager>`
+note: function defined here
+   --> jackbot-sensor/src/streaming_real.rs:394:10
+    |
+394 | async fn okx_websocket_handler(
+    |          ^^^^^^^^^^^^^^^^^^^^^
+...
+398 |     streaming_manager: Arc<StreamingManager>,
+    |     ----------------------------------------
+
+error[E0308]: mismatched types
+   --> jackbot-sensor/src/streaming_real.rs:308:34
+    |
+308 |     ws_stream.send(Message::Text(subscribe_msg.to_string())).await?;
+    |                    ------------- ^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Utf8Bytes`, found `String`
+    |                    |
+    |                    arguments to this enum variant are incorrect
+    |
+note: tuple variant defined here
+   --> /Users/user/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tungstenite-0.26.2/src/protocol/message.rs:160:5
+    |
+160 |     Text(Utf8Bytes),
+    |     ^^^^
+help: call `Into::into` on this expression to convert `std::string::String` into `Utf8Bytes`
+    |
+308 |     ws_stream.send(Message::Text(subscribe_msg.to_string().into())).await?;
+    |                                                           +++++++
+
+warning: unused variable: `url`
+   --> jackbot-sensor/src/streaming_real.rs:354:5
+    |
+354 |     url: &str,
+    |     ^^^ help: if this is intentional, prefix it with an underscore: `_url`
+
+warning: unused variable: `stream_type`
+   --> jackbot-sensor/src/streaming_real.rs:355:5
+    |
+355 |     stream_type: &str,
+    |     ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_stream_type`
+
+warning: unused variable: `symbol`
+   --> jackbot-sensor/src/streaming_real.rs:356:5
+    |
+356 |     symbol: &str,
+    |     ^^^^^^ help: if this is intentional, prefix it with an underscore: `_symbol`
+
+warning: unused variable: `streaming_manager`
+   --> jackbot-sensor/src/streaming_real.rs:357:5
+    |
+357 |     streaming_manager: Arc<StreamingManager>,
+    |     ^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_streaming_manager`
+
+warning: unused variable: `url`
+   --> jackbot-sensor/src/streaming_real.rs:365:5
+    |
+365 |     url: &str,
+    |     ^^^ help: if this is intentional, prefix it with an underscore: `_url`
+
+warning: unused variable: `stream_type`
+   --> jackbot-sensor/src/streaming_real.rs:366:5
+    |
+366 |     stream_type: &str,
+    |     ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_stream_type`
+
+warning: unused variable: `symbol`
+   --> jackbot-sensor/src/streaming_real.rs:367:5
+    |
+367 |     symbol: &str,
+    |     ^^^^^^ help: if this is intentional, prefix it with an underscore: `_symbol`
+
+warning: unused variable: `streaming_manager`
+   --> jackbot-sensor/src/streaming_real.rs:368:5
+    |
+368 |     streaming_manager: Arc<StreamingManager>,
+    |     ^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_streaming_manager`
+
+warning: unused variable: `url`
+   --> jackbot-sensor/src/streaming_real.rs:375:5
+    |
+375 |     url: &str,
+    |     ^^^ help: if this is intentional, prefix it with an underscore: `_url`
+
+warning: unused variable: `stream_type`
+   --> jackbot-sensor/src/streaming_real.rs:376:5
+    |
+376 |     stream_type: &str,
+    |     ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_stream_type`
+
+warning: unused variable: `symbol`
+   --> jackbot-sensor/src/streaming_real.rs:377:5
+    |
+377 |     symbol: &str,
+    |     ^^^^^^ help: if this is intentional, prefix it with an underscore: `_symbol`
+
+warning: unused variable: `streaming_manager`
+   --> jackbot-sensor/src/streaming_real.rs:378:5
+    |
+378 |     streaming_manager: Arc<StreamingManager>,
+    |     ^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_streaming_manager`
+
+warning: unused variable: `url`
+   --> jackbot-sensor/src/streaming_real.rs:385:5
+    |
+385 |     url: &str,
+    |     ^^^ help: if this is intentional, prefix it with an underscore: `_url`
+
+warning: unused variable: `stream_type`
+   --> jackbot-sensor/src/streaming_real.rs:386:5
+    |
+386 |     stream_type: &str,
+    |     ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_stream_type`
+
+warning: unused variable: `symbol`
+   --> jackbot-sensor/src/streaming_real.rs:387:5
+    |
+387 |     symbol: &str,
+    |     ^^^^^^ help: if this is intentional, prefix it with an underscore: `_symbol`
+
+warning: unused variable: `streaming_manager`
+   --> jackbot-sensor/src/streaming_real.rs:388:5
+    |
+388 |     streaming_manager: Arc<StreamingManager>,
+    |     ^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_streaming_manager`
+
+warning: unused variable: `url`
+   --> jackbot-sensor/src/streaming_real.rs:395:5
+    |
+395 |     url: &str,
+    |     ^^^ help: if this is intentional, prefix it with an underscore: `_url`
+
+warning: unused variable: `stream_type`
+   --> jackbot-sensor/src/streaming_real.rs:396:5
+    |
+396 |     stream_type: &str,
+    |     ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_stream_type`
+
+warning: unused variable: `symbol`
+   --> jackbot-sensor/src/streaming_real.rs:397:5
+    |
+397 |     symbol: &str,
+    |     ^^^^^^ help: if this is intentional, prefix it with an underscore: `_symbol`
+
+warning: unused variable: `streaming_manager`
+   --> jackbot-sensor/src/streaming_real.rs:398:5
+    |
+398 |     streaming_manager: Arc<StreamingManager>,
+    |     ^^^^^^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_streaming_manager`
+
+error[E0599]: no method named `subscribe_all` found for struct `Arc<StreamingManager>` in the current scope
+   --> jackbot-sensor/src/connectors/binance.rs:255:51
+    |
+255 |         let mut receiver = self.streaming_manager.subscribe_all().await?;
+    |                                                   ^^^^^^^^^^^^^
+    |
+help: there is a method `subscribe` with a similar name, but with different arguments
+   --> jackbot-sensor/src/streaming.rs:136:5
+    |
+136 | /     pub async fn subscribe(
+137 | |         &self,
+138 | |         connection_id: String,
+139 | |         user_id: Option<String>,
+140 | |         channels: Vec<String>,
+141 | |     ) -> Result<()> {
+    | |___________________^
+
+error[E0599]: no method named `validate_order` found for reference `&BinanceConnector` in the current scope
+   --> jackbot-sensor/src/connectors/binance.rs:293:14
+    |
+293 |         self.validate_order(&order)?;
+    |              ^^^^^^^^^^^^^^
+    |
+help: there is a method `place_order` with a similar name
+    |
+293 -         self.validate_order(&order)?;
+293 +         self.place_order(&order)?;
+    |
+
+error[E0599]: no method named `place_order_rest` found for reference `&BinanceConnector` in the current scope
+   --> jackbot-sensor/src/connectors/binance.rs:297:25
+    |
+297 |             return self.place_order_rest(rest_client, order).await;
+    |                         ^^^^^^^^^^^^^^^^
+    |
+help: there is a method `place_order` with a similar name, but with different arguments
+   --> jackbot-sensor/src/connector.rs:131:5
+    |
+131 |     async fn place_order(&self, order: Order) -> Result<OrderResult>;
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0369]: binary operation `==` cannot be applied to type `connector::OrderType`
+   --> jackbot-sensor/src/connectors/binance.rs:320:29
+    |
+320 |         if order.order_type == OrderType::Limit && order.price.is_none() {
+    |            ---------------- ^^ ---------------- connector::OrderType
+    |            |
+    |            connector::OrderType
+    |
+note: an implementation of `PartialEq` might be missing for `connector::OrderType`
+   --> jackbot-sensor/src/connector.rs:72:1
+    |
+72  | pub enum OrderType {
+    | ^^^^^^^^^^^^^^^^^^ must implement `PartialEq`
+help: consider annotating `connector::OrderType` with `#[derive(PartialEq)]`
+   --> jackbot-sensor/src/connector.rs:72:1
+    |
+72  + #[derive(PartialEq)]
+73  | pub enum OrderType {
+    |
+
+error[E0599]: no method named `open_order` found for reference `&'life1 BinanceRestClient` in the current scope
+   --> jackbot-sensor/src/connectors/binance.rs:349:31
+    |
+349 |         let response = client.open_order(request).await;
+    |                               ^^^^^^^^^^
+    |
+help: there is a method `fetch_open_orders` with a similar name, but with different arguments
+   --> /Users/user/jackbot/jackbot-sensor/jackbot-execution/src/client/binance/rest.rs:139:5
+    |
+139 | /     pub async fn fetch_open_orders(
+140 | |         &self,
+141 | |     ) -> Result<Vec<Order<ExchangeId, InstrumentNameExchange, Open>>, UnindexedClientError> {
+    | |___________________________________________________________________________________________^
+
+error[E0560]: struct `BitgetConfig` has no field named `sandbox`
+   --> jackbot-sensor/src/connectors/bitget.rs:183:17
+    |
+183 |                 sandbox: self.sandbox,
+    |                 ^^^^^^^ `BitgetConfig` does not have this field
+    |
+    = note: available fields are: `rest_url`, `ws_url`, `trading_mode`
+
+error[E0560]: struct `BitgetConfig` has no field named `sandbox`
+   --> jackbot-sensor/src/connectors/bitget.rs:190:17
+    |
+190 |                 sandbox: true,
+    |                 ^^^^^^^ `BitgetConfig` does not have this field
+    |
+    = note: available fields are: `rest_url`, `ws_url`, `trading_mode`
+
+error[E0599]: no method named `subscribe_all` found for struct `Arc<StreamingManager>` in the current scope
+   --> jackbot-sensor/src/connectors/bitget.rs:216:51
+    |
+216 |         let mut receiver = self.streaming_manager.subscribe_all().await?;
+    |                                                   ^^^^^^^^^^^^^
+    |
+help: there is a method `subscribe` with a similar name, but with different arguments
+   --> jackbot-sensor/src/streaming.rs:136:5
+    |
+136 | /     pub async fn subscribe(
+137 | |         &self,
+138 | |         connection_id: String,
+139 | |         user_id: Option<String>,
+140 | |         channels: Vec<String>,
+141 | |     ) -> Result<()> {
+    | |___________________^
+
+error[E0560]: struct `BybitRestConfig` has no field named `sandbox`
+   --> jackbot-sensor/src/connectors/bybit.rs:182:17
+    |
+182 |                 sandbox: self.sandbox,
+    |                 ^^^^^^^ `BybitRestConfig` does not have this field
+    |
+    = note: available fields are: `testnet`
+
+error[E0560]: struct `BybitRestConfig` has no field named `sandbox`
+   --> jackbot-sensor/src/connectors/bybit.rs:189:17
+    |
+189 |                 sandbox: true,
+    |                 ^^^^^^^ `BybitRestConfig` does not have this field
+    |
+    = note: available fields are: `testnet`
+
+error[E0599]: no method named `subscribe_all` found for struct `Arc<StreamingManager>` in the current scope
+   --> jackbot-sensor/src/connectors/bybit.rs:220:51
+    |
+220 |         let mut receiver = self.streaming_manager.subscribe_all().await?;
+    |                                                   ^^^^^^^^^^^^^
+    |
+help: there is a method `subscribe` with a similar name, but with different arguments
+   --> jackbot-sensor/src/streaming.rs:136:5
+    |
+136 | /     pub async fn subscribe(
+137 | |         &self,
+138 | |         connection_id: String,
+139 | |         user_id: Option<String>,
+140 | |         channels: Vec<String>,
+141 | |     ) -> Result<()> {
+    | |___________________^
+
+error[E0599]: no method named `open_order` found for reference `&BybitRestClient` in the current scope
+   --> jackbot-sensor/src/connectors/bybit.rs:263:29
+    |
+263 |         let result = client.open_order(request).await;
+    |                             ^^^^^^^^^^
+    |
+help: there is a method `fetch_open_orders` with a similar name, but with different arguments
+   --> /Users/user/jackbot/jackbot-sensor/jackbot-execution/src/client/bybit/rest.rs:172:5
+    |
+172 | /     pub async fn fetch_open_orders(
+173 | |         &self,
+174 | |     ) -> Result<Vec<Order<ExchangeId, InstrumentNameExchange, Open>>, UnindexedClientError> {
+    | |___________________________________________________________________________________________^
+
+error[E0609]: no field `state` on type `Result<jackbot_execution::order::state::Cancelled, OrderError<AssetNameExchange, InstrumentNameExchange>>`
+   --> jackbot-sensor/src/connectors/bybit.rs:296:24
+    |
+296 |         match response.state {
+    |                        ^^^^^ unknown field
+    |
+    = note: available fields are: `id`, `time_exchange`
+
+error[E0599]: no method named `subscribe_all` found for struct `Arc<StreamingManager>` in the current scope
+   --> jackbot-sensor/src/connectors/coinbase.rs:229:51
+    |
+229 |         let mut receiver = self.streaming_manager.subscribe_all().await?;
+    |                                                   ^^^^^^^^^^^^^
+    |
+help: there is a method `subscribe` with a similar name, but with different arguments
+   --> jackbot-sensor/src/streaming.rs:136:5
+    |
+136 | /     pub async fn subscribe(
+137 | |         &self,
+138 | |         connection_id: String,
+139 | |         user_id: Option<String>,
+140 | |         channels: Vec<String>,
+141 | |     ) -> Result<()> {
+    | |___________________^
+
+error[E0560]: struct `HyperliquidConfig` has no field named `testnet`
+   --> jackbot-sensor/src/connectors/hyperliquid.rs:174:17
+    |
+174 |                 testnet: self.sandbox,
+    |                 ^^^^^^^ `HyperliquidConfig` does not have this field
+    |
+    = note: available fields are: `rest_url`, `ws_url`, `web3_rpc_url`, `account_address`, `api_key`, `chain_id`
+
+error[E0560]: struct `HyperliquidConfig` has no field named `testnet`
+   --> jackbot-sensor/src/connectors/hyperliquid.rs:179:17
+    |
+179 |                 testnet: true,
+    |                 ^^^^^^^ `HyperliquidConfig` does not have this field
+    |
+    = note: available fields are: `rest_url`, `ws_url`, `web3_rpc_url`, `account_address`, `api_key`, `chain_id`
+
+error[E0599]: no method named `subscribe_all` found for struct `Arc<StreamingManager>` in the current scope
+   --> jackbot-sensor/src/connectors/hyperliquid.rs:205:51
+    |
+205 |         let mut receiver = self.streaming_manager.subscribe_all().await?;
+    |                                                   ^^^^^^^^^^^^^
+    |
+help: there is a method `subscribe` with a similar name, but with different arguments
+   --> jackbot-sensor/src/streaming.rs:136:5
+    |
+136 | /     pub async fn subscribe(
+137 | |         &self,
+138 | |         connection_id: String,
+139 | |         user_id: Option<String>,
+140 | |         channels: Vec<String>,
+141 | |     ) -> Result<()> {
+    | |___________________^
+
+error[E0277]: `connector::OrderSide` doesn't implement `std::fmt::Display`
+   --> jackbot-sensor/src/connectors/kraken.rs:297:51
+    |
+297 |         info!("📝 Placing Kraken order: {} {} {}", order.side, order.quantity, order.symbol);
+    |                                                    ^^^^^^^^^^ `connector::OrderSide` cannot be formatted with the default formatter
+    |
+    = help: the trait `std::fmt::Display` is not implemented for `connector::OrderSide`
+    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+    = note: this error originates in the macro `$crate::__macro_support::format_args` which comes from the expansion of the macro `info` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: use of deprecated method `chrono::DateTime::<Tz>::timestamp_nanos`: use `timestamp_nanos_opt()` instead
+   --> jackbot-sensor/src/connectors/kraken.rs:304:40
+    |
+304 |         let nonce = chrono::Utc::now().timestamp_nanos() as u64 / 1000; // microseconds
+    |                                        ^^^^^^^^^^^^^^^
+
+warning: use of deprecated method `chrono::DateTime::<Tz>::timestamp_nanos`: use `timestamp_nanos_opt()` instead
+   --> jackbot-sensor/src/connectors/kraken.rs:379:40
+    |
+379 |         let nonce = chrono::Utc::now().timestamp_nanos() as u64 / 1000;
+    |                                        ^^^^^^^^^^^^^^^
+
+warning: use of deprecated method `chrono::DateTime::<Tz>::timestamp_nanos`: use `timestamp_nanos_opt()` instead
+   --> jackbot-sensor/src/connectors/kraken.rs:422:40
+    |
+422 |         let nonce = chrono::Utc::now().timestamp_nanos() as u64 / 1000;
+    |                                        ^^^^^^^^^^^^^^^
+
+error[E0277]: `connector::OrderSide` doesn't implement `std::fmt::Display`
+   --> jackbot-sensor/src/connectors/kucoin.rs:251:51
+    |
+251 |         info!("📝 Placing KuCoin order: {} {} {}", order.side, order.quantity, order.symbol);
+    |                                                    ^^^^^^^^^^ `connector::OrderSide` cannot be formatted with the default formatter
+    |
+    = help: the trait `std::fmt::Display` is not implemented for `connector::OrderSide`
+    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+    = note: this error originates in the macro `$crate::__macro_support::format_args` which comes from the expansion of the macro `info` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: `connector::OrderSide` doesn't implement `std::fmt::Display`
+   --> jackbot-sensor/src/connectors/okx.rs:271:48
+    |
+271 |         info!("📝 Placing OKX order: {} {} {}", order.side, order.quantity, order.symbol);
+    |                                                 ^^^^^^^^^^ `connector::OrderSide` cannot be formatted with the default formatter
+    |
+    = help: the trait `std::fmt::Display` is not implemented for `connector::OrderSide`
+    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+    = note: this error originates in the macro `$crate::__macro_support::format_args` which comes from the expansion of the macro `info` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: unused import: `jackbot_execution::client::ExecutionClient`
+  --> jackbot-sensor/src/connector.rs:21:5
+   |
+21 | use jackbot_execution::client::ExecutionClient;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `SinkExt`
+ --> jackbot-sensor/src/streaming.rs:8:20
+  |
+8 | use futures_util::{SinkExt, StreamExt};
+  |                    ^^^^^^^
+
+warning: unused import: `StreamExt`
+ --> jackbot-sensor/src/streaming.rs:8:29
+  |
+8 | use futures_util::{SinkExt, StreamExt};
+  |                             ^^^^^^^^^
+
+warning: unused import: `Headers`
+  --> jackbot-sensor/src/order_processor.rs:10:24
+   |
+10 | use rdkafka::message::{Headers, Message};
+   |                        ^^^^^^^
+
+warning: unused import: `futures::StreamExt`
+ --> jackbot-sensor/src/smart_routing.rs:8:5
+  |
+8 | use futures::StreamExt;
+  |     ^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `StreamExt`
+ --> jackbot-sensor/src/order_book_aggregator.rs:7:23
+  |
+7 | use futures::{Stream, StreamExt};
+  |                       ^^^^^^^^^
+
+warning: unused import: `StreamExt`
+ --> jackbot-sensor/src/connectors/binance.rs:8:23
+  |
+8 | use futures::{Stream, StreamExt};
+  |                       ^^^^^^^^^
+
+warning: unused import: `StreamExt`
+ --> jackbot-sensor/src/connectors/bitget.rs:8:23
+  |
+8 | use futures::{Stream, StreamExt};
+  |                       ^^^^^^^^^
+
+warning: unused import: `StreamExt`
+ --> jackbot-sensor/src/connectors/bybit.rs:8:23
+  |
+8 | use futures::{Stream, StreamExt};
+  |                       ^^^^^^^^^
+
+warning: unused import: `StreamExt`
+ --> jackbot-sensor/src/connectors/coinbase.rs:8:23
+  |
+8 | use futures::{Stream, StreamExt};
+  |                       ^^^^^^^^^
+
+warning: unused import: `ExecutionClient`
+  --> jackbot-sensor/src/connectors/coinbase_production.rs:35:5
+   |
+35 |     ExecutionClient,
+   |     ^^^^^^^^^^^^^^^
+
+warning: unused import: `StreamExt`
+ --> jackbot-sensor/src/connectors/hyperliquid.rs:8:23
+  |
+8 | use futures::{Stream, StreamExt};
+  |                       ^^^^^^^^^
+
+warning: unused import: `Mac`
+  --> jackbot-sensor/src/connectors/kucoin.rs:16:18
+   |
+16 | use hmac::{Hmac, Mac};
+   |                  ^^^
+
+warning: unused import: `Engine`
+  --> jackbot-sensor/src/connectors/kucoin.rs:18:14
+   |
+18 | use base64::{Engine as _, engine::general_purpose};
+   |              ^^^^^^
+
+warning: unused import: `Mac`
+  --> jackbot-sensor/src/connectors/okx.rs:16:18
+   |
+16 | use hmac::{Hmac, Mac};
+   |                  ^^^
+
+warning: unused import: `Engine`
+  --> jackbot-sensor/src/connectors/okx.rs:18:14
+   |
+18 | use base64::{Engine as _, engine::general_purpose};
+   |              ^^^^^^
+
+warning: unused variable: `alg`
+    --> jackbot-sensor/src/api.rs:2424:18
+     |
+2424 |             Some(alg) => {
+     |                  ^^^ help: if this is intentional, prefix it with an underscore: `_alg`
+
+warning: unused variable: `api_key`
+   --> jackbot-sensor/src/connector.rs:471:30
+    |
+471 |                 if let (Some(api_key), Some(api_secret)) =
+    |                              ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_api_key`
+
+warning: unused variable: `api_secret`
+   --> jackbot-sensor/src/connector.rs:471:45
+    |
+471 |                 if let (Some(api_key), Some(api_secret)) =
+    |                                             ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_api_secret`
+
+warning: unused variable: `symbol`
+    --> jackbot-sensor/src/connector.rs:1015:50
+     |
+1015 |     async fn cancel_order(&self, order_id: &str, symbol: Option<&str>) -> Result<()> {
+     |                                                  ^^^^^^ help: if this is intentional, prefix it with an underscore: `_symbol`
+
+warning: unused variable: `open_state`
+   --> jackbot-sensor/src/connectors/binance.rs:152:16
+    |
+152 |             Ok(open_state) => Ok(OrderResult {
+    |                ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_open_state`
+
+warning: unused variable: `base_url`
+   --> jackbot-sensor/src/connectors/binance.rs:212:43
+    |
+212 |             let rest_client = if let Some(base_url) = &self.base_url {
+    |                                           ^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_base_url`
+
+warning: variable does not need to be mutable
+   --> jackbot-sensor/src/connectors/binance.rs:214:21
+    |
+214 |                 let mut client = BinanceRestClient::new(rest_config);
+    |                     ----^^^^^^
+    |                     |
+    |                     help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` on by default
+
+warning: unused variable: `open_state`
+   --> jackbot-sensor/src/connectors/bitget.rs:128:16
+    |
+128 |             Ok(open_state) => Ok(OrderResult {
+    |                ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_open_state`
+
+warning: unused variable: `open_state`
+   --> jackbot-sensor/src/connectors/bybit.rs:125:16
+    |
+125 |             Ok(open_state) => Ok(OrderResult {
+    |                ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_open_state`
+
+warning: unused variable: `open_state`
+   --> jackbot-sensor/src/connectors/coinbase.rs:129:16
+    |
+129 |             Ok(open_state) => Ok(OrderResult {
+    |                ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_open_state`
+
+warning: unused variable: `open_state`
+   --> jackbot-sensor/src/connectors/hyperliquid.rs:122:16
+    |
+122 |             Ok(open_state) => Ok(OrderResult {
+    |                ^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_open_state`
+
+warning: unused variable: `connection_id`
+   --> jackbot-sensor/src/websocket_connection_pool.rs:360:54
+    |
+360 |                     RouterMessage::IncomingMessage { connection_id, message } => {
+    |                                                      ^^^^^^^^^^^^^ help: try ignoring the field: `connection_id: _`
+
+Some errors have detailed explanations: E0061, E0063, E0277, E0308, E0369, E0407, E0408, E0532, E0560...
+For more information about an error, try `rustc --explain E0061`.
+warning: `jackbot-sensor` (lib) generated 180 warnings
+error: could not compile `jackbot-sensor` (lib) due to 54 previous errors; 180 warnings emitted
+warning: build failed, waiting for other jobs to finish...

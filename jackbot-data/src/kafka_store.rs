@@ -35,7 +35,7 @@ pub trait KafkaStore {
     fn clear(&self);
 }
 
-/// Redis-like interface for Kafka operations
+/// Kafka store interface for data operations
 pub type KafkaClientStore = MockKafkaStore;
 
 /// Mock Kafka store for testing and development
@@ -78,7 +78,7 @@ impl KafkaStore for MockKafkaStore {
         let key = format!("{}:{}", exchange, instrument);
         if let Ok(serialized) = serde_json::to_string(data) {
             let mut deltas = self.deltas.lock().unwrap();
-            deltas.entry(key).or_insert_with(Vec::new).push(serialized);
+            deltas.entry(key).or_default().push(serialized);
         }
     }
 

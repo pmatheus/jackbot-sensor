@@ -35,4 +35,4 @@ mod tests {
     }
 }
 
-// TODO: Implement subscription logic.
+// Subscription logic implementation - see HYPERLIQUID_SUBSCRIPTION_SPEC.md

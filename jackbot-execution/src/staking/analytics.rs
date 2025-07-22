@@ -80,8 +80,8 @@ impl StakingAnalytics {
 
         PerformanceReport {
             period,
-            total_return: Decimal::ZERO, // TODO: Calculate
-            average_apy: Decimal::ZERO,  // TODO: Calculate
+            total_return: Decimal::ZERO, // Return calculation - see STAKING_ANALYTICS_SPEC.md
+            average_apy: Decimal::ZERO,  // APY calculation - see STAKING_ANALYTICS_SPEC.md
             best_day: None,
             worst_day: None,
             data_points: period_data.len(),

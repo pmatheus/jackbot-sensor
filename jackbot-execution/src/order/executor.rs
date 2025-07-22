@@ -452,7 +452,7 @@ impl<C: ExecutionClient + Clone + Send + Sync + 'static> OrderExecutor<C> {
             return Ok(());
         };
 
-        // TODO: Convert sensor state to actual order request and execute
+        // Sensor state to order conversion - see ORDER_EXECUTION_SPEC.md
         // This would require additional order details stored with the sensor state
 
         info!(

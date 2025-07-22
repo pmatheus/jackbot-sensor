@@ -9,6 +9,7 @@ use jackbot_instrument::{
     Side, asset::AssetIndex, exchange::ExchangeIndex, instrument::InstrumentIndex,
 };
 use jackbot_integration::collection::one_or_many::OneOrMany;
+use jackbot_risk::volatility::VolatilityScaler;
 use rust_decimal::Decimal;
 use std::collections::HashMap;
 use std::marker::PhantomData;
@@ -40,7 +41,7 @@ impl Default for ExposureLimits {
 pub struct ExposureRiskManager<State> {
     pub limits: ExposureLimits,
     /// Optional volatility scaler used to adjust limits.
-    pub scaler: Option<()>,
+    pub scaler: Option<VolatilityScaler>,
     /// Per instrument volatility values.
     pub volatilities: HashMap<InstrumentIndex, Decimal>,
     phantom: PhantomData<State>,
@@ -87,9 +88,10 @@ where
                 inst_state.data.price().unwrap_or(Decimal::ZERO)
             };
 
-            let limit = self.limits.max_notional_per_underlying;
-            let quantity = open.state.quantity;
-            /* TODO: Implement proper VolatilityScaler
+            let mut limit = self.limits.max_notional_per_underlying;
+            let mut adjusted_quantity = open.state.quantity;
+            
+            // Apply volatility scaling if configured
             if let Some(scaler) = &self.scaler {
                 let vol = self
                     .volatilities
@@ -97,13 +99,11 @@ where
                     .copied()
                     .unwrap_or(Decimal::ZERO);
                 limit = scaler.adjust_risk(limit, vol);
-                quantity = scaler.adjust_position(quantity, vol);
-                open.state.quantity = quantity;
+                adjusted_quantity = scaler.adjust_position(open.state.quantity, vol);
             }
-            */
 
             let notional = crate::risk::check::util::calculate_quote_notional(
-                quantity,
+                adjusted_quantity,
                 price,
                 inst_state.instrument.kind.contract_size(),
             )

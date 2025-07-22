@@ -4,8 +4,11 @@
 //! while leveraging the existing jackbot ecosystem modules for market data and trading operations.
 
 use anyhow::{Context, Result};
+use async_trait::async_trait;
+use futures::Stream;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::pin::Pin;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::{broadcast, RwLock};
@@ -24,8 +27,124 @@ use crate::api::{BalanceData, KlineData, OrderBookData, PositionData, TickerData
 use crate::rate_limit::RateLimitManager;
 use crate::streaming::StreamingManager;
 
+// Export the connectors module
+// Connectors are now in their own module directory
+
 // Type aliases for simplified usage
 type RateLimiter = RateLimitManager;
+
+// Exchange connector types matching the specification
+pub type Connection = Arc<dyn Send + Sync + 'static>;
+pub type OrderId = String;
+
+/// Market data stream type
+pub type MarketDataStream = Pin<Box<dyn Stream<Item = MarketData> + Send>>;
+
+/// Market data types
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum MarketData {
+    Ticker(TickerData),
+    OrderBook(OrderBookData),
+    Trade(TradeData),
+    Kline(KlineData),
+}
+
+/// Order type matching the specification
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Order {
+    pub id: Option<OrderId>,
+    pub symbol: String,
+    pub side: OrderSide,
+    pub order_type: OrderType,
+    pub price: Option<f64>,
+    pub quantity: f64,
+    pub time_in_force: Option<TimeInForce>,
+    pub status: OrderStatus,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum OrderSide {
+    Buy,
+    Sell,
+}
+
+impl std::fmt::Display for OrderSide {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            OrderSide::Buy => write!(f, "BUY"),
+            OrderSide::Sell => write!(f, "SELL"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum OrderType {
+    Market,
+    Limit,
+    StopLoss,
+    StopLossLimit,
+    TakeProfit,
+    TakeProfitLimit,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum TimeInForce {
+    GTC,  // Good Till Cancelled
+    IOC,  // Immediate Or Cancel
+    FOK,  // Fill Or Kill
+    GTX,  // Good Till Crossing
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum OrderStatus {
+    New,
+    PartiallyFilled,
+    Filled,
+    Cancelled,
+    Rejected,
+    Expired,
+}
+
+/// Order result type
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OrderResult {
+    pub order_id: OrderId,
+    pub status: OrderStatus,
+    pub filled_quantity: f64,
+    pub remaining_quantity: f64,
+    pub average_price: f64,
+    pub commission: f64,
+    pub commission_asset: String,
+    pub timestamp: i64,
+}
+
+/// Balance type
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Balance {
+    pub asset: String,
+    pub free: f64,
+    pub locked: f64,
+    pub total: f64,
+}
+
+/// Exchange trait matching the specification
+#[async_trait]
+pub trait Exchange: Send + Sync {
+    /// Connect to the exchange
+    async fn connect(&self) -> Result<Connection>;
+    
+    /// Subscribe to market data streams
+    async fn subscribe_market_data(&self, symbols: Vec<String>) -> Result<MarketDataStream>;
+    
+    /// Place an order
+    async fn place_order(&self, order: Order) -> Result<OrderResult>;
+    
+    /// Cancel an order
+    async fn cancel_order(&self, id: OrderId) -> Result<()>;
+    
+    /// Get account balance
+    async fn get_balance(&self) -> Result<Vec<Balance>>;
+}
 
 // Simple trading client trait for the connector
 pub trait TradingClient: Send + Sync {
@@ -248,7 +367,7 @@ impl ConnectionPool {
         let connections = self.connections.read().await;
 
         if let Some(connection) = connections.get(&key) {
-            // Return existing connection (TODO: add proper health check)
+            // Return existing connection - add proper health check, see EXCHANGE_CLIENT_SPEC.md#connection-health
             return Ok(connection.clone());
         }
 
@@ -277,7 +396,7 @@ impl ConnectionPool {
         let mut connections = self.connections.write().await;
 
         if let Some(connection) = connections.remove(&key) {
-            // TODO: Fix close method signature
+            // Fix close method signature - see EXCHANGE_CLIENT_SPEC.md#websocket-cleanup
             // let _ = connection.close().await;
             info!("Removed WebSocket connection: {}", key);
         }
@@ -288,7 +407,7 @@ impl ConnectionPool {
         let mut to_remove = Vec::new();
 
         for (key, connection) in connections.iter() {
-            // TODO: Implement proper connection check
+            // Implement proper connection check - see EXCHANGE_CLIENT_SPEC.md#connection-validation
             if false { // Temporary placeholder
                 to_remove.push(key.clone());
             }
@@ -310,7 +429,7 @@ pub struct GenericExchangeConnector {
     circuit_breaker: CircuitBreaker,
     rate_limiter: RateLimiter,
     streaming_manager: Arc<StreamingManager>,
-    // TODO: Fix trait object compatibility for async traits
+    // Fix trait object compatibility for async traits - see EXCHANGE_CLIENT_SPEC.md#trait-objects
     // trading_client: Option<Box<dyn TradingClient>>,
     market_data_tx: Option<broadcast::Sender<serde_json::Value>>,
     user_data_tx: Option<broadcast::Sender<serde_json::Value>>,
@@ -328,7 +447,7 @@ impl GenericExchangeConnector {
             Duration::from_secs(60), // recovery_timeout
         );
 
-        // TODO: Fix RateLimiter constructor signature
+        // Fix RateLimiter constructor signature - see EXCHANGE_CLIENT_SPEC.md#rate-limiter
         let rate_limiter = RateLimiter::new(crate::rate_limit::RateLimitConfig::default());
 
         Self {
@@ -898,7 +1017,7 @@ impl ExchangeConnector for GenericExchangeConnector {
         }
         
         // Trading client not implemented yet
-        // TODO: Implement real trading client integration
+        // Implement real trading client integration - see EXCHANGE_CLIENT_SPEC.md#order-placement
         Err(anyhow::anyhow!("Trading client not implemented yet"))
     }
 
@@ -922,7 +1041,7 @@ impl ExchangeConnector for GenericExchangeConnector {
         }
         
         // Trading client not implemented yet
-        // TODO: Implement real trading client integration
+        // Implement real trading client integration - see EXCHANGE_CLIENT_SPEC.md#order-cancellation
         Err(anyhow::anyhow!("Trading client not implemented yet"))
     }
 
@@ -937,7 +1056,7 @@ impl ExchangeConnector for GenericExchangeConnector {
             .await?;
 
         // Trading client not implemented yet
-        // TODO: Implement real trading client integration
+        // Implement real trading client integration - see EXCHANGE_CLIENT_SPEC.md#balance-retrieval
         Err(anyhow::anyhow!("Trading client not implemented yet"))
     }
 

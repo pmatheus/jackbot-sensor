@@ -2,15 +2,14 @@ use jackbot_integration::rate_limit::{Priority, RateLimiter};
 use std::time::Duration;
 
 /// Bitget API rate limiter for REST and WebSocket usage.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct BitgetRateLimit {
     rest: RateLimiter,
     ws: RateLimiter,
 }
 
-impl BitgetRateLimit {
-    /// Create a new [`BitgetRateLimit`] using placeholder quotas.
-    pub fn new() -> Self {
+impl Default for BitgetRateLimit {
+    fn default() -> Self {
         Self::with_params(
             600,
             Duration::from_secs(60),
@@ -18,6 +17,13 @@ impl BitgetRateLimit {
             Duration::from_secs(1),
             Duration::from_millis(100),
         )
+    }
+}
+
+impl BitgetRateLimit {
+    /// Create a new [`BitgetRateLimit`] using placeholder quotas.
+    pub fn new() -> Self {
+        Self::default()
     }
 
     /// Create a custom [`BitgetRateLimit`] with provided quotas and jitter for testing.

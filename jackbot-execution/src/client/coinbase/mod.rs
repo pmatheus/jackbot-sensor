@@ -1,5 +1,14 @@
 //! Coinbase spot markets lack native trailing stop orders. Advanced smart trade
 //! features will be implemented by client-side order management.
+
+pub mod client;
+pub mod orderbook;
+pub mod rest;
+pub mod websocket;
+
+// Re-export the main client types
+pub use client::{CoinbaseClient, CoinbaseConfig};
+pub use websocket::CoinbaseWsManager;
 use crate::{
     balance::{AssetBalance, Balance},
     client::ExecutionClient,

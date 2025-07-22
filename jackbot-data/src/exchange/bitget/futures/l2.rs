@@ -76,11 +76,10 @@ impl SnapshotFetcher<BitgetFutures, OrderBooksL2> for BitgetFuturesOrderBooksL2S
     + Send
     where
         Instrument: InstrumentData,
-        Subscription<BitgetFutures, Instrument, OrderBooksL2>: Identifier<BitgetMarket>,
     {
         let l2_snapshot_futures = subscriptions.iter().map(|subscription| {
             // Construct initial OrderBook snapshot GET url
-            let market = subscription.id();
+            let market = Identifier::<BitgetMarket>::id(subscription);
             // In futures API we need to provide both symbol and contract type (linear/inverse)
             // For simplicity, assuming "umcbl" (linear) as default
             let symbol = market.0;

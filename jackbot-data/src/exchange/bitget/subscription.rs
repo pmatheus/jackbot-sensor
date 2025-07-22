@@ -27,7 +27,7 @@ impl BitgetSubscription {
                 "instId": self.inst_id
             }]
         });
-        WsMessage::Text(msg.to_string())
+        WsMessage::Text(msg.to_string().into())
     }
 
     /// Create a subscription message for futures market
@@ -39,7 +39,7 @@ impl BitgetSubscription {
                 "instId": self.inst_id
             }]
         });
-        WsMessage::Text(msg.to_string())
+        WsMessage::Text(msg.to_string().into())
     }
 
     /// Create an unsubscribe message for spot market
@@ -51,7 +51,7 @@ impl BitgetSubscription {
                 "instId": self.inst_id
             }]
         });
-        WsMessage::Text(msg.to_string())
+        WsMessage::Text(msg.to_string().into())
     }
 
     /// Create an unsubscribe message for futures market
@@ -63,7 +63,7 @@ impl BitgetSubscription {
                 "instId": self.inst_id
             }]
         });
-        WsMessage::Text(msg.to_string())
+        WsMessage::Text(msg.to_string().into())
     }
 
     /// Convert subscription IDs to subscription messages (spot market)
@@ -101,7 +101,7 @@ impl BitgetSubscription {
                     "op": "subscribe",
                     "args": args
                 });
-                WsMessage::Text(msg.to_string())
+                WsMessage::Text(msg.to_string().into())
             })
             .collect()
     }

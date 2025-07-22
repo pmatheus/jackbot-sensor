@@ -19,6 +19,9 @@ use url::Url;
 /// `BinanceSpot` & `BinanceFuturesUsd` [`Connector`] and [`StreamSelector`] implementations.
 pub mod binance;
 
+/// `Bitget` [`Connector`] and [`StreamSelector`] implementations.
+pub mod bitget;
+
 /// `Bybit` ['Connector'] and ['StreamSelector'] implementation
 pub mod bybit;
 
@@ -31,20 +34,20 @@ pub mod cryptocom;
 /// `Gate.io` [`Connector`] and [`StreamSelector`] implementations.
 pub mod gateio;
 
+/// `Hyperliquid` [`Connector`] and [`StreamSelector`] implementations.
+pub mod hyperliquid;
+
 /// `Kraken` [`Connector`] and [`StreamSelector`] implementations.
 pub mod kraken;
 
 /// `Kucoin` [`Connector`] and [`StreamSelector`] implementations.
 pub mod kucoin;
 
-/// `Okx` [`Connector`] and [`StreamSelector`] implementations.
-pub mod okx;
-
-/// `Hyperliquid` [`Connector`] and [`StreamSelector`] implementations.
-pub mod hyperliquid;
-
 /// `MEXC` [`Connector`] modules.
 pub mod mexc;
+
+/// `Okx` [`Connector`] and [`StreamSelector`] implementations.
+pub mod okx;
 
 /// Common user WebSocket utilities shared across exchanges.
 pub mod user_ws_common;

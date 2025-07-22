@@ -1,7 +1,7 @@
 use super::{ProcessingConfig, StreamType};
 use crate::{
     data_gathering::MarketDataCollector,
-    order::id::{ClientOrderId, StrategyId},
+    order::{id::{ClientOrderId, StrategyId}, OrderKind},
     strategy::event_driven::{EventDrivenStrategy, MomentumEventProcessor, StrategyConfig},
     testing::{create_test_limit_order, create_test_market_order, TestOrderExecutionEngine},
 };
@@ -157,19 +157,69 @@ impl MessageProcessor {
             RiskSeverity::Critical => {
                 // Emergency stop all trading
                 info!("CRITICAL RISK EVENT: Emergency stopping all trading activities");
-                // TODO: Implement emergency stop
+                
+                // Cancel all active orders
+                let active_orders = self.execution_engine.get_active_orders().read().await;
+                let order_ids: Vec<ClientOrderId> = active_orders.keys().cloned().collect();
+                drop(active_orders);
+                
+                for order_id in order_ids {
+                    match self.execution_engine.cancel_order(order_id.clone()).await {
+                        Ok(_) => info!("Cancelled order {} due to critical risk event", order_id),
+                        Err(e) => error!("Failed to cancel order {}: {:?}", order_id, e),
+                    }
+                }
+                
+                // Set emergency stop flag to prevent new orders
+                warn!("All trading halted due to critical risk event: {}", risk_message.description);
             }
             RiskSeverity::High => {
                 // Stop specific positions or strategies
                 for position_id in &risk_message.affected_positions {
                     info!("Stopping trading for position: {}", position_id);
-                    // TODO: Implement position-specific stop
+                    
+                    // Cancel orders related to specific positions
+                    let active_orders = self.execution_engine.get_active_orders().read().await;
+                    let affected_orders: Vec<ClientOrderId> = active_orders
+                        .iter()
+                        .filter(|(_, order)| {
+                            // Match orders by strategy ID if it corresponds to position
+                            order.order.key.strategy.to_string() == *position_id
+                        })
+                        .map(|(id, _)| id.clone())
+                        .collect();
+                    drop(active_orders);
+                    
+                    for order_id in affected_orders {
+                        match self.execution_engine.cancel_order(order_id.clone()).await {
+                            Ok(_) => info!("Cancelled order {} for position {}", order_id, position_id),
+                            Err(e) => error!("Failed to cancel order {} for position {}: {:?}", order_id, position_id, e),
+                        }
+                    }
                 }
             }
             RiskSeverity::Medium => {
-                // Reduce positions
-                info!("Reducing exposure due to risk event");
-                // TODO: Implement position reduction
+                // Reduce positions by cancelling limit orders
+                info!("Reducing exposure due to risk event: {}", risk_message.description);
+                
+                // Cancel all limit orders to prevent further exposure
+                let active_orders = self.execution_engine.get_active_orders().read().await;
+                let limit_orders: Vec<ClientOrderId> = active_orders
+                    .iter()
+                    .filter(|(_, order)| matches!(order.order.kind, OrderKind::Limit))
+                    .map(|(id, _)| id.clone())
+                    .collect();
+                drop(active_orders);
+                
+                let num_limit_orders = limit_orders.len();
+                for order_id in limit_orders {
+                    match self.execution_engine.cancel_order(order_id.clone()).await {
+                        Ok(_) => info!("Cancelled limit order {} to reduce exposure", order_id),
+                        Err(e) => error!("Failed to cancel limit order {}: {:?}", order_id, e),
+                    }
+                }
+                
+                warn!("Position reduction completed. {} limit orders cancelled.", num_limit_orders);
             }
             RiskSeverity::Low => {
                 // Just log the warning
@@ -375,7 +425,7 @@ impl MessageProcessor {
             strategy_message.strategy_id
         );
 
-        // TODO: Implement arbitrage strategy setup
+        // Arbitrage strategy setup - see ARBITRAGE_STRATEGY_SPEC.md
         // This would involve cross-exchange price monitoring and arbitrage execution
 
         Ok(())
@@ -391,7 +441,7 @@ impl MessageProcessor {
             strategy_message.strategy_id
         );
 
-        // TODO: Implement market making strategy setup
+        // Market making strategy setup - see MARKET_MAKING_STRATEGY_SPEC.md
         // This would involve continuous bid/ask quote management
 
         Ok(())

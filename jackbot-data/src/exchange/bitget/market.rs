@@ -1,7 +1,6 @@
 //! Market definitions for Bitget exchange.
 
 use crate::Identifier;
-use jackbot_integration::subscription::SubscriptionId;
 
 /// Bitget market identifier (e.g., BTCUSDT for spot, BTCUSDT_UMCBL for futures).
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

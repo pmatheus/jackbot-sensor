@@ -10,12 +10,12 @@ use crate::{
 };
 use async_trait::async_trait;
 use jackbot_execution::order::{
-    OrderKind, TimeInForce,
-    id::ClientOrderId,
-    request::{OrderRequestOpen, RequestOpen},
+    OrderKind, TimeInForce, OrderKey,
+    id::{ClientOrderId, StrategyId},
+    request::{OrderRequestOpen, OrderRequestCancel, RequestOpen},
 };
-use jackbot_instrument::{Side, exchange::ExchangeId, instrument::InstrumentIndex};
-use jackbot_ta::indicators::RelativeStrengthIndex;
+use jackbot_instrument::{Side, exchange::{ExchangeId, ExchangeIndex}, instrument::InstrumentIndex};
+use jackbot_ta::indicators::{RelativeStrengthIndex, BollingerBands};
 use rust_decimal::Decimal;
 use rust_decimal::prelude::*;
 use rust_decimal_macros::dec;
@@ -124,7 +124,7 @@ pub struct MlTradingStrategy<Clock, State, ExecutionTxs, Risk> {
 /// Position tracking
 #[derive(Debug, Clone)]
 struct Position {
-    side: OrderSide,
+    side: Side,
     entry_price: Decimal,
     size: Decimal,
     stop_loss: Decimal,
@@ -157,150 +157,17 @@ where
 {
     type State = EngineState<GlobalData, InstrumentData>;
 
-    async fn generate_algo_orders(
+    fn generate_algo_orders(
         &self,
-        _clock: &Clock,
         state: &Self::State,
-        _execution_txs: &MultiExchangeTxMap,
-        _risk: &Risk,
-    ) -> Vec<AlgoOrderRequest> {
-        let mut orders = Vec::new();
-
-        // Process each instrument
-        for (instrument_index, instrument_state) in state.instruments.iter() {
-            if let Some(last_trade) = instrument_state.last_trade() {
-                let price = last_trade.price;
-
-                // Update state encoder
-                let mut encoders = self.state_encoders.lock().await;
-                let encoder = encoders
-                    .entry(instrument_index)
-                    .or_insert_with(StateEncoder::new);
-                encoder.update(price);
-
-                // Get current state encoding
-                let state_vector = encoder.encode();
-
-                // Get ML prediction
-                match self.model.predict(&state_vector).await {
-                    Ok(prediction) => {
-                        // Log prediction details
-                        tracing::info!(
-                            "ML Prediction - Instrument: {}, Action: {}, Confidence: {:.3}, Q-values: {:?}",
-                            instrument_index,
-                            prediction.action,
-                            prediction.confidence,
-                            prediction.q_values
-                        );
-
-                        // Only trade if confidence exceeds threshold
-                        if prediction.confidence >= self.config.min_confidence {
-                            let positions = self.positions.lock().await;
-                            let has_position = positions.contains_key(&instrument_index);
-
-                            match prediction.action {
-                                0 if !has_position => {
-                                    // Open long
-                                    let size = self.config.position_size;
-                                    let stop_loss = price * (dec!(1) - self.config.stop_loss_pct);
-                                    let take_profit =
-                                        price * (dec!(1) + self.config.take_profit_pct);
-
-                                    let order = OrderBuilder::market(OrderSide::Buy)
-                                        .quantity(size)
-                                        .reduce_only(false)
-                                        .build();
-
-                                    orders.push(AlgoOrderRequest {
-                                        instrument_index,
-                                        exchange_id: ExchangeId::Binance, // Configure per instrument
-                                        order,
-                                    });
-
-                                    tracing::info!(
-                                        "Opening LONG position - Price: {}, SL: {}, TP: {}",
-                                        price,
-                                        stop_loss,
-                                        take_profit
-                                    );
-                                }
-                                1 if !has_position => {
-                                    // Open short
-                                    let size = self.config.position_size;
-                                    let stop_loss = price * (dec!(1) + self.config.stop_loss_pct);
-                                    let take_profit =
-                                        price * (dec!(1) - self.config.take_profit_pct);
-
-                                    let order = OrderBuilder::market(OrderSide::Sell)
-                                        .quantity(size)
-                                        .reduce_only(false)
-                                        .build();
-
-                                    orders.push(AlgoOrderRequest {
-                                        instrument_index,
-                                        exchange_id: ExchangeId::Binance,
-                                        order,
-                                    });
-
-                                    tracing::info!(
-                                        "Opening SHORT position - Price: {}, SL: {}, TP: {}",
-                                        price,
-                                        stop_loss,
-                                        take_profit
-                                    );
-                                }
-                                2 if has_position => {
-                                    // Close long
-                                    if let Some(position) = positions.get(&instrument_index) {
-                                        if position.side == OrderSide::Buy {
-                                            let order = OrderBuilder::market(OrderSide::Sell)
-                                                .quantity(position.size)
-                                                .reduce_only(true)
-                                                .build();
-
-                                            orders.push(AlgoOrderRequest {
-                                                instrument_index,
-                                                exchange_id: ExchangeId::Binance,
-                                                order,
-                                            });
-
-                                            tracing::info!("Closing LONG position");
-                                        }
-                                    }
-                                }
-                                3 if has_position => {
-                                    // Close short
-                                    if let Some(position) = positions.get(&instrument_index) {
-                                        if position.side == OrderSide::Sell {
-                                            let order = OrderBuilder::market(OrderSide::Buy)
-                                                .quantity(position.size)
-                                                .reduce_only(true)
-                                                .build();
-
-                                            orders.push(AlgoOrderRequest {
-                                                instrument_index,
-                                                exchange_id: ExchangeId::Binance,
-                                                order,
-                                            });
-
-                                            tracing::info!("Closing SHORT position");
-                                        }
-                                    }
-                                }
-                                _ => {
-                                    // Hold - do nothing
-                                }
-                            }
-                        }
-                    }
-                    Err(e) => {
-                        tracing::error!("ML prediction error: {}", e);
-                    }
-                }
-            }
-        }
-
-        orders
+    ) -> (
+        impl IntoIterator<Item = OrderRequestCancel<ExchangeIndex, InstrumentIndex>>,
+        impl IntoIterator<Item = OrderRequestOpen<ExchangeIndex, InstrumentIndex>>,
+    ) {
+        // For now, return empty iterators until we can implement async ML prediction support
+        // The trait is synchronous but ML prediction is async, so we need to refactor this
+        tracing::warn!("ML Trading Strategy: Synchronous trait implementation - ML prediction disabled");
+        (std::iter::empty(), std::iter::empty())
     }
 }
 
@@ -316,15 +183,21 @@ where
 {
     type State = EngineState<GlobalData, InstrumentData>;
 
-    async fn close_positions(
-        &self,
-        _clock: &Clock,
-        _state: &Self::State,
-        _execution_txs: &MultiExchangeTxMap,
-        _risk: &Risk,
-    ) -> (Vec<CancelRequest>, Vec<ExecutionRequest>) {
+    fn close_positions_requests<'a>(
+        &'a self,
+        _state: &'a Self::State,
+        _filter: &'a crate::engine::state::instrument::filter::InstrumentFilter<ExchangeIndex, jackbot_instrument::asset::AssetIndex, InstrumentIndex>,
+    ) -> (
+        impl IntoIterator<Item = OrderRequestCancel<ExchangeIndex, InstrumentIndex>> + 'a,
+        impl IntoIterator<Item = OrderRequestOpen<ExchangeIndex, InstrumentIndex>> + 'a,
+    )
+    where
+        ExchangeIndex: 'a,
+        jackbot_instrument::asset::AssetIndex: 'a,
+        InstrumentIndex: 'a,
+    {
         // Implement position closing logic if needed
-        (vec![], vec![])
+        (std::iter::empty(), std::iter::empty())
     }
 }
 
@@ -337,10 +210,12 @@ where
     InstrumentData: Send + Sync,
     Risk: RiskManager<State = EngineState<GlobalData, InstrumentData>> + Send + Sync,
 {
-    type OnTradingDisabled = Self;
+    type OnTradingDisabled = ();
 
-    fn on_trading_disabled(&self) -> Self::OnTradingDisabled {
-        self.clone()
+    fn on_trading_disabled(
+        _engine: &mut crate::engine::Engine<Clock, EngineState<GlobalData, InstrumentData>, MultiExchangeTxMap, Self, Risk>,
+    ) -> Self::OnTradingDisabled {
+        ()
     }
 }
 
@@ -353,10 +228,13 @@ where
     InstrumentData: Send + Sync,
     Risk: RiskManager<State = EngineState<GlobalData, InstrumentData>> + Send + Sync,
 {
-    type OnDisconnect = Self;
+    type OnDisconnect = ();
 
-    fn on_disconnect(&self) -> Self::OnDisconnect {
-        self.clone()
+    fn on_disconnect(
+        _engine: &mut crate::engine::Engine<Clock, EngineState<GlobalData, InstrumentData>, MultiExchangeTxMap, Self, Risk>,
+        _exchange: ExchangeId,
+    ) -> Self::OnDisconnect {
+        ()
     }
 }
 

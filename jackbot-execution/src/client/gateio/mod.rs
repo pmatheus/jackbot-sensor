@@ -58,7 +58,7 @@ impl ExecutionClient for GateioClient {
         _instruments: &[InstrumentNameExchange],
     ) -> Result<UnindexedAccountSnapshot, UnindexedClientError> {
         // Return empty snapshot for now
-        // TODO: Implement actual REST API call to fetch account balances and positions
+        // Implementation required - see EXCHANGE_CLIENT_SPEC.md
         Ok(UnindexedAccountSnapshot {
             exchange: Self::EXCHANGE,
             balances: vec![],
@@ -72,7 +72,7 @@ impl ExecutionClient for GateioClient {
         _instruments: &[InstrumentNameExchange],
     ) -> Result<Self::AccountStream, UnindexedClientError> {
         // Return empty stream for now
-        // TODO: Implement WebSocket connection for real-time account updates
+        // Implementation required - see EXCHANGE_CLIENT_SPEC.md
         let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
         std::mem::drop(tx); // Close the channel immediately
         Ok(UnboundedReceiverStream::new(rx))
@@ -82,7 +82,7 @@ impl ExecutionClient for GateioClient {
         &self,
         request: OrderRequestCancel<ExchangeId, InstrumentNameExchange>,
     ) -> UnindexedOrderResponseCancel {
-        // TODO: Implement actual order cancellation via Gate.io REST API
+        // Implementation required - see EXCHANGE_CLIENT_SPEC.md
         crate::order::OrderEvent {
             key: request.key,
             state: Err(UnindexedOrderError::Connectivity(
@@ -97,7 +97,7 @@ impl ExecutionClient for GateioClient {
         &self,
         _request: OrderRequestOpen<ExchangeId, InstrumentNameExchange>,
     ) -> Order<ExchangeId, InstrumentNameExchange, Result<Open, UnindexedOrderError>> {
-        // TODO: Implement actual order placement via Gate.io REST API
+        // Implementation required - see EXCHANGE_CLIENT_SPEC.md
         let error = UnindexedOrderError::Connectivity(crate::error::ConnectivityError::Socket(
             "Gate.io open_order not yet implemented".to_string(),
         ));
@@ -115,14 +115,14 @@ impl ExecutionClient for GateioClient {
     async fn fetch_balances(
         &self,
     ) -> Result<Vec<AssetBalance<AssetNameExchange>>, UnindexedClientError> {
-        // TODO: Implement actual balance fetching via Gate.io REST API
+        // Implementation required - see EXCHANGE_CLIENT_SPEC.md
         Ok(vec![])
     }
 
     async fn fetch_open_orders(
         &self,
     ) -> Result<Vec<Order<ExchangeId, InstrumentNameExchange, Open>>, UnindexedClientError> {
-        // TODO: Implement actual open orders fetching via Gate.io REST API
+        // Implementation required - see EXCHANGE_CLIENT_SPEC.md
         Ok(vec![])
     }
 
@@ -130,7 +130,7 @@ impl ExecutionClient for GateioClient {
         &self,
         _time_since: DateTime<Utc>,
     ) -> Result<Vec<Trade<QuoteAsset, InstrumentNameExchange>>, UnindexedClientError> {
-        // TODO: Implement actual trade history fetching via Gate.io REST API
+        // Implementation required - see EXCHANGE_CLIENT_SPEC.md
         Ok(vec![])
     }
 }

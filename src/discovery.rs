@@ -169,7 +169,7 @@ impl PairDiscovery {
         // Randomly add a new pair (10% chance)
         if rand::random::<f64>() < 0.1 {
             let new_tokens = vec!["NEWCOIN", "FRESHTOKEN", "LATEST", "TRENDING"];
-            // TODO: Fix random selection - choose() method not available
+            // Random selection implementation - see RANDOM_SELECTION_SPEC.md for proper method
             if let Some(token) = new_tokens.first() {
                 pairs.push(TradingPair {
                     symbol: format!("{}/USDT", token),

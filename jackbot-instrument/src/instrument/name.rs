@@ -123,6 +123,11 @@ impl InstrumentNameExchange {
     pub fn name(&self) -> &SmolStr {
         &self.0
     }
+
+    /// Return the execution instrument name as a string reference.
+    pub fn as_str(&self) -> &str {
+        self.0.as_str()
+    }
 }
 
 impl From<&str> for InstrumentNameExchange {

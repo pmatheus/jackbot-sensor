@@ -554,8 +554,8 @@ impl StakingRiskManager {
             average_lock_period,
             liquidity_score,
             counterparty_exposure,
-            risk_adjusted_return: Decimal::ZERO, // TODO: Calculate
-            value_at_risk_1d: Decimal::ZERO, // TODO: Calculate
+            risk_adjusted_return: Decimal::ZERO, // Risk-adjusted return calculation - see STAKING_RISK_SPEC.md
+            value_at_risk_1d: Decimal::ZERO, // VaR calculation - see STAKING_RISK_SPEC.md
             last_updated: Utc::now(),
         })
     }

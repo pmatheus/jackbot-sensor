@@ -2,7 +2,7 @@
 name = "jackbot-macro"
 version = "0.2.0"
 authors = ["Jack"]
-edition = "2024"
+edition = "2021"
 license = "MIT"
 documentation = "https://docs.rs/jackbot-macro/"
 repository = "https://github.com/jackbot-rs/jackbot-rs"

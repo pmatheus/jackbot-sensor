@@ -1,5 +1,8 @@
+pub mod client;
 pub mod futures;
 pub mod paper;
+pub mod rest;
+pub mod websocket;
 
 use crate::{
     balance::{AssetBalance, Balance},

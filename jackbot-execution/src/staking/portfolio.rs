@@ -420,13 +420,13 @@ impl StakingPortfolioManager {
             total_accumulated_rewards,
             available_rewards,
             annualized_return: self.calculate_annualized_return()?,
-            sharpe_ratio: None, // TODO: Implement Sharpe ratio calculation
-            max_drawdown: Decimal::ZERO, // TODO: Implement drawdown calculation
+            sharpe_ratio: self.calculate_sharpe_ratio(),
+            max_drawdown: self.calculate_max_drawdown(),
             average_apy: weighted_apy,
-            portfolio_yield_contribution: Decimal::ZERO, // TODO: Calculate based on total portfolio
+            portfolio_yield_contribution: self.calculate_portfolio_yield_contribution(total_staked_value),
             exchange_performance,
             asset_performance,
-            historical_performance: Vec::new(), // TODO: Maintain historical data
+            historical_performance: self.get_historical_performance(),
         };
 
         Ok(())
@@ -449,6 +449,83 @@ impl StakingPortfolioManager {
         Ok(return_rate)
     }
 
+    fn calculate_sharpe_ratio(&self) -> Option<Decimal> {
+        // Sharpe ratio = (Return - Risk Free Rate) / Standard Deviation
+        // Using 2% as risk-free rate for staking calculations
+        let risk_free_rate = Decimal::from_str("0.02").ok()?;
+        
+        if self.positions.len() < 2 {
+            return None; // Need multiple positions for meaningful calculation
+        }
+        
+        // Calculate average return
+        let avg_return = self.calculate_annualized_return().ok()?;
+        
+        // Calculate standard deviation of returns
+        let returns: Vec<Decimal> = self.positions.iter()
+            .map(|p| p.product.apy / Decimal::from(100))
+            .collect();
+        
+        let mean = returns.iter().sum::<Decimal>() / Decimal::from(returns.len());
+        let variance = returns.iter()
+            .map(|r| (r - mean) * (r - mean))
+            .sum::<Decimal>() / Decimal::from(returns.len());
+        
+        // Simple approximation of square root for standard deviation
+        let std_dev = variance.sqrt();
+        
+        if std_dev == Decimal::ZERO {
+            return None;
+        }
+        
+        Some((avg_return - risk_free_rate) / std_dev)
+    }
+    
+    fn calculate_max_drawdown(&self) -> Decimal {
+        if self.historical_performance.is_empty() {
+            return Decimal::ZERO;
+        }
+        
+        let mut max_drawdown = Decimal::ZERO;
+        let mut peak_value = Decimal::ZERO;
+        
+        for snapshot in &self.historical_performance {
+            if snapshot.total_value > peak_value {
+                peak_value = snapshot.total_value;
+            }
+            
+            if peak_value > Decimal::ZERO {
+                let drawdown = (peak_value - snapshot.total_value) / peak_value;
+                if drawdown > max_drawdown {
+                    max_drawdown = drawdown;
+                }
+            }
+        }
+        
+        max_drawdown
+    }
+    
+    fn calculate_portfolio_yield_contribution(&self, total_staked_value: Decimal) -> Decimal {
+        // This would need access to total portfolio value from external source
+        // For now, return a placeholder calculation based on staking value
+        if total_staked_value == Decimal::ZERO {
+            return Decimal::ZERO;
+        }
+        
+        // Assuming staking represents a portion of total portfolio
+        // This would be calculated properly with full portfolio context
+        let estimated_total_portfolio = total_staked_value * Decimal::from(10); // Placeholder
+        let weighted_apy = self.performance_metrics.average_apy / Decimal::from(100);
+        
+        (total_staked_value * weighted_apy) / estimated_total_portfolio
+    }
+    
+    fn get_historical_performance(&self) -> Vec<DailyPerformance> {
+        // Return existing historical data or empty vec
+        // In production, this would be populated from database/storage
+        self.performance_metrics.historical_performance.clone()
+    }
+    
     fn calculate_allocation_efficiency(&self) -> f64 {
         if self.positions.is_empty() {
             return 0.0;

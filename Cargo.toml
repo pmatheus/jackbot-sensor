@@ -1,18 +1,3 @@
-[workspace]
-resolver = "2"
-members = [
-    "jackbot",
-    "jackbot-data",
-    "jackbot-execution",
-    "jackbot-integration",
-    "jackbot-macro",
-    "jackbot-instrument",
-    "jackbot-risk",
-    "jackbot-snapshot",
-    "jackbot-strategy",
-    "jackbot-ta",
-]
-
 [package]
 name = "jackbot-sensor"
 version = "1.0.0"
@@ -27,7 +12,6 @@ path = "src/main.rs"
 
 [dependencies]
 # Core Jackbot modules
-# jackbot = { path = "./jackbot" }  # Temporarily disabled due to compilation issues
 jackbot-data = { workspace = true }
 jackbot-execution = { workspace = true }
 jackbot-integration = { workspace = true }
@@ -38,15 +22,15 @@ jackbot-ta = { workspace = true }
 jackbot-snapshot = { workspace = true }
 
 # Async runtime
-tokio = { workspace = true, features = ["full"] }
-tokio-stream = { workspace = true }
-futures = { workspace = true }
-futures-util = { workspace = true }
-async-trait = { workspace = true }
+tokio = { version = "1.42", features = ["full"] }
+tokio-stream = "0.1.17"
+futures = "0.3.31"
+futures-util = "0.3.31"
+async-trait = "0.1.83"
 
 # Logging and observability
-tracing = { workspace = true }
-tracing-subscriber = { workspace = true, features = ["env-filter", "json"] }
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter", "json"] }
 
 # CLI interface
 clap = { version = "4.4", features = ["derive", "env"] }
@@ -56,38 +40,37 @@ config = "0.14"
 toml = "0.8"
 
 # Serialization
-serde = { workspace = true }
-serde_json = { workspace = true }
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.133"
 
 # Environment variables
 dotenv = "0.15"
 
 # TLS support
-rustls = "0.23"
+tokio-tungstenite = { version = "0.26.0", features = ["url", "rustls-tls-webpki-roots"] }
 
 # HTTP server for APIs
 axum = { version = "0.7", features = ["ws", "macros"] }
-tower = { version = "0.5" }
+tower = "0.5"
 tower-http = { version = "0.6", features = ["cors", "trace"] }
 
 # Error handling
-thiserror = { workspace = true }
+thiserror = "2.0.8"
 anyhow = "1.0"
 
 # Data structures
-indexmap = { workspace = true }
-rust_decimal = { workspace = true }
+indexmap = "2.6.0"
+rust_decimal = { version = "1.36.0", features = ["maths", "serde"] }
 uuid = { version = "1.10", features = ["v4", "serde"] }
-chrono = { workspace = true }
-
+chrono = { version = "0.4.39", features = ["serde"] }
+dashmap = "6.0"
+crossbeam-skiplist = "0.1"
+crossbeam-channel = "0.5"
+parking_lot = "0.12.3"
+async-stream = "0.3"
 
 # Kafka for real-time streaming
 rdkafka = { version = "0.36", features = ["tokio"] }
-
-# Apache Arrow and Parquet for data lake
-# Temporarily disabled due to compilation issues - will re-enable when needed
-# arrow = { version = "50", features = ["chrono-tz"] }
-# parquet = { version = "50", features = ["async", "arrow"] }
 
 # AWS S3 for data lake storage
 aws-sdk-s3 = "1.20.0"
@@ -96,13 +79,22 @@ aws-sdk-s3 = "1.20.0"
 aws-config = "1.1"
 aws-sdk-ec2 = "1.15"
 aws-sdk-ecs = "1.12"
-aws-sdk-kinesis = "1.11"
 
 # Metrics and monitoring
 prometheus = "0.13"
 
 # Rate limiting
 governor = "0.6"
+
+# Redis for high-performance caching
+deadpool-redis = "0.18"
+redis = { version = "0.27", features = ["tokio-comp", "connection-manager"] }
+
+# Efficient binary serialization
+bincode = "1.3"
+
+# Cryptographic hashing for security tokens
+crypto-hash = "0.3"
 
 # Regex for validation
 regex = "1.10"
@@ -111,99 +103,36 @@ regex = "1.10"
 jsonwebtoken = "9.2"
 
 # HTTP client for JWKS
-reqwest = { workspace = true }
+reqwest = { version = "0.12.9", default-features = false, features = ["rustls-tls", "json"] }
 
 # Base64 encoding for JWT parsing
-base64 = { workspace = true }
+base64 = "0.22.1"
+
+# CPU affinity and performance optimization
+core_affinity = "0.8"
+num_cpus = "1.16"
+libc = "0.2"
+
+# Additional dependencies for the sensor
+url = "2.5.0"
+rand = "0.8.5"
+
+[target.'cfg(windows)'.dependencies]
+winapi = { version = "0.3", features = ["processthreadsapi", "winbase"] }
+
+# Cryptographic libraries for exchange authentication
+hmac = "0.12"
+sha2 = "0.10"
 
 # Random number generation
-rand = { workspace = true }
-url = { workspace = true }
+rand = "0.9.0"
+url = "2.5.4"
 
-# Kafka for order processing
-# kafka = { workspace = true } # Temporarily disabled - using rdkafka for now
-
-[workspace.dependencies]
-# Jackbot Ecosystem
-jackbot-integration = { path = "./jackbot-integration", version = "0.9.1" }
-jackbot-instrument = { path = "./jackbot-instrument", version = "0.3.1" }
-jackbot-data = { path = "./jackbot-data", version = "0.10.1" }
-jackbot-execution = { path = "./jackbot-execution", version = "0.5.3" }
-jackbot-macro = { path = "./jackbot-macro", version = "0.2.0" }
-jackbot-risk = { path = "./jackbot-risk", version = "0.1.0" }
-jackbot-strategy = { path = "./jackbot-strategy", version = "0.1.0" }
-jackbot-ta = { path = "./jackbot-ta", version = "0.1.0" }
-jackbot-snapshot = { path = "./jackbot-snapshot", version = "0.1.0" }
-
-
-# Logging
-tracing = { version = "0.1.41" }
-tracing-subscriber = { version = "0.3.19" }
-
-# Async
-tokio = { version = "1.42", default-features = false, features = ["macros", "net", "rt-multi-thread", "signal", "time"] }
-tokio-stream = { version = "0.1.17" }
-tokio-test = { version = "0.4.4" }
-futures = { version = "0.3.31" }
-futures-util = { version = "0.3.31" }
-async-trait = { version = "0.1.83" }
-pin-project = { version = "1.1.7" }
-
-# Error
-thiserror = { version = "2.0.8" }
-
-# SerDe
-serde = { version = "1.0.216", features = ["derive"] }
-serde_json = { version = "1.0.133" }
-serde_qs = { version = "0.13.0" }
-serde_urlencoded = { version = "0.7.1" }
-
-# Protocol
-url = { version = "2.5.4" }
-reqwest = { version = "0.12.9",default-features = false, features = ["rustls-tls", "json"] }
-tokio-tungstenite = { version = "0.26.0", features = ["url","rustls-tls-webpki-roots"] }
-
-# Data Structures
-vecmap-rs = { version = "0.2.2" }
-parking_lot = { version = "0.12.3" }
-rust_decimal = { version = "1.36.0", features = ["maths", "serde"] }
-smol_str = { version = "0.3.2" }
-fnv = { version = "1.0.7" }
-indexmap = { version = "2.6.0" }
-tungstenite = { version = "0.26.2" }
-
-
-# Crytographic Signatures
-hmac = { version = "0.12.1" }
-sha2 = { version = "0.10.8" }
-hex = { version = "0.4.3" }
-base64 = { version = "0.22.1" }
-
-# Database
-# kafka = { version = "0.10.0" } # Temporarily disabled - interface mismatch
-
-# Misc
-rand = { version = "0.9.0" }
-chrono = { version = "0.4.39", features = ["serde"] }
-derive_more = { version = "2.0.1", features = [
-    "constructor",
-    "display",
-    "from",
-] }
-itertools = { version = "0.14.0" }
-rust_decimal_macros = { version = "1.29.1" }
-bytes = { version = "1.5.0" }
-spin_sleep = { version = "1.3.0" }
-criterion = { version = "0.5.1" }
-proptest = { version = "1.4" }
-wiremock = { version = "0.6" }
-test-log = { version = "0.2" }
-serial_test = { version = "3.1" }
 
 [dev-dependencies]
 tempfile = "3.8"
 proptest = "1.4"
-tokio-test = { workspace = true }
+tokio-test = "0.4.4"
 wiremock = "0.6"
 test-log = "0.2"
 serial_test = "3.1"

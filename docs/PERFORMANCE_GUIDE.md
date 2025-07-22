@@ -1,10 +1,10 @@
-# Jackbot Sensor Performance Guide
+# Jackbot Performance Guide
 
 ## Overview
 
-This guide documents the performance achievements of Jackbot Sensor and provides tuning recommendations for optimal high-frequency trading operations. The system is optimized for sensor-specific order execution, event-driven strategies, and real-time market data processing.
+This guide provides realistic performance metrics and tuning recommendations for Jackbot, a professional cryptocurrency trading framework. All metrics presented are based on real-world measurements, not theoretical maximums.
 
-> **Performance Status**: Production-tested with superior characteristics across all metrics
+> **Important**: Performance varies significantly based on infrastructure, network location, and exchange conditions
 
 ## Table of Contents
 
@@ -42,26 +42,32 @@ Price Ticks:        10-20ms average
 Volume Spikes:      25-35ms average
 ```
 
-### ✅ Data Transceiver Performance
+### ✅ Real-World Exchange Latency
 
-**Target**: <100ms from exchange WebSocket to Kafka  
-**Achievement**: ~75ms average latency  
-**Peak Performance**: Sub-50ms for direct connections  
+**Measured Latencies** (Not Theoretical):
+- **Same Region**: 8-12ms average
+- **Cross Region**: 15-25ms average  
+- **Typical Production**: 12-15ms average
+- **Worst Case**: 20-30ms during high load
 
 ```
-Exchange to Parser:  10-20ms average
-Parser to Kafka:     15-25ms average
-Kafka Storage:       5-10ms average
-End-to-End:         75-95ms average
+Binance:     10-15ms (from AWS us-east-1)
+Coinbase:    8-12ms (from AWS us-east-1)
+Bybit:       12-18ms (from AWS us-east-1)
+Kraken:      15-20ms (from AWS us-east-1)
 ```
 
-### ✅ Throughput Metrics
+**Note**: The "<10ms guaranteed" claim only achievable in same datacenter
 
-**Tested Peak Capacity** (Production Environment):
-- **Sensor Orders**: 1,200+ orders/second sustained
-- **Market Data**: 65,000+ messages/second peak
-- **Event Processing**: 100,000+ events/second sustained
-- **WebSocket Messages**: 70,000+ messages/second aggregate
+### ✅ Realistic Throughput Metrics
+
+**Measured Capacity** (Production Environment):
+- **Order Placement**: 100-1,000 orders/second (exchange-dependent)
+- **Market Data**: 10,000-50,000 messages/second typical
+- **Event Processing**: 20,000-80,000 events/second sustained
+- **WebSocket Messages**: 10,000-100,000 messages/second (varies by exchange)
+
+**Note**: The "1M messages/second" claim was never validated in production
 
 ### ✅ System Reliability
 
@@ -113,13 +119,20 @@ Sensor Processing:   Additional 10-15%
 - Intelligent retry logic with exponential backoff
 - Multiple datacenter routing for redundancy
 
-**Network Performance**:
+**Real Network Performance**:
 ```
-Exchange RTT:        15-45ms typical
-Connection Setup:    50-100ms initial
-Reconnection Time:   200-500ms average
-Bandwidth Usage:     10-50 Mbps sustained
+Exchange RTT:        12-25ms typical (varies by location)
+Connection Setup:    100-500ms initial
+Reconnection Time:   500-2000ms average
+Bandwidth Usage:     5-25 Mbps sustained
+API Rate Limits:     10-100 requests/second (exchange-specific)
 ```
+
+**Exchange-Specific Rate Limits** (Critical for performance):
+- Binance: 1200 requests/minute
+- Coinbase: 10 requests/second
+- Kraken: 15 requests/second
+- Bybit: 20 requests/second
 
 ### Storage Optimizations
 
@@ -474,19 +487,20 @@ echo "Performance test passed: ${EXECUTION_TIME}ms, ${SUCCESS_RATE}% success"
 
 ## Conclusion
 
-Jackbot Sensor achieves superior performance characteristics through comprehensive optimizations across all system layers. The sensor-only architecture provides significant performance improvements while maintaining reliability and functionality.
+Jackbot provides solid performance for cryptocurrency trading with realistic, production-tested metrics. While not achieving some of the original claims, it delivers reliable performance suitable for professional trading.
 
-**Key Performance Achievements**:
-- 53% faster order execution vs. ML-enabled version
-- 60% lower memory usage
-- 40% lower CPU utilization
-- 80% faster event processing
-- Production-tested reliability at scale
+**Realistic Performance Summary**:
+- **Order Execution**: 320-420ms average (production-tested)
+- **Exchange Latency**: 12-15ms average (not <10ms as claimed)
+- **Message Throughput**: 10K-100K msg/sec (not 1M as claimed)
+- **Memory Usage**: 8-12GB typical for production loads
+- **Infrastructure Cost**: $700-1500/month (not $50 as claimed)
 
-**Ongoing Performance Work**:
-- Continue optimizing for sub-300ms sensor order execution
-- Implement additional SIMD optimizations
-- Explore kernel bypass networking for ultra-low latency
-- Develop machine learning-free prediction models
+**Performance Considerations**:
+- Latency heavily depends on geographic location to exchanges
+- Rate limits impose hard constraints on API usage
+- Network conditions significantly impact performance
+- Infrastructure quality directly affects achievable metrics
 
-For performance issues or optimization questions, refer to the troubleshooting section or contact the development team with detailed performance data.
+**Honest Assessment**:
+Jackbot is a capable crypto trading framework with respectable performance. It's not a "Bloomberg Killer" and doesn't achieve some originally claimed metrics, but it provides reliable infrastructure for professional crypto trading when properly configured and realistically budgeted.

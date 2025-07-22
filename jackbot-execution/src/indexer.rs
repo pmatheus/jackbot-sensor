@@ -264,6 +264,7 @@ impl AccountEventIndexer {
             UnindexedClientError::Api(error) => ClientError::Api(self.api_error(error)?),
             UnindexedClientError::AccountSnapshot(value) => ClientError::AccountSnapshot(value),
             UnindexedClientError::AccountStream(value) => ClientError::AccountStream(value),
+            UnindexedClientError::Other(value) => ClientError::Other(value),
         })
     }
 

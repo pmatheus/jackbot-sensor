@@ -11,6 +11,9 @@ description = "Stream private account data from financial venues, and execute (l
 keywords = ["trading", "backtesting", "crypto", "stocks", "investment"]
 categories = ["accessibility", "simulation"]
 
+[lints]
+workspace = true
+
 
 [dependencies]
 # Jackbot Ecosystem
@@ -52,8 +55,11 @@ fastrand = "2.0"
 derive_more = { workspace = true, features = ["constructor", "from", "display"]}
 parking_lot = "0.12"
 
-# HTTP client for staking APIs
-reqwest = { version = "0.11", features = ["json"] }
+# HTTP client for staking APIs and AI integration
+reqwest = { version = "0.11", features = ["json", "stream"] }
+
+# Web framework for test infrastructure
+axum = { version = "0.7", features = ["ws", "macros"] }
 
 # Cryptographic functions for API signatures
 hmac = "0.12"
@@ -71,7 +77,9 @@ aws-sdk-kinesis = "1.0"
 rust_decimal_macros = { workspace = true }
 tokio-test = "0.4"
 tracing-subscriber = "0.3"
+criterion = { version = "0.5", features = ["html_reports"] }
 
 [features]
 default = []
+integration-tests = []
 

@@ -42,6 +42,10 @@ pub enum ClientError<AssetKey = AssetIndex, InstrumentKey = InstrumentIndex> {
     /// Failed to initialise an AccountStream.
     #[error("failed to init AccountStream: {0}")]
     AccountStream(String),
+
+    /// Generic other error.
+    #[error("Other: {0}")]
+    Other(String),
 }
 
 /// Represents all connectivity-centric errors.

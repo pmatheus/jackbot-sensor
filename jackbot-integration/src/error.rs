@@ -59,6 +59,9 @@ pub enum SocketError {
 
     #[error("consumed error message from execution: {0}")]
     Exchange(String),
+
+    #[error("other error: {0}")]
+    Other(String),
 }
 
 impl From<reqwest::Error> for SocketError {
