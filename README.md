@@ -1,280 +1,174 @@
 # Jackbot Sensor - High-Performance Crypto Market Data & Execution Engine
 
+[![Status](https://img.shields.io/badge/status-under%20development-yellow.svg?style=for-the-badge)](https://github.com/pmatheus/jackbot-sensor)
 [![Rust](https://img.shields.io/badge/rust-1.70+-orange.svg?style=for-the-badge&logo=rust)](https://www.rust-lang.org/)
-[![Performance](https://img.shields.io/badge/latency-12--15ms-brightgreen.svg?style=for-the-badge)](https://github.com/pmatheus/jackbot-sensor)
-[![Exchanges](https://img.shields.io/badge/exchanges-11-blue.svg?style=for-the-badge)](https://github.com/pmatheus/jackbot-sensor)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![Exchanges](https://img.shields.io/badge/exchanges-11%20planned-blue.svg?style=for-the-badge)](https://github.com/pmatheus/jackbot-sensor)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
 ## 🚀 Executive Summary
 
-**Jackbot Sensor** is a production-grade, ultra-low-latency market data and execution engine built in Rust. Designed for institutional-grade crypto trading, it delivers real-time connectivity to 11 major exchanges with sub-15ms latency and handles 100,000+ messages per second.
+> ⚠️ **Status: Under Active Development** - This project is a work in progress. While the architecture and design are production-ready, implementation is ongoing.
 
-**Key Differentiators**:
-- **Performance**: 12-15ms average latency, 100K+ msg/sec throughput
-- **Reliability**: 99.9%+ uptime with automatic failover and recovery
-- **Scale**: Battle-tested with $10M+ daily trading volume
-- **Transparency**: Open-source with no hidden behavior or fees
+**Jackbot Sensor** is the planned market data and execution layer of the larger Jackbot Terminal project - a professional crypto trading platform. Being built in Rust for performance and reliability, it will provide real-time connectivity to 11 major exchanges with advanced market making capabilities.
 
-## 💼 Why Wall Street Should Care
+**Planned Key Features**:
+- **Horizontal Scalability**: Designed for t4g.nano/micro instances
+- **Market Making Focus**: Advanced order management and spread optimization
+- **Exchange Interface**: Clean separation of concerns
+- **Open Source**: Complete transparency in execution and data handling
 
-### Institutional-Grade Infrastructure
-```rust
-// Zero-copy parsing for microsecond-level performance
-let order_book = parse_orderbook_zero_copy(&raw_data)?;
+## 💼 Market Making Excellence
 
-// Lock-free concurrent data structures
-let market_data = Arc::new(DashMap::new());
+### Planned Market Making Features
+- **Dynamic Spread Calculation**: Will adjust spreads based on volatility and market conditions
+- **Inventory Management**: Will skew prices to maintain balanced positions
+- **Adverse Selection Protection**: Will detect and avoid toxic order flow
+- **Competitive Quoting**: Will monitor and match competitor spreads
+- **Multi-Exchange Coordination**: Will manage positions across all connected exchanges
+- **Multi-Exchange Arbitrage**: Will identify and execute profitable arbitrage opportunities across different exchanges
 
-// Custom memory allocators for predictable latency
-#[global_allocator]
-static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
-```
+### Production Architecture
+- **Efficient Resource Usage**: Each t4g.nano handles multiple symbols (Rust's low memory footprint)
+- **Horizontal Scaling**: Deploy additional instances as symbol count grows
+- **Kafka Cluster**: 3x t4g.micro instances for reliable messaging
+- **Microservice Design**: Each sensor instance handles a group of related symbols
+- **Cost Efficient**: t4g.nano instances maximize performance per dollar
 
-### Real Production Metrics
-- **Latency**: P50: 12ms | P95: 15ms | P99: 18ms
-- **Throughput**: 100,000+ messages/second sustained
-- **Reliability**: 99.97% uptime over 12 months
-- **Accuracy**: 100% order book integrity with sequence validation
 
-## 🏗️ Architecture That Scales
+## 🎯 Market Making Capabilities
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                     Jackbot Sensor Core                         │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  ┌──────────────┐  ┌──────────────┐  ┌───────────────────┐    │
-│  │  WebSocket   │  │   Order      │  │    Execution      │    │
-│  │  Manager     │  │   Book       │  │    Engine         │    │
-│  │              │  │   Engine     │  │                   │    │
-│  │ • Auto-retry │  │ • L2/L3 Data │  │ • Smart Routing   │    │
-│  │ • Heartbeat  │  │ • Zero-copy  │  │ • TWAP/VWAP      │    │
-│  │ • Rate limit │  │ • Validation │  │ • Risk Checks    │    │
-│  └──────────────┘  └──────────────┘  └───────────────────┘    │
-│         │                  │                    │               │
-│         └──────────────────┴────────────────────┘               │
-│                            │                                    │
-│  ┌─────────────────────────┴────────────────────────────┐      │
-│  │              Unified Market Data Layer                │      │
-│  │                                                       │      │
-│  │  • Normalized data model across 11 exchanges         │      │
-│  │  • Sub-millisecond internal latency                  │      │
-│  │  • Lock-free concurrent access                       │      │
-│  │  • Automatic failover and recovery                   │      │
-│  └───────────────────────────────────────────────────┘      │
-│                            │                                    │
-└────────────────────────────┼────────────────────────────────────┘
-                             │
-        ┌────────────────────┼────────────────────┐
-        │                    │                    │
-┌───────────────┐   ┌───────────────┐   ┌───────────────┐
-│   Binance     │   │   Coinbase    │   │   9 More      │
-│  WebSocket    │   │  WebSocket    │   │  Exchanges    │
-└───────────────┘   └───────────────┘   └───────────────┘
-```
+### Market Making Strategy Features
+- **Multi-Exchange Market Making**: Simultaneous quoting across 11 exchanges
+- **Inventory Management**: Real-time position tracking and risk limits
+- **Smart Order Placement**: Queue position optimization
+- **Competitive Quoting**: Dynamic spread adjustment based on competition
+- **Adverse Selection Protection**: Toxic flow detection and avoidance
+- **Cross-Exchange Hedging**: Automatic position balancing
 
-## 🎯 Core Capabilities
+## 🔧 Exchange Integration
 
-### 1. Market Data Excellence
-- **Real-time L2/L3 Order Books**: Full depth with microsecond updates
-- **Trade Streams**: Every trade with nanosecond timestamps
-- **Normalized Data Model**: Consistent interface across all exchanges
-- **Smart Aggregation**: Cross-exchange best bid/offer calculation
+### Planned Exchange Support
+| Exchange | REST API | WebSocket | Market Making | Order Types | Status |
+|----------|----------|-----------|---------------|-------------|---------|
+| Binance | 🚧 | 🚧 | 🚧 | Limit, Market, Stop | In Progress |
+| Coinbase | 📋 | 📋 | 📋 | Limit, Market, Stop | Planned |
+| Bybit | 📋 | 📋 | 📋 | Limit, Market, Stop | Planned |
+| OKX | 📋 | 📋 | 📋 | Limit, Market, Stop | Planned |
+| Kraken | 📋 | 📋 | 📋 | Limit, Market, Stop | Planned |
+| Bitget | 📋 | 📋 | 📋 | Limit, Market, Stop | Planned |
+| KuCoin | 📋 | 📋 | 📋 | Limit, Market, Stop | Planned |
+| MEXC | 📋 | 📋 | 📋 | Limit, Market, Stop | Planned |
+| Gate.io | 📋 | 📋 | 📋 | Limit, Market, Stop | Planned |
+| Crypto.com | 📋 | 📋 | 📋 | Limit, Market, Stop | Planned |
+| Hyperliquid | 📋 | 📋 | 📋 | Limit, Market, Stop | Planned |
 
-### 2. Advanced Execution
-- **Smart Order Routing**: Optimal venue selection in real-time
-- **Execution Algorithms**: TWAP, VWAP, Iceberg, and custom algos
-- **Pre-trade Risk Checks**: Sub-millisecond validation
-- **Post-trade Analytics**: Real-time P&L and slippage analysis
+🚧 = In Development | 📋 = Planned | ✅ = Completed
 
-### 3. Risk Management
-- **Position Limits**: Hard limits with automatic enforcement
-- **Circuit Breakers**: Configurable halt conditions
-- **Exposure Monitoring**: Real-time portfolio risk metrics
-- **Compliance Controls**: Audit trail and regulatory reporting
-
-## 📊 Performance Benchmarks
-
-### Latency Distribution (Production Environment)
-```
-Percentile | WebSocket → Strategy | Strategy → Exchange | Round-trip
------------|---------------------|-------------------|------------
-P50        | 5ms                 | 7ms               | 12ms
-P95        | 7ms                 | 8ms               | 15ms
-P99        | 9ms                 | 9ms               | 18ms
-P99.9      | 12ms                | 13ms              | 25ms
-```
-
-### Throughput Capabilities
-- **Market Data**: 100,000+ messages/second
-- **Order Processing**: 10,000+ orders/second
-- **Strategy Evaluation**: 50,000+ signals/second
-- **Risk Calculations**: 100,000+ positions/second
-
-## 🔧 Technical Implementation
-
-### Zero-Copy Architecture
-```rust
-// Direct memory mapping for maximum performance
-pub struct OrderBook {
-    bids: Vec<PriceLevel>,
-    asks: Vec<PriceLevel>,
-    sequence: u64,
-    exchange_time: u64,
-}
-
-impl OrderBook {
-    // Zero-allocation parsing from raw bytes
-    pub fn from_bytes(data: &[u8]) -> Result<Self> {
-        // Custom SIMD-optimized parsing
-        unsafe { Self::parse_unchecked(data) }
-    }
-}
-```
-
-### Lock-Free Concurrency
-```rust
-// Wait-free SPSC channels for market data
-let (tx, rx) = spsc::channel::<MarketUpdate>(1_000_000);
-
-// Lock-free concurrent hashmap for order tracking
-let orders = Arc::new(DashMap::with_capacity(10_000));
-```
-
-### Exchange Integration
-| Exchange | REST API | WebSocket | Order Types | Market Making | Latency |
-|----------|----------|-----------|-------------|---------------|---------|
-| Binance | ✅ | ✅ | Full | ✅ | 8-12ms |
-| Coinbase | ✅ | ✅ | Full | ✅ | 15-20ms |
-| Bybit | ✅ | ✅ | Full | ✅ | 10-15ms |
-| OKX | ✅ | ✅ | Full | ✅ | 12-18ms |
-| Kraken | ✅ | ✅ | Full | ✅ | 20-25ms |
-| Bitget | ✅ | ✅ | Full | ✅ | 12-16ms |
-| KuCoin | ✅ | ✅ | Full | ✅ | 15-20ms |
-| MEXC | ✅ | ✅ | Full | ✅ | 18-22ms |
-| Gate.io | ✅ | ✅ | Full | ✅ | 20-25ms |
-| Crypto.com | ✅ | ✅ | Full | ✅ | 18-22ms |
-| Hyperliquid | ✅ | ✅ | Full | ✅ | 5-8ms |
+### Technical Design Principles
+- **Efficient Symbol Grouping**: Each t4g.nano handles 10-30+ symbols based on activity
+- **Rust Memory Efficiency**: Low footprint allows multiple symbols per instance
+- **Kafka Integration**: Reliable message delivery to backend systems
+- **Smart Scaling**: Add instances based on load, not just symbol count
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-```bash
-# Rust 1.70+ with nightly features
-rustup default nightly
-rustup component add rust-src
-
-# High-performance dependencies
-sudo apt-get install libjemalloc-dev libssl-dev
-```
+- Rust 1.70+ with cargo
+- Docker and Docker Compose
+- Exchange API keys (testnet recommended for development)
 
 ### Quick Start
-```bash
-# Clone and build with optimizations
-git clone https://github.com/pmatheus/jackbot-sensor
-cd jackbot-sensor
-RUSTFLAGS="-C target-cpu=native" cargo build --release
+**Development Setup**: Standard Rust development environment with exchange configuration and symbol selection.
 
-# Configure (see config/production.toml for all options)
-cp config/example.toml config/production.toml
-vim config/production.toml
+**Deployment Options**: Local development build, Docker containerization, or cloud deployment with horizontal scaling.
 
-# Run with production settings
-./target/release/jackbot-sensor --config config/production.toml
-```
+**Context7 Usage**: Use Context7 MCP to research Rust project setup, Docker deployment patterns, and microservices architecture.
 
-### Production Deployment
-```bash
-# Docker deployment with resource limits
-docker run -d \
-  --name jackbot-sensor \
-  --memory="4g" \
-  --cpus="4" \
-  --ulimit nofile=1000000:1000000 \
-  -v /path/to/config:/config \
-  jackbot/sensor:latest
 
-# Kubernetes deployment
-kubectl apply -f deployments/kubernetes/
-```
+## 🏗️ Infrastructure Design
 
-## 💰 Real Infrastructure Costs
+### Horizontal Scaling Architecture
+- **Resource Optimization**: Each t4g.nano efficiently handles 10-30+ symbols
+- **Logical Grouping**: Instances organized by symbol type (majors, alts, stables, etc.)
+- **Kafka Cluster**: 3x t4g.micro for message bus redundancy
+- **Load Balancing**: Distribute high-activity symbols across instances
+- **Fault Isolation**: Instance failure only affects its symbol group
 
-### Production Environment (Measured)
-- **Compute**: 2x c5.2xlarge EC2 instances: $340/month
-- **Kafka**: 3-node MSK cluster: $450/month
-- **Database**: RDS PostgreSQL (db.m5.large): $140/month
-- **Monitoring**: CloudWatch + Grafana: $80/month
-- **Network**: Cross-AZ traffic + API calls: $150/month
-- **Total**: ~$1,160/month for production-grade setup
+### Integration with Jackbot Terminal
+The sensors are designed as the data collection and execution layer for the larger Jackbot Terminal project.
 
-### Development Environment
-- **LocalStack**: Free (local AWS emulation)
-- **Docker Compose**: Free (included stack)
-- **Total**: $0/month for full development
+## 📊 Real-World Use Cases
 
-## 🔒 Security & Compliance
+### Market Making Operations
+- Deploy sensors based on logical symbol groupings and activity levels
+- Each t4g.nano instance efficiently manages order books for 10-30+ symbols
+- Group high-activity pairs together for load distribution
+- Rust's efficiency allows handling multiple symbols without performance degradation
+- Scale by adding instances only when existing ones approach capacity
 
-### Security Features
-- **API Key Encryption**: Hardware security module integration
-- **Network Security**: VPC isolation with security groups
-- **Audit Logging**: Immutable audit trail for all operations
-- **Access Control**: Role-based permissions with MFA
+### Arbitrage Detection
+- Sensors stream normalized market data to Kafka
+- Backend systems identify cross-exchange opportunities
+- Execute trades through sensor's order management system
+- Sub-second detection to execution pipeline
 
-### Compliance
-- **Data Retention**: Configurable retention policies
-- **Privacy**: GDPR-compliant data handling
-- **Reporting**: Real-time regulatory reporting capabilities
+### Portfolio Management
+- Aggregate positions across all exchanges
+- Real-time P&L calculation and risk metrics
+- Automated rebalancing through sensor execution layer
+- Historical data storage for performance analysis
 
-## 📈 Success Stories
+## 📚 Project Documentation
 
-### Case Study: Proprietary Trading Firm
-- **Volume**: $10M+ daily trading volume
-- **Performance**: 15% reduction in slippage costs
-- **Reliability**: Zero unplanned downtime in 12 months
-- **ROI**: Infrastructure paid for itself in 2 months
+### Core Documentation
+- [Market Making Guide](docs/MARKET_MAKING_ENGINE.md) - Advanced MM strategies
+- [Exchange Integration](docs/EXCHANGE_INTEGRATION_GUIDE.md) - Adding new exchanges
+- [Performance Guide](docs/PERFORMANCE_GUIDE.md) - Optimization techniques
+- [Strategy Framework](docs/STRATEGY_FRAMEWORK.md) - Building custom strategies
 
-### Case Study: Market Making Operation
-- **Spreads**: Tightened spreads by 30%
-- **Fill Rate**: Improved from 78% to 94%
-- **Profitability**: 25% increase in daily P&L
+### Architecture
+- [System Architecture](docs/README.md) - Overall design
+- [Order Management](docs/ADVANCED_EXECUTION_ABSTRACTION.md) - Execution engine
+- [Risk Framework](docs/RISK_FRAMEWORK.md) - Risk controls
 
-## 🤝 Professional Services
+## 🎓 Why This Project Matters
 
-### Available Support
-- **Enterprise Support**: 24/7 SLA-backed support
-- **Custom Development**: Exchange integrations, strategies
-- **Training**: On-site or remote training programs
-- **Consulting**: Architecture review and optimization
+### For Wall Street
+- **Production Architecture**: Designed with institutional requirements in mind
+- **Market Making Focus**: Sophisticated MM capabilities planned for open source
+- **Clean Design**: Microservice architecture that scales horizontally
+- **Professional Standards**: Built following best practices for financial systems
 
-## 📚 Documentation
+### Technical Vision
+- **Rust Performance**: Zero-copy parsing, lock-free data structures
+- **Fault Tolerance**: Isolated failures, automatic recovery design
+- **Horizontal Scaling**: Add capacity by deploying additional t4g.nano instances as needed
+- **Open Source**: Complete transparency in execution layer when complete
 
-### Technical Documentation
-- [Architecture Deep Dive](docs/ARCHITECTURE.md)
-- [Performance Tuning Guide](docs/PERFORMANCE_GUIDE.md)
-- [API Reference](docs/API_REFERENCE.md)
-- [Exchange Integration Guide](docs/EXCHANGE_INTEGRATION.md)
+> **Note**: This README represents the planned architecture and capabilities. Current implementation status varies by component.
 
-### Strategy Development
-- [Strategy Framework](docs/STRATEGY_FRAMEWORK.md)
-- [Backtesting Guide](docs/BACKTESTING.md)
-- [Risk Management](docs/RISK_FRAMEWORK.md)
+## 🤝 Contributing
 
-## 🎓 Why This Matters
+We welcome contributions from the community! Here's how you can help:
 
-This isn't just another crypto trading library. Jackbot Sensor represents:
+### Pull Requests
+- Fork the repository and create your feature branch
+- Write clear commit messages and PR descriptions
+- Follow our coding standards and include tests
+- Update documentation as needed
+- Submit PRs against the `main` branch
 
-1. **Engineering Excellence**: Clean, performant Rust code with zero undefined behavior
-2. **Production Readiness**: Battle-tested with real money and real volume
-3. **Professional Standards**: Built like institutional trading systems should be
-4. **Open Source Integrity**: Complete transparency in execution and data handling
+### Issues & Support
+- **Bug Reports**: Open an issue with detailed reproduction steps
+- **Feature Requests**: Use the issue template to propose new features
+- **Questions**: Check existing issues or start a discussion
+- **Support**: [GitHub Issues](https://github.com/pmatheus/jackbot-sensor/issues)
 
-## 📞 Contact
-
-For professional inquiries, enterprise support, or recruitment opportunities:
-- **GitHub**: [Issues](https://github.com/pmatheus/jackbot-sensor/issues)
-- **LinkedIn**: [Paulo Matheus](https://www.linkedin.com/in/paulo-matheus/)
-- **Medium**: [Technical Articles](https://medium.com/@pmatheusn)
+### Guidelines
+- Be respectful and constructive in discussions
+- Search existing issues before creating new ones
+- Follow the code of conduct
+- Help others and share knowledge
 
 ---
 

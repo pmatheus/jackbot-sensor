@@ -50,16 +50,16 @@ impl StreamingManager {
     pub async fn start_coinbase_stream(self: Arc<Self>, stream_type: &str, symbol: &str) -> Result<()> {
         info!("🚀 Starting REAL Coinbase {} stream for {}", stream_type, symbol);
         
-        let config = ExchangeWebSocketConfig::production();
-        let endpoint = config.get_endpoint("coinbase")
-            .ok_or_else(|| anyhow::anyhow!("Coinbase config not found"))?;
-        
-        let ws_url = &endpoint.primary_url;
         let streaming_manager = self.clone();
         let symbol_clone = symbol.to_string();
         let stream_type_clone = stream_type.to_string();
         
         tokio::spawn(async move {
+            let config = ExchangeWebSocketConfig::production();
+            let endpoint = config.get_endpoint("coinbase")
+                .ok_or_else(|| anyhow::anyhow!("Coinbase config not found"))
+                .unwrap();
+            let ws_url = &endpoint.primary_url;
             if let Err(e) = coinbase_websocket_handler(
                 ws_url,
                 &stream_type_clone,
@@ -77,16 +77,16 @@ impl StreamingManager {
     pub async fn start_bybit_stream(self: Arc<Self>, stream_type: &str, symbol: &str) -> Result<()> {
         info!("🚀 Starting REAL Bybit {} stream for {}", stream_type, symbol);
         
-        let config = ExchangeWebSocketConfig::production();
-        let endpoint = config.get_endpoint("bybit")
-            .ok_or_else(|| anyhow::anyhow!("Bybit config not found"))?;
-        
-        let ws_url = &endpoint.primary_url;
         let streaming_manager = self.clone();
         let symbol_clone = symbol.to_string();
         let stream_type_clone = stream_type.to_string();
         
         tokio::spawn(async move {
+            let config = ExchangeWebSocketConfig::production();
+            let endpoint = config.get_endpoint("bybit")
+                .ok_or_else(|| anyhow::anyhow!("Bybit config not found"))
+                .unwrap();
+            let ws_url = &endpoint.primary_url;
             if let Err(e) = bybit_websocket_handler(
                 ws_url,
                 &stream_type_clone,
@@ -104,16 +104,16 @@ impl StreamingManager {
     pub async fn start_bitget_stream(self: Arc<Self>, stream_type: &str, symbol: &str) -> Result<()> {
         info!("🚀 Starting REAL Bitget {} stream for {}", stream_type, symbol);
         
-        let config = ExchangeWebSocketConfig::production();
-        let endpoint = config.get_endpoint("bitget")
-            .ok_or_else(|| anyhow::anyhow!("Bitget config not found"))?;
-        
-        let ws_url = &endpoint.primary_url;
         let streaming_manager = self.clone();
         let symbol_clone = symbol.to_string();
         let stream_type_clone = stream_type.to_string();
         
         tokio::spawn(async move {
+            let config = ExchangeWebSocketConfig::production();
+            let endpoint = config.get_endpoint("bitget")
+                .ok_or_else(|| anyhow::anyhow!("Bitget config not found"))
+                .unwrap();
+            let ws_url = &endpoint.primary_url;
             if let Err(e) = bitget_websocket_handler(
                 ws_url,
                 &stream_type_clone,
@@ -131,16 +131,16 @@ impl StreamingManager {
     pub async fn start_hyperliquid_stream(self: Arc<Self>, stream_type: &str, symbol: &str) -> Result<()> {
         info!("🚀 Starting REAL Hyperliquid {} stream for {}", stream_type, symbol);
         
-        let config = ExchangeWebSocketConfig::production();
-        let endpoint = config.get_endpoint("hyperliquid")
-            .ok_or_else(|| anyhow::anyhow!("Hyperliquid config not found"))?;
-        
-        let ws_url = &endpoint.primary_url;
         let streaming_manager = self.clone();
         let symbol_clone = symbol.to_string();
         let stream_type_clone = stream_type.to_string();
         
         tokio::spawn(async move {
+            let config = ExchangeWebSocketConfig::production();
+            let endpoint = config.get_endpoint("hyperliquid")
+                .ok_or_else(|| anyhow::anyhow!("Hyperliquid config not found"))
+                .unwrap();
+            let ws_url = &endpoint.primary_url;
             if let Err(e) = hyperliquid_websocket_handler(
                 ws_url,
                 &stream_type_clone,
@@ -158,16 +158,16 @@ impl StreamingManager {
     pub async fn start_kraken_stream(self: Arc<Self>, stream_type: &str, symbol: &str) -> Result<()> {
         info!("🚀 Starting REAL Kraken {} stream for {}", stream_type, symbol);
         
-        let config = ExchangeWebSocketConfig::production();
-        let endpoint = config.get_endpoint("kraken")
-            .ok_or_else(|| anyhow::anyhow!("Kraken config not found"))?;
-        
-        let ws_url = &endpoint.primary_url;
         let streaming_manager = self.clone();
         let symbol_clone = symbol.to_string();
         let stream_type_clone = stream_type.to_string();
         
         tokio::spawn(async move {
+            let config = ExchangeWebSocketConfig::production();
+            let endpoint = config.get_endpoint("kraken")
+                .ok_or_else(|| anyhow::anyhow!("Kraken config not found"))
+                .unwrap();
+            let ws_url = &endpoint.primary_url;
             if let Err(e) = kraken_websocket_handler(
                 ws_url,
                 &stream_type_clone,
@@ -185,16 +185,16 @@ impl StreamingManager {
     pub async fn start_okx_stream(self: Arc<Self>, stream_type: &str, symbol: &str) -> Result<()> {
         info!("🚀 Starting REAL OKX {} stream for {}", stream_type, symbol);
         
-        let config = ExchangeWebSocketConfig::production();
-        let endpoint = config.get_endpoint("okx")
-            .ok_or_else(|| anyhow::anyhow!("OKX config not found"))?;
-        
-        let ws_url = &endpoint.primary_url;
         let streaming_manager = self.clone();
         let symbol_clone = symbol.to_string();
         let stream_type_clone = stream_type.to_string();
         
         tokio::spawn(async move {
+            let config = ExchangeWebSocketConfig::production();
+            let endpoint = config.get_endpoint("okx")
+                .ok_or_else(|| anyhow::anyhow!("OKX config not found"))
+                .unwrap();
+            let ws_url = &endpoint.primary_url;
             if let Err(e) = okx_websocket_handler(
                 ws_url,
                 &stream_type_clone,

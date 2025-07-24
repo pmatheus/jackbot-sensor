@@ -291,7 +291,7 @@ impl BingXConnector {
                 .context("Failed to parse bid price")?;
             let quantity = bid.quantity.parse::<Decimal>()
                 .context("Failed to parse bid quantity")?;
-            order_book.bids.push((price, quantity));
+            order_book.bids.push([price.to_string().parse::<f64>().unwrap(), quantity.to_string().parse::<f64>().unwrap()]);
         }
 
         // Parse asks
@@ -300,7 +300,7 @@ impl BingXConnector {
                 .context("Failed to parse ask price")?;
             let quantity = ask.quantity.parse::<Decimal>()
                 .context("Failed to parse ask quantity")?;
-            order_book.asks.push((price, quantity));
+            order_book.asks.push([price.to_string().parse::<f64>().unwrap(), quantity.to_string().parse::<f64>().unwrap()]);
         }
 
         // BingX sends pre-sorted data
@@ -326,10 +326,13 @@ impl BingXConnector {
         Ok(TickerData {
             exchange: "bingx".to_string(),
             symbol: Self::normalize_symbol(&ticker.s),
+            price: ticker.c.parse()?,
             bid: 0.0, // BingX ticker doesn't provide bid
             ask: 0.0, // BingX ticker doesn't provide ask
-            last: ticker.c.parse()?,
-            volume: ticker.v.parse()?,
+            volume_24h: ticker.v.parse()?,
+            change_24h: 0.0, // Not provided in this format
+            high_24h: 0.0, // Not provided
+            low_24h: 0.0, // Not provided
             timestamp: ticker.timestamp as i64,
         })
     }

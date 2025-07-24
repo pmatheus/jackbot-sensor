@@ -87,7 +87,7 @@ enum Commands {
 #[tokio::main]
 async fn main() -> Result<()> {
     // Initialize rustls crypto provider
-    rustls::crypto::aws_lc_rs::default_provider()
+    // rustls::crypto::aws_lc_rs::default_provider() // Temporarily commented out
         .install_default()
         .expect("Failed to install rustls crypto provider");
     
@@ -146,7 +146,7 @@ async fn main() -> Result<()> {
             
             // Load sensor configuration with production settings
             let mut config = SensorConfig::default();
-            config.kafka.brokers = production_config.endpoints.kafka_brokers.clone();
+            config.data.message_broker.brokers = production_config.endpoints.kafka_brokers.clone();
             
             // Enable requested exchanges and configure with production settings
             for exchange_name in &requested_exchanges {
@@ -155,12 +155,12 @@ async fn main() -> Result<()> {
                     
                     // Apply production configuration
                     if let Some(prod_config) = production_config.get_exchange_config(exchange_name) {
-                        exchange_config.sandbox = prod_config.sandbox && !production;
+                        exchange_config.testnet = prod_config.sandbox && !production;
                         // Update rate limits
-                        exchange_config.rate_limit = prod_config.rate_limits.requests_per_second;
+                        exchange_config.rate_limit_buffer = prod_config.rate_limits.requests_per_second as f64 / 1000.0;
                         
-                        info!("✅ Configured {} exchange: sandbox={}, rate_limit={}/s", 
-                              exchange_name, exchange_config.sandbox, exchange_config.rate_limit);
+                        info!("✅ Configured {} exchange: testnet={}, rate_limit_buffer={}", 
+                              exchange_name, exchange_config.testnet, exchange_config.rate_limit_buffer);
                     }
                 } else {
                     warn!("⚠️  Exchange '{}' not found in sensor config", exchange_name);

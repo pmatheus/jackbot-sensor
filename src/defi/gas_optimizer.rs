@@ -11,7 +11,6 @@ use tokio::sync::RwLock;
 pub struct GasOptimizer {
     max_gas_price_gwei: u64,
     gas_history: Arc<RwLock<GasHistory>>,
-    prediction_model: Arc<GasPredictionModel>,
     optimization_strategies: HashMap<String, Box<dyn OptimizationStrategy>>,
 }
 
@@ -31,12 +30,6 @@ struct GasPricePoint {
     block_number: u64,
 }
 
-#[derive(Debug)]
-struct GasPredictionModel {
-    // Time series prediction for gas prices
-    arima_model: Option<ARIMAModel>,
-    ml_predictor: Option<MLGasPredictor>,
-}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GasRecommendation {
@@ -74,10 +67,6 @@ impl GasOptimizer {
         Self {
             max_gas_price_gwei,
             gas_history: Arc::new(RwLock::new(GasHistory::default())),
-            prediction_model: Arc::new(GasPredictionModel {
-                arima_model: None,
-                ml_predictor: None,
-            }),
             optimization_strategies: strategies,
         }
     }
@@ -167,12 +156,8 @@ impl GasOptimizer {
         // Known events that cause spikes
         let upcoming_events = self.check_upcoming_events().await?;
         
-        // ML prediction
-        let ml_prediction = if let Some(predictor) = &self.prediction_model.ml_predictor {
-            predictor.predict_spike_probability(hours_ahead).await?
-        } else {
-            0.5 // Default probability
-        };
+        // Default prediction without ML
+        let ml_prediction = 0.5;
 
         Ok(GasSpikePrediction {
             hours_ahead,
@@ -413,16 +398,5 @@ impl OptimizationStrategy for MulticallOptimizer {
     }
 }
 
-// Placeholder ML predictor
-struct MLGasPredictor;
-impl MLGasPredictor {
-    async fn predict_spike_probability(&self, hours_ahead: u64) -> Result<f64, Box<dyn std::error::Error>> {
-        // ML model prediction
-        Ok(0.3 + (hours_ahead as f64 * 0.01))
-    }
-}
-
-// Placeholder ARIMA model
-struct ARIMAModel;
 
 use std::collections::VecDeque;

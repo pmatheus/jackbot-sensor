@@ -1,7 +1,7 @@
 [package]
 name = "jackbot-data"
 version = "0.10.1"
-edition = "2021"
+edition = "2024"
 authors = ["Jack <mail@jackbot.app>"]
 license = "MIT"
 documentation = "https://docs.rs/jackbot-data"

@@ -1,0 +1,151 @@
+# Jackbot Sensor Configuration
+
+[sensor]
+# Instance configuration
+instance_id = "sensor-dev-01"
+environment = "development"
+log_level = "info"
+
+# Performance settings
+max_concurrent_connections = 100
+websocket_buffer_size = 65536
+order_book_depth = 100
+
+[data]
+# Kafka configuration
+[data.message_broker]
+brokers = ["localhost:9092"]
+producer_config = { "compression.type" = "zstd", "linger.ms" = "10" }
+consumer_config = { "group.id" = "jackbot-sensor", "auto.offset.reset" = "latest" }
+
+# Redis configuration
+[data.cache]
+url = "redis://:jackbot_sensor_redis_password@localhost:6380"
+pool_size = 10
+ttl_seconds = 300
+
+# PostgreSQL configuration
+[data.database]
+url = "postgresql://sensor:sensor_password@localhost:5434/jackbot_sensor"
+max_connections = 10
+
+# Exchange configurations
+[exchanges.binance]
+enabled = true
+testnet = true
+ws_url = "wss://testnet.binance.vision/ws"
+rest_url = "https://testnet.binance.vision/api"
+rate_limit_requests_per_second = 20
+rate_limit_buffer = 0.8
+symbols = ["BTCUSDT", "ETHUSDT", "BNBUSDT"]
+
+[exchanges.coinbase]
+enabled = true
+testnet = true
+ws_url = "wss://ws-feed-public.sandbox.exchange.coinbase.com"
+rest_url = "https://api-public.sandbox.exchange.coinbase.com"
+rate_limit_requests_per_second = 10
+rate_limit_buffer = 0.8
+symbols = ["BTC-USD", "ETH-USD", "SOL-USD"]
+
+[exchanges.bybit]
+enabled = true
+testnet = true
+ws_url = "wss://stream-testnet.bybit.com/v5/public/spot"
+rest_url = "https://api-testnet.bybit.com"
+rate_limit_requests_per_second = 50
+rate_limit_buffer = 0.8
+symbols = ["BTCUSDT", "ETHUSDT", "SOLUSDT"]
+
+[exchanges.okx]
+enabled = false
+testnet = true
+ws_url = "wss://wspap.okx.com:8443/ws/v5/public?brokerId=9999"
+rest_url = "https://www.okx.com"
+rate_limit_requests_per_second = 20
+rate_limit_buffer = 0.8
+symbols = ["BTC-USDT", "ETH-USDT"]
+
+[exchanges.kraken]
+enabled = false
+testnet = false  # Kraken doesn't have testnet
+ws_url = "wss://ws.kraken.com"
+rest_url = "https://api.kraken.com"
+rate_limit_requests_per_second = 15
+rate_limit_buffer = 0.8
+symbols = ["XBT/USD", "ETH/USD"]
+
+[exchanges.kucoin]
+enabled = false
+testnet = true
+ws_url = "wss://ws-api-spot.kucoin.com"
+rest_url = "https://api.kucoin.com"
+rate_limit_requests_per_second = 30
+rate_limit_buffer = 0.8
+symbols = ["BTC-USDT", "ETH-USDT"]
+
+[exchanges.gateio]
+enabled = false
+testnet = false  # Gate.io doesn't have testnet
+ws_url = "wss://ws.gate.io/v4"
+rest_url = "https://api.gateio.ws"
+rate_limit_requests_per_second = 10
+rate_limit_buffer = 0.8
+symbols = ["BTC_USDT", "ETH_USDT"]
+
+[exchanges.mexc]
+enabled = false
+testnet = false  # MEXC doesn't have testnet
+ws_url = "wss://wbs.mexc.com/ws"
+rest_url = "https://api.mexc.com"
+rate_limit_requests_per_second = 20
+rate_limit_buffer = 0.8
+symbols = ["BTCUSDT", "ETHUSDT"]
+
+[exchanges.bitget]
+enabled = false
+testnet = false  # Bitget doesn't have testnet
+ws_url = "wss://ws.bitget.com/spot/v1/stream"
+rest_url = "https://api.bitget.com"
+rate_limit_requests_per_second = 10
+rate_limit_buffer = 0.8
+symbols = ["BTCUSDT", "ETHUSDT"]
+
+[exchanges.hyperliquid]
+enabled = false
+testnet = true
+ws_url = "wss://api.hyperliquid-testnet.xyz/ws"
+rest_url = "https://api.hyperliquid-testnet.xyz"
+rate_limit_requests_per_second = 200
+rate_limit_buffer = 0.8
+symbols = ["BTC-USD", "ETH-USD"]
+
+[exchanges.cryptocom]
+enabled = false
+testnet = false  # Crypto.com doesn't have testnet
+ws_url = "wss://stream.crypto.com/v2/market"
+rest_url = "https://api.crypto.com"
+rate_limit_requests_per_second = 10
+rate_limit_buffer = 0.8
+symbols = ["BTC_USDT", "ETH_USDT"]
+
+# Market making configuration
+[market_making]
+enabled = false
+spread_basis_points = 10  # 0.1%
+max_position_size_usd = 10000
+rebalance_threshold = 0.1
+quote_refresh_ms = 100
+
+# Risk limits
+[risk]
+max_open_orders_per_symbol = 10
+max_position_value_usd = 50000
+max_daily_volume_usd = 100000
+stop_loss_percentage = 5.0
+
+# Monitoring
+[monitoring]
+metrics_port = 9464
+health_check_interval_seconds = 30
+performance_log_interval_seconds = 60

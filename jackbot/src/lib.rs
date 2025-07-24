@@ -122,7 +122,6 @@ pub mod technical;
 pub mod ml;
 
 /// ML API client for remote model inference.
-pub mod ml_api;
 
 
 /// Traits and types related to component shutdowns.

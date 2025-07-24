@@ -2,6 +2,8 @@
 // This version provides minimal functionality to support the infinite agent binary
 
 pub mod api;
+pub mod auth;
+pub mod security;
 pub mod config;
 pub mod sensor;
 pub mod connector;
@@ -28,6 +30,12 @@ pub mod order_book_aggregator_ultra;
 pub mod market_arbitrage;
 pub mod strategy_execution;
 pub mod connection_pool;
+pub mod zero_copy_parser;
+pub mod latency_monitor;
+pub mod performance_test_integration;
+pub mod security_validation_test;
+pub mod kafka_subscriber;
+// pub mod defi; // Temporarily disabled due to missing dependencies
 
 // Minimal placeholder for library functionality
 pub struct JackbotSensor;

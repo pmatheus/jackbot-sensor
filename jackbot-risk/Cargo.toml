@@ -1,7 +1,7 @@
 [package]
 name = "jackbot-risk"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 authors = ["Jack <mail@jackbot.app>"]
 license = "MIT"
 documentation = "https://docs.rs/jackbot-risk"

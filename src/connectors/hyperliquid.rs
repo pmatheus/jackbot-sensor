@@ -12,6 +12,7 @@ use std::time::Duration;
 use tokio::sync::Mutex;
 use tokio::time::interval;
 use tracing::{debug, error, info, warn};
+use url::Url;
 
 use crate::api::{BalanceData, KlineData, OrderBookData, TickerData, TradeData};
 use crate::connector::{
@@ -170,11 +171,23 @@ impl Exchange for HyperliquidConnector {
         
         let config = if let Some(private_key) = &self.private_key {
             HyperliquidConfig {
+                rest_url: Url::parse("https://api.hyperliquid.xyz").unwrap(),
+                ws_url: Url::parse("wss://api.hyperliquid.xyz/ws").unwrap(),
+                web3_rpc_url: Url::parse("https://rpc.ankr.com/arbitrum").unwrap(),
                 private_key: private_key.clone(),
+                account_address: "0x0000000000000000000000000000000000000000".to_string(),
+                api_key: None,
+                chain_id: 42161, // Arbitrum
             }
         } else {
             HyperliquidConfig {
+                rest_url: Url::parse("https://api.hyperliquid.xyz").unwrap(),
+                ws_url: Url::parse("wss://api.hyperliquid.xyz/ws").unwrap(),
+                web3_rpc_url: Url::parse("https://rpc.ankr.com/arbitrum").unwrap(),
                 private_key: "0x0000000000000000000000000000000000000000000000000000000000000000".to_string(),
+                account_address: "0x0000000000000000000000000000000000000000".to_string(),
+                api_key: None,
+                chain_id: 42161, // Arbitrum
             }
         };
         

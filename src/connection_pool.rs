@@ -74,13 +74,25 @@ pub struct ConnectionPool {
 }
 
 /// Request processing metrics
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct RequestMetrics {
     total_requests: u64,
     successful_requests: u64,
     failed_requests: u64,
     total_response_time_ms: u64,
     last_reset: Instant,
+}
+
+impl Default for RequestMetrics {
+    fn default() -> Self {
+        Self {
+            total_requests: 0,
+            successful_requests: 0,
+            failed_requests: 0,
+            total_response_time_ms: 0,
+            last_reset: Instant::now(),
+        }
+    }
 }
 
 /// Cache performance metrics
@@ -135,9 +147,9 @@ impl ConnectionPool {
         processor: F
     ) -> Result<T> 
     where
-        T: Serialize + for<'de> Deserialize<'de> + Send + 'static,
-        F: FnOnce() -> R + Send,
-        R: std::future::Future<Output = Result<T>> + Send,
+        T: Serialize + for<'de> Deserialize<'de> + Send + Sync + 'static,
+        F: FnOnce() -> R + Send + 'static,
+        R: std::future::Future<Output = Result<T>> + Send + 'static,
     {
         let start_time = Instant::now();
         let request_id = Uuid::new_v4();
@@ -202,9 +214,9 @@ impl ConnectionPool {
         requests: Vec<(String, F)>,
     ) -> Vec<Result<T>>
     where
-        T: Serialize + for<'de> Deserialize<'de> + Send + 'static,
-        F: FnOnce() -> R + Send,
-        R: std::future::Future<Output = Result<T>> + Send,
+        T: Serialize + for<'de> Deserialize<'de> + Send + Sync + 'static,
+        F: FnOnce() -> R + Send + 'static,
+        R: std::future::Future<Output = Result<T>> + Send + 'static,
     {
         let batch_id = Uuid::new_v4();
         let batch_size = requests.len();
@@ -284,7 +296,7 @@ impl ConnectionPool {
     /// Set data in cache
     async fn set_in_cache<T>(&self, key: &str, data: &T) -> Result<()>
     where
-        T: Serialize,
+        T: Serialize + Sync,
     {
         let serialized = bincode::serialize(data)
             .context("Failed to serialize data for caching")?;
@@ -304,7 +316,7 @@ impl ConnectionPool {
 
         let mut conn = self.redis_pool.get().await?;
         
-        conn.set_ex(key, cached_bytes, self.config.cache_ttl_seconds as usize).await
+        conn.set_ex(key, cached_bytes, self.config.cache_ttl_seconds).await
             .map_err(|e| {
                 self.record_cache_error();
                 anyhow::anyhow!("Redis set error: {}", e)
@@ -404,7 +416,7 @@ impl ConnectionPool {
                 
                 match redis_pool.get().await {
                     Ok(mut conn) => {
-                        match redis::cmd("PING").query_async::<_, String>(&mut *conn).await {
+                        match redis::cmd("PING").query_async::<String>(&mut conn).await {
                             Ok(_) => {
                                 debug!("Redis health check passed");
                             }

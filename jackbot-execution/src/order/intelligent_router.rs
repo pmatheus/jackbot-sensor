@@ -27,7 +27,7 @@ use tokio::{
 };
 use tracing::info;
 
-/// Intelligent order routing system with advanced analytics and machine learning-inspired optimization
+/// Intelligent order routing system with advanced analytics
 #[derive(Debug)]
 pub struct IntelligentOrderRouter<C: ExecutionClient> {
     /// Client connections to exchanges
@@ -52,7 +52,7 @@ pub struct IntelligentOrderRouter<C: ExecutionClient> {
     execution_semaphore: Arc<Semaphore>,
     /// Exchange index to ID mapping
     exchange_mapping: HashMap<ExchangeIndex, ExchangeId>,
-    /// Machine learning-inspired routing model
+    /// Routing optimization configuration
     routing_model: RoutingOptimizationModel,
 }
 
@@ -61,8 +61,8 @@ pub struct IntelligentOrderRouter<C: ExecutionClient> {
 pub struct IntelligentRoutingConfig {
     /// Base routing configuration
     pub base_config: super::router::RoutingConfig,
-    /// Enable machine learning-inspired routing optimization
-    pub enable_ml_optimization: bool,
+    /// Enable routing optimization
+    pub enable_optimization: bool,
     /// Enable real-time latency optimization
     pub enable_latency_optimization: bool,
     /// Enable market microstructure analysis
@@ -85,7 +85,7 @@ impl Default for IntelligentRoutingConfig {
     fn default() -> Self {
         Self {
             base_config: super::router::RoutingConfig::default(),
-            enable_ml_optimization: true,
+            enable_optimization: true,
             enable_latency_optimization: true,
             enable_microstructure_analysis: true,
             enable_advanced_analytics: true,
@@ -105,8 +105,8 @@ pub struct LatencyOptimizer {
     latency_measurements: HashMap<ExchangeId, LatencyProfile>,
     /// Network optimization settings
     network_optimization: NetworkOptimization,
-    /// Predictive latency models
-    latency_prediction_models: HashMap<ExchangeId, LatencyPredictionModel>,
+    /// Latency tracking models
+    latency_tracking_models: HashMap<ExchangeId, LatencyTrackingModel>,
     /// Connection health monitoring
     connection_health: HashMap<ExchangeId, ConnectionHealth>,
 }
@@ -161,16 +161,14 @@ impl Default for NetworkOptimization {
 }
 
 #[derive(Debug, Clone)]
-pub struct LatencyPredictionModel {
-    /// Model parameters
-    pub parameters: Vec<f64>,
-    /// Feature weights
-    pub feature_weights: HashMap<String, f64>,
-    /// Model accuracy metrics
-    pub accuracy: f64,
-    pub prediction_confidence: f64,
-    /// Last training time
-    pub last_training: DateTime<Utc>,
+pub struct LatencyTrackingModel {
+    /// Historical measurements
+    pub measurements: Vec<f64>,
+    /// Statistical metrics
+    pub avg_latency: f64,
+    pub stddev_latency: f64,
+    /// Last update time
+    pub last_update: DateTime<Utc>,
 }
 
 #[derive(Debug, Clone)]
@@ -442,8 +440,8 @@ pub struct AdvancedRiskManager {
     risk_limits: AdvancedRiskLimits,
     /// Risk monitoring
     risk_monitor: RiskMonitor,
-    /// Predictive risk models
-    risk_models: HashMap<String, PredictiveRiskModel>,
+    /// Risk tracking models
+    risk_models: HashMap<String, RiskTrackingModel>,
     /// Real-time exposure tracking
     exposure_tracker: ExposureTracker,
 }
@@ -541,17 +539,16 @@ pub enum AlertSeverity {
 }
 
 #[derive(Debug, Clone)]
-pub struct PredictiveRiskModel {
+pub struct RiskTrackingModel {
     /// Model type
     pub model_type: RiskModelType,
-    /// Model parameters
-    pub parameters: Vec<f64>,
-    /// Prediction accuracy
-    pub accuracy: f64,
-    /// Last training time
-    pub last_training: DateTime<Utc>,
-    /// Feature importance
-    pub feature_importance: HashMap<String, f64>,
+    /// Historical data
+    pub historical_data: Vec<f64>,
+    /// Statistical metrics
+    pub mean: f64,
+    pub variance: f64,
+    /// Last update time
+    pub last_update: DateTime<Utc>,
 }
 
 #[derive(Debug, Clone)]
@@ -726,7 +723,7 @@ impl<C: ExecutionClient + Clone + Send + Sync + 'static> IntelligentOrderRouter<
             )
             .await;
 
-        // Select optimal route using ML-inspired scoring
+        // Select optimal route using statistical scoring
         let route_selection = self
             .routing_engine
             .select_optimal_route(exchange_scores, order_request, market_conditions)
@@ -928,8 +925,8 @@ impl<C: ExecutionClient + Clone + Send + Sync + 'static> IntelligentOrderRouter<
         _order: &Order<ExchangeId, InstrumentNameExchange, ActiveOrderState>,
         _execution_time: Duration,
     ) {
-        // Implementation would update ML models with actual execution results
-        // This enables continuous learning and improvement
+        // Implementation would update statistical models with actual execution results
+        // This enables continuous tracking and improvement
     }
 
     /// Record successful execution for model learning
@@ -944,7 +941,7 @@ impl<C: ExecutionClient + Clone + Send + Sync + 'static> IntelligentOrderRouter<
 
         // Update latency models
         self.latency_optimizer
-            .update_prediction_model(exchange_id, actual_latency, latency_error)
+            .update_tracking_model(exchange_id, actual_latency)
             .await;
 
         // Update routing models
@@ -1077,7 +1074,7 @@ impl LatencyOptimizer {
         Self {
             latency_measurements: HashMap::new(),
             network_optimization: NetworkOptimization::default(),
-            latency_prediction_models: HashMap::new(),
+            latency_tracking_models: HashMap::new(),
             connection_health: HashMap::new(),
         }
     }
@@ -1097,13 +1094,12 @@ impl LatencyOptimizer {
         // Implementation would update latency measurements
     }
 
-    async fn update_prediction_model(
+    async fn update_tracking_model(
         &self,
         _exchange_id: ExchangeId,
         _actual_latency: f64,
-        _error: f64,
     ) {
-        // Implementation would update prediction models
+        // Implementation would update tracking models
     }
 }
 

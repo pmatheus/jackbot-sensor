@@ -6,7 +6,7 @@ use jackbot_data::kafka_store::KafkaClientStore;
 use rdkafka::config::ClientConfig;
 use rdkafka::consumer::stream_consumer::StreamConsumer;
 use rdkafka::consumer::{Consumer, ConsumerContext, Rebalance};
-use rdkafka::error::KafkaResult;
+// use rdkafka::error::KafkaResult; // Unused
 use rdkafka::message::{Headers, Message};
 use rdkafka::producer::{FutureProducer, FutureRecord};
 use rdkafka::ClientContext;

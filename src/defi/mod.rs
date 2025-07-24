@@ -7,12 +7,12 @@ pub mod arbitrage;
 pub mod liquidity;
 pub mod gas_optimizer;
 pub mod mev_protection;
-pub mod ai_yield_engine;
 pub mod protocol_manager;
 pub mod derivatives_engine;
 pub mod synthetix_v3;
 
-use ethers::prelude::*;
+use ethers::prelude::{Http, Provider, LocalWallet, TransactionReceipt, U256, Address};
+use ethers::types::H256;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -42,7 +42,6 @@ pub struct DeFiEngine {
     arbitrage_detector: Arc<RwLock<arbitrage::ArbitrageDetector>>,
     gas_optimizer: Arc<gas_optimizer::GasOptimizer>,
     mev_protector: Arc<mev_protection::MEVProtector>,
-    ai_yield_engine: Arc<ai_yield_engine::AIYieldEngine>,
     derivatives_engine: Arc<derivatives_engine::DerivativesEngine>,
     synthetix_client: Option<Arc<synthetix_v3::SynthetixV3Client<Provider<Http>>>>,
 }
@@ -64,18 +63,6 @@ impl DeFiEngine {
             mev_protection::MEVProtector::new(&config).await?
         );
 
-        let ai_yield_engine = Arc::new(
-            ai_yield_engine::AIYieldEngine::new(ai_yield_engine::YieldConfig {
-                total_capital: U256::from(1_000_000) * U256::exp10(18), // $1M default
-                risk_tolerance: ai_yield_engine::RiskLevel::Balanced,
-                max_protocols: 10,
-                rebalance_frequency_hours: 24,
-                min_yield_threshold: 5.0, // 5% minimum APR
-                max_impermanent_loss: 10.0, // 10% max IL
-                gas_optimization_enabled: true,
-                emergency_stop_threshold: 15.0, // 15% daily loss threshold
-            }).await?
-        );
 
         let derivatives_engine_config = derivatives_engine::DerivativesConfig {
             max_position_size: U256::from(500_000) * U256::exp10(18), // $500K max position
@@ -117,7 +104,6 @@ impl DeFiEngine {
             arbitrage_detector,
             gas_optimizer,
             mev_protector,
-            ai_yield_engine,
             derivatives_engine,
             synthetix_client,
         })
@@ -138,8 +124,6 @@ impl DeFiEngine {
         // Start liquidity monitoring
         self.start_liquidity_monitor().await?;
 
-        // Start AI yield farming
-        self.start_ai_yield_farming().await?;
 
         // Start derivatives trading
         self.start_derivatives_trading().await?;
@@ -173,11 +157,6 @@ impl DeFiEngine {
         Ok(())
     }
 
-    async fn start_ai_yield_farming(&self) -> Result<(), Box<dyn std::error::Error>> {
-        log::info!("🚀 Starting AI-Powered Yield Farming Engine");
-        self.ai_yield_engine.start_autonomous_yield_farming().await?;
-        Ok(())
-    }
 
     async fn start_derivatives_trading(&self) -> Result<(), Box<dyn std::error::Error>> {
         log::info!("🎯 Starting Advanced Derivatives Trading Engine");
@@ -225,23 +204,8 @@ impl DeFiEngine {
         Ok(Vec::new())
     }
 
-    pub async fn get_yield_performance(&self) -> Result<ai_yield_engine::YieldPerformanceMetrics, Box<dyn std::error::Error>> {
-        // Get AI yield farming performance metrics
-        self.ai_yield_engine.get_current_performance().await
-    }
 
-    pub async fn emergency_yield_stop(&self) -> Result<(), Box<dyn std::error::Error>> {
-        // Emergency stop for AI yield farming
-        log::warn!("🚨 EMERGENCY YIELD FARMING STOP");
-        self.ai_yield_engine.emergency_stop().await
-    }
 
-    pub async fn adjust_yield_strategy(&self, risk_level: ai_yield_engine::RiskLevel) -> Result<(), Box<dyn std::error::Error>> {
-        // Dynamically adjust yield farming risk tolerance
-        log::info!("🔄 Adjusting yield strategy to {:?}", risk_level);
-        // Implementation would update the AI agent's configuration
-        Ok(())
-    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]

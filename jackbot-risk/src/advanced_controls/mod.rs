@@ -9,7 +9,6 @@ use tracing::{debug, info, warn};
 // Re-export all submodules
 pub mod config;
 pub mod monitoring;
-pub mod predictive_models;
 pub mod position_manager;
 pub mod exposure_tracker;
 pub mod volatility_monitor;
@@ -33,13 +32,6 @@ pub use monitoring::{
     EscalationRule, EscalationConditions, EscalationAction, RiskThresholds
 };
 
-pub use predictive_models::{
-    PredictiveRiskModels, VarPredictionModel, VarPrediction, VarObservation,
-    VolatilityPredictionModel, GarchParameters, VolatilityAccuracyMetrics,
-    CorrelationPredictionModel, DccParameters, LossPredictionModel,
-    MLModelType, LossPrediction, ModelPerformanceTracker, ModelPerformance,
-    ModelDegradationAlert, DegradationType
-};
 
 pub use position_manager::{
     PositionManager, ExchangePositions, PositionLimits, DynamicSizing,
@@ -82,7 +74,7 @@ pub use circuit_breaker::{
     RecoveryProcedures, RecoveryStep, RecoveryStatus
 };
 
-/// Advanced risk control system with predictive monitoring and machine learning-inspired features
+/// Advanced risk control system with real-time monitoring
 #[derive(Debug, Clone)]
 #[allow(dead_code)] // These fields are part of the advanced risk system architecture
 pub struct AdvancedRiskController {
@@ -90,8 +82,6 @@ pub struct AdvancedRiskController {
     config: AdvancedRiskConfig,
     /// Real-time risk monitoring
     risk_monitor: RealTimeRiskMonitor,
-    /// Predictive risk models
-    predictive_models: PredictiveRiskModels,
     /// Position tracking and limits
     position_manager: PositionManager,
     /// Exposure tracking across exchanges
@@ -114,7 +104,6 @@ impl AdvancedRiskController {
         Self {
             config: config.clone(),
             risk_monitor: RealTimeRiskMonitor::new(RiskThresholds::default()),
-            predictive_models: PredictiveRiskModels::new(),
             position_manager: PositionManager::new(),
             exposure_tracker: ExposureTracker::new(ExposureLimits {
                 max_gross_exposure: config.max_total_exposure,
@@ -150,8 +139,8 @@ impl AdvancedRiskController {
         // 4. Liquidity checks
         self.check_liquidity_requirements(proposed_position).await?;
 
-        // 5. Predictive risk assessment
-        let predictive_assessment = self.assess_predictive_risk(proposed_position).await?;
+        // 5. Risk assessment
+        let risk_assessment = self.assess_risk(proposed_position).await?;
 
         // 6. Dynamic sizing recommendations
         let sizing_recommendation = self.calculate_dynamic_sizing(proposed_position).await?;
@@ -160,7 +149,7 @@ impl AdvancedRiskController {
         let result = RiskCheckResult {
             approved: true,
             risk_score: self.calculate_overall_risk_score(proposed_position).await,
-            predictive_assessment,
+            risk_assessment,
             sizing_recommendation,
             monitoring_requirements: self.determine_monitoring_requirements(proposed_position),
         };
@@ -208,13 +197,12 @@ impl AdvancedRiskController {
         Ok(())
     }
 
-    async fn assess_predictive_risk(&self, _position: &ProposedPosition) -> Result<PredictiveRiskAssessment, RiskCheckError> {
-        // Placeholder for predictive risk assessment
-        Ok(PredictiveRiskAssessment {
-            predicted_var: Decimal::from(5000),
-            predicted_volatility: 0.15,
+    async fn assess_risk(&self, _position: &ProposedPosition) -> Result<RiskAssessment, RiskCheckError> {
+        // Standard risk assessment
+        Ok(RiskAssessment {
+            estimated_var: Decimal::from(5000),
+            estimated_volatility: 0.15,
             risk_factors: Default::default(),
-            confidence: 0.85,
         })
     }
 
@@ -311,7 +299,7 @@ pub enum PositionSide {
 pub struct RiskCheckResult {
     pub approved: bool,
     pub risk_score: f64,
-    pub predictive_assessment: PredictiveRiskAssessment,
+    pub risk_assessment: RiskAssessment,
     pub sizing_recommendation: RiskAdjustment,
     pub monitoring_requirements: MonitoringRequirements,
 }
@@ -343,11 +331,10 @@ pub enum RiskAdjustmentType {
 }
 
 #[derive(Debug, Clone)]
-pub struct PredictiveRiskAssessment {
-    pub predicted_var: Decimal,
-    pub predicted_volatility: f64,
+pub struct RiskAssessment {
+    pub estimated_var: Decimal,
+    pub estimated_volatility: f64,
     pub risk_factors: std::collections::HashMap<String, f64>,
-    pub confidence: f64,
 }
 
 #[derive(Debug, Clone)]

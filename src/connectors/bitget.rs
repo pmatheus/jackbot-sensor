@@ -12,6 +12,7 @@ use std::time::Duration;
 use tokio::sync::Mutex;
 use tokio::time::interval;
 use tracing::{debug, error, info, warn};
+use url::Url;
 
 use crate::api::{BalanceData, KlineData, OrderBookData, TickerData, TradeData};
 use crate::connector::{
@@ -180,8 +181,8 @@ impl Exchange for BitgetConnector {
                 api_key: api_key.clone(),
                 api_secret: api_secret.clone(),
                 passphrase: api_passphrase.clone(),
-                rest_url: "https://api.bitget.com".to_string(),
-                ws_url: "wss://ws.bitget.com/spot/v1/stream".to_string(),
+                rest_url: Url::parse("https://api.bitget.com").unwrap(),
+                ws_url: Url::parse("wss://ws.bitget.com/spot/v1/stream").unwrap(),
                 trading_mode: TradingMode::Spot,
             }
         } else {
@@ -189,8 +190,8 @@ impl Exchange for BitgetConnector {
                 api_key: "demo".to_string(),
                 api_secret: "demo".to_string(),
                 passphrase: "demo".to_string(),
-                rest_url: "https://api.bitget.com".to_string(),
-                ws_url: "wss://ws.bitget.com/spot/v1/stream".to_string(),
+                rest_url: Url::parse("https://api.bitget.com").unwrap(),
+                ws_url: Url::parse("wss://ws.bitget.com/spot/v1/stream").unwrap(),
                 trading_mode: TradingMode::Spot,
             }
         };

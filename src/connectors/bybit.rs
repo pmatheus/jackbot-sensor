@@ -179,12 +179,14 @@ impl Exchange for BybitConnector {
             BybitRestConfig {
                 api_key: api_key.clone(),
                 api_secret: api_secret.clone(),
+                testnet: false,
             }
         } else {
             // Use testnet configuration
             BybitRestConfig {
                 api_key: "demo".to_string(),
                 api_secret: "demo".to_string(),
+                testnet: true,
             }
         };
         
@@ -292,7 +294,7 @@ impl Exchange for BybitConnector {
         
         let response = client.cancel_order(request).await;
         
-        match response.state {
+        match response {
             Ok(_) => Ok(()),
             Err(e) => Err(anyhow::anyhow!("Failed to cancel order: {:?}", e)),
         }

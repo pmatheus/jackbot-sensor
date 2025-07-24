@@ -113,14 +113,14 @@ impl Default for MexcConnectionMetrics {
 #[derive(Debug)]
 pub struct MexcConnectionMonitor {
     metrics: Arc<MexcConnectionMetrics>,
-    monitoring_active: AtomicBool,
+    monitoring_active: Arc<AtomicBool>,
 }
 
 impl MexcConnectionMonitor {
     pub fn new() -> Self {
         Self {
             metrics: Arc::new(MexcConnectionMetrics::default()),
-            monitoring_active: AtomicBool::new(false),
+            monitoring_active: Arc::new(AtomicBool::new(false)),
         }
     }
 
@@ -131,7 +131,7 @@ impl MexcConnectionMonitor {
         }
 
         let metrics = Arc::clone(&self.metrics);
-        let monitoring_active = &self.monitoring_active;
+        let monitoring_active = Arc::clone(&self.monitoring_active);
         
         tokio::spawn(async move {
             info!("🔍 MEXC connection monitoring started");
@@ -320,7 +320,7 @@ impl MexcConnector {
                 .context("Failed to parse bid price")?;
             let quantity = bid.v.parse::<Decimal>()
                 .context("Failed to parse bid quantity")?;
-            order_book.bids.push((price, quantity));
+            order_book.bids.push([price.to_string().parse::<f64>().unwrap(), quantity.to_string().parse::<f64>().unwrap()]);
         }
 
         // Parse asks
@@ -329,7 +329,7 @@ impl MexcConnector {
                 .context("Failed to parse ask price")?;
             let quantity = ask.v.parse::<Decimal>()
                 .context("Failed to parse ask quantity")?;
-            order_book.asks.push((price, quantity));
+            order_book.asks.push([price.to_string().parse::<f64>().unwrap(), quantity.to_string().parse::<f64>().unwrap()]);
         }
 
         // MEXC sends pre-sorted data

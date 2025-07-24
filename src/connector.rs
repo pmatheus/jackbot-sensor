@@ -1008,7 +1008,7 @@ impl ExchangeConnector for GenericExchangeConnector {
         self.rate_limiter
             .check_rate_limit(crate::rate_limit::RateLimitBucket::Orders(
                 "default_user".to_string(),
-            ))
+            ), None)
             .await?;
 
         // Circuit breaker check
@@ -1032,7 +1032,7 @@ impl ExchangeConnector for GenericExchangeConnector {
         self.rate_limiter
             .check_rate_limit(crate::rate_limit::RateLimitBucket::Orders(
                 "default_user".to_string(),
-            ))
+            ), None)
             .await?;
 
         // Circuit breaker check
@@ -1052,7 +1052,7 @@ impl ExchangeConnector for GenericExchangeConnector {
         self.rate_limiter
             .check_rate_limit(crate::rate_limit::RateLimitBucket::Positions(
                 "default_user".to_string(),
-            ))
+            ), None)
             .await?;
 
         // Trading client not implemented yet
@@ -1070,7 +1070,7 @@ impl ExchangeConnector for GenericExchangeConnector {
         self.rate_limiter
             .check_rate_limit(crate::rate_limit::RateLimitBucket::Positions(
                 "default_user".to_string(),
-            ))
+            ), None)
             .await?;
 
         // For now, return empty positions - would be implemented with real trading client
@@ -1084,7 +1084,7 @@ impl ExchangeConnector for GenericExchangeConnector {
         self.rate_limiter
             .check_rate_limit(crate::rate_limit::RateLimitBucket::MarketData(
                 std::net::IpAddr::V4(std::net::Ipv4Addr::new(127, 0, 0, 1)),
-            ))
+            ), Some(std::net::IpAddr::V4(std::net::Ipv4Addr::new(127, 0, 0, 1))))
             .await?;
 
         // This would fetch actual symbols from the exchange
@@ -1276,6 +1276,35 @@ impl ConnectorManager {
                 exchange_id.as_str()
             ))
         }
+    }
+
+    /// Get ticker data from specific exchange
+    pub async fn get_ticker(
+        &self,
+        exchange_id: ExchangeId,
+        symbol: &str,
+    ) -> Result<TickerData> {
+        let connectors = self.connectors.read().await;
+        
+        let connector = connectors
+            .get(&exchange_id)
+            .ok_or_else(|| anyhow::anyhow!("Exchange {} not connected", exchange_id.as_str()))?;
+        
+        // Get market data and convert to TickerData
+        // TODO: Implement get_market_data method on connector
+        
+        Ok(TickerData {
+            symbol: symbol.to_string(),
+            exchange: exchange_id.as_str().to_string(),
+            price: 0.0, // Placeholder
+            bid: 0.0, // Placeholder
+            ask: 0.0, // Placeholder
+            volume_24h: 0.0, // Placeholder
+            change_24h: 0.0, // Placeholder
+            high_24h: 0.0, // Placeholder
+            low_24h: 0.0, // Placeholder
+            timestamp: chrono::Utc::now().timestamp_millis(),
+        })
     }
 
     /// Get aggregated balances across all exchanges

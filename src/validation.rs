@@ -637,12 +637,23 @@ impl DataValidator {
         }
     }
     
-    /// Validate and normalize symbol format
+    /// Validate and normalize symbol format with security checks
     pub fn validate_symbol(&self, symbol: &str) -> Result<String, ValidationError> {
+        use crate::security::SecurityValidator;
+        
         if symbol.is_empty() {
             return Err(ValidationError {
                 code: ErrorCode::InvalidSymbol,
                 message: "Symbol cannot be empty".to_string(),
+                field: Some("symbol".to_string()),
+            });
+        }
+        
+        // Security validation first
+        if let Err(e) = SecurityValidator::validate_database_input(symbol) {
+            return Err(ValidationError {
+                code: ErrorCode::InvalidSymbol,
+                message: format!("Invalid symbol: {}", e),
                 field: Some("symbol".to_string()),
             });
         }

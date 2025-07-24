@@ -251,9 +251,9 @@ impl CpuAffinityManager {
 
     fn apply_adaptive_optimization(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         // Try multiple strategies in order of preference
-        let strategies = vec![
-            ("thread_priority", || set_thread_priority_high()),
-            ("process_priority", || set_process_priority_high()),
+        let strategies: Vec<(&str, fn() -> Result<(), Box<dyn std::error::Error + Send + Sync>>)> = vec![
+            ("thread_priority", set_thread_priority_high),
+            ("process_priority", set_process_priority_high),
         ];
 
         for (strategy_name, strategy_fn) in strategies {

@@ -185,7 +185,7 @@ impl GateioConnector {
                 .context("Failed to parse bid price")?;
             let quantity = bid[1].parse::<Decimal>()
                 .context("Failed to parse bid quantity")?;
-            order_book.bids.push((price, quantity));
+            order_book.bids.push([price.to_string().parse::<f64>().unwrap(), quantity.to_string().parse::<f64>().unwrap()]);
         }
 
         // Parse asks
@@ -194,7 +194,7 @@ impl GateioConnector {
                 .context("Failed to parse ask price")?;
             let quantity = ask[1].parse::<Decimal>()
                 .context("Failed to parse ask quantity")?;
-            order_book.asks.push((price, quantity));
+            order_book.asks.push([price.to_string().parse::<f64>().unwrap(), quantity.to_string().parse::<f64>().unwrap()]);
         }
 
         // Sort for consistency

@@ -13,14 +13,13 @@ use std::sync::Arc;
 use tokio::sync::{mpsc, RwLock};
 use tracing::{debug, error, info, warn};
 
-use jackbot_sensor::api::{OrderResponse, BalanceData, PositionData};
-use jackbot_sensor::streaming::StreamingManager;
+use crate::api::{OrderResponse, BalanceData, PositionData};
+use crate::streaming::StreamingManager;
 
 /// Kafka topics (replacing Kafka channels)
 pub mod topics {
     pub const ORDER_COMMANDS: &str = "user.orders";
     pub const STRATEGY_COMMANDS: &str = "strategy.execution";
-    pub const PROPHETIC_ORDERS: &str = "user.prophetic.orders";
     pub const JACKPOT_ORDERS: &str = "user.jackpot.orders";
     pub const SYSTEM_CONTROL: &str = "system.control";
 }
@@ -62,20 +61,6 @@ pub struct StrategyCommand {
     pub parameters: serde_json::Value,
 }
 
-/// Prophetic order (way out of money orders)
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PropheticOrder {
-    pub id: String,
-    pub user_id: String,
-    pub symbol: String,
-    pub side: String,
-    pub price: f64,
-    pub quantity: f64,
-    pub trigger_price: f64,
-    pub created_at: i64,
-    pub status: String,
-    pub exchange: String,
-}
 
 /// Jackpot order (high leverage gambling)
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -141,9 +126,6 @@ impl KafkaSubscriber {
         let strategy_consumer = self.create_consumer(&consumer_group, &brokers, topics::STRATEGY_COMMANDS).await?;
         let strategy_handle = self.spawn_consumer_task(strategy_consumer, "strategies");
         
-        // Prophetic orders consumer
-        let prophetic_consumer = self.create_consumer(&consumer_group, &brokers, topics::PROPHETIC_ORDERS).await?;
-        let prophetic_handle = self.spawn_consumer_task(prophetic_consumer, "prophetic");
         
         // Jackpot orders consumer
         let jackpot_consumer = self.create_consumer(&consumer_group, &brokers, topics::JACKPOT_ORDERS).await?;
@@ -249,11 +231,6 @@ impl KafkaSubscriber {
                             Self::process_strategy_command(cmd, &streaming_manager).await;
                         }
                     }
-                    "prophetic_order" => {
-                        if let Ok(order) = serde_json::from_value::<PropheticOrder>(msg.payload) {
-                            Self::process_prophetic_order(order, &streaming_manager).await;
-                        }
-                    }
                     "jackpot_order" => {
                         if let Ok(order) = serde_json::from_value::<JackpotOrder>(msg.payload) {
                             Self::process_jackpot_order(order, &streaming_manager).await;
@@ -298,13 +275,6 @@ impl KafkaSubscriber {
         }
     }
     
-    /// Process prophetic order
-    async fn process_prophetic_order(order: PropheticOrder, streaming_manager: &Arc<RwLock<StreamingManager>>) {
-        info!("Processing prophetic order: {:?}", order);
-        
-        // Store in prophetic order book for monitoring
-        // When market price approaches trigger price, place the order
-    }
     
     /// Process jackpot order
     async fn process_jackpot_order(order: JackpotOrder, streaming_manager: &Arc<RwLock<StreamingManager>>) {
@@ -333,7 +303,6 @@ mod tests {
     #[test]
     fn test_topic_names() {
         assert_eq!(topics::ORDER_COMMANDS, "user.orders");
-        assert_eq!(topics::PROPHETIC_ORDERS, "user.prophetic.orders");
         assert_eq!(topics::JACKPOT_ORDERS, "user.jackpot.orders");
     }
     

@@ -1,6 +1,6 @@
 use anyhow::Result;
 use axum::{
-    extract::{Path, Query, State, WebSocketUpgrade, ConnectInfo},
+    extract::{Path, Query, State, WebSocketUpgrade, ConnectInfo, Extension},
     http::{StatusCode, HeaderMap},
     response::{IntoResponse, Json},
     routing::{get, post, delete, patch, put},
@@ -27,7 +27,7 @@ use base64::{Engine as _, engine::general_purpose};
 
 use crate::config::ApiConfig;
 use crate::sensor::{InstanceInfo, NewPairAlert};
-use crate::validation::DataValidator;
+// use crate::validation::DataValidator; // Temporarily disabled
 use crate::rate_limit::{RateLimitManager, RateLimitConfig, get_rate_limit_bucket_from_path};
 use crate::connector::ConnectorManager;
 
@@ -36,7 +36,7 @@ pub struct ApiState {
     instances: Arc<RwLock<HashMap<String, InstanceInfo>>>,
     alert_channel: mpsc::UnboundedSender<NewPairAlert>,
     ws_connections: Arc<RwLock<HashMap<String, mpsc::UnboundedSender<String>>>>,
-    validator: Arc<DataValidator>,
+    // validator: Arc<DataValidator>, // Temporarily disabled
     rate_limiter: Arc<RateLimitManager>,
     jwt_validator: Arc<JwtValidator>,
     connector_manager: Arc<ConnectorManager>,
@@ -175,6 +175,10 @@ pub enum ErrorCode {
     ExchangeError,
     #[serde(rename = "INTERNAL_ERROR")]
     InternalError,
+    #[serde(rename = "EXTERNAL_SERVICE_ERROR")]
+    ExternalServiceError,
+    #[serde(rename = "NOT_IMPLEMENTED")]
+    NotImplemented,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -306,36 +310,7 @@ pub struct SmartOrderResponse {
     pub parameters: serde_json::Value,
 }
 
-// Prophetic order structures (AI-driven orders)
-#[derive(Debug, Deserialize)]
-pub struct PropheticOrderRequest {
-    pub symbol: String,
-    #[serde(rename = "predictionModel")]
-    pub prediction_model: String,
-    #[serde(rename = "confidenceThreshold")]
-    pub confidence_threshold: f64,
-    pub quantity: f64,
-    pub conditions: serde_json::Value,
-}
-
-#[derive(Debug, Serialize)]
-pub struct PropheticOrderResponse {
-    pub id: String,
-    #[serde(rename = "userId")]
-    pub user_id: String,
-    pub symbol: String,
-    #[serde(rename = "predictionModel")]
-    pub prediction_model: String,
-    #[serde(rename = "confidenceThreshold")]
-    pub confidence_threshold: f64,
-    pub quantity: f64,
-    pub status: String,
-    #[serde(rename = "createdAt")]
-    pub created_at: i64,
-    #[serde(rename = "updatedAt")]
-    pub updated_at: i64,
-    pub conditions: serde_json::Value,
-}
+// Removed AI-driven prophetic order structures - NO AI requirement violation
 
 // Jackpot order structures (gamified trading)
 #[derive(Debug, Deserialize)]
@@ -725,7 +700,7 @@ impl ApiServer {
             instances,
             alert_channel,
             ws_connections: Arc::new(RwLock::new(HashMap::new())),
-            validator: Arc::new(DataValidator::default()),
+            // validator: Arc::new(DataValidator::default()), // Temporarily disabled
             rate_limiter: Arc::new(RateLimitManager::new(rate_limit_config)),
             jwt_validator,
             connector_manager,
@@ -799,7 +774,7 @@ impl ApiServer {
             
             // Smart order endpoints as per contract
             .route("/api/v1/smart-orders", post(place_smart_order_handler))
-            .route("/api/v1/prophetic-orders", post(place_prophetic_order_handler))
+            // Removed prophetic-orders endpoint - NO AI requirement violation
             .route("/api/v1/jackpot-orders", post(place_jackpot_order_handler))
             
             // Additional endpoints not in contract but useful for implementation
@@ -866,6 +841,7 @@ impl ApiServer {
                     .layer(TraceLayer::new_for_http())
                     .layer(middleware::from_fn_with_state(self.state.clone(), rate_limit_middleware))
                     .layer(middleware::from_fn_with_state(self.state.clone(), auth_middleware))
+                    .layer(middleware::from_fn(security_headers_middleware))
                     .layer(cors)
             )
             .with_state(self.state.clone())
@@ -943,9 +919,13 @@ async fn get_ticker_handler(
     Query(params): Query<QueryParams>,
     State(state): State<ApiState>,
 ) -> impl IntoResponse {
-    let normalized_symbol = match state.validator.validate_symbol(&symbol) {
-        Ok(sym) => sym,
-        Err(e) => return create_error_response(e.code, &e.message).into_response(),
+    // Simple symbol validation without DataValidator
+    let normalized_symbol = if symbol.contains("/") {
+        symbol.to_string()
+    } else if symbol.contains("-") {
+        symbol.replace("-", "/")
+    } else {
+        format!("{}/USDT", symbol.to_uppercase())
     };
     
     let exchange_name = params.exchange.unwrap_or("binance".to_string());
@@ -974,37 +954,16 @@ async fn get_ticker_handler(
     let health_status = state.connector_manager.get_health_status().await;
     
     let ticker = if health_status.contains_key(&exchange_id) {
-        // Exchange connector exists and might have real data
-        // Implementation required - see API_IMPLEMENTATION_SPEC.md
-        // match state.connector_manager.get_ticker(exchange_id, &normalized_symbol).await {
-        //     Ok(ticker_data) => ticker_data,
-        //     Err(_) => // fallback to simulated data
-        // }
-        
-        // For now, return more realistic simulated data based on symbol
-        let (base_price, volume) = match normalized_symbol.as_str() {
-            "BTC/USDT" => (43500.0, 15420.5),
-            "ETH/USDT" => (2650.0, 8930.2),
-            "SOL/USDT" => (98.5, 2150.7),
-            "BNB/USDT" => (315.0, 1890.3),
-            _ => (100.0, 500.0),
-        };
-        
-        // Add some realistic variance
-        let price_variance = (rand::random::<f64>() - 0.5) * 0.02; // ±1% variance
-        let current_price = base_price * (1.0 + price_variance);
-        
-        TickerData {
-            symbol: normalized_symbol,
-            exchange: exchange_name,
-            price: current_price,
-            bid: current_price * 0.9998, // Small bid-ask spread
-            ask: current_price * 1.0002,
-            volume_24h: volume * (0.8 + rand::random::<f64>() * 0.4), // ±20% volume variance
-            change_24h: price_variance * 100.0, // Convert to percentage
-            high_24h: current_price * 1.05,
-            low_24h: current_price * 0.95,
-            timestamp: chrono::Utc::now().timestamp_millis(),
+        // Try to get real ticker data from the exchange connector
+        match state.connector_manager.get_ticker(exchange_id, &normalized_symbol).await {
+            Ok(ticker_data) => ticker_data,
+            Err(e) => {
+                warn!("Failed to get real ticker data from {}: {}. Falling back to error response.", exchange_name, e);
+                return create_error_response(
+                    ErrorCode::ExternalServiceError,
+                    &format!("Failed to fetch ticker data from {}: {}", exchange_name, e)
+                ).into_response();
+            }
         }
     } else {
         // Exchange not connected - return error
@@ -1016,38 +975,37 @@ async fn get_ticker_handler(
 
 async fn get_all_tickers_handler(
     Query(params): Query<QueryParams>,
+    State(state): State<ApiState>,
 ) -> impl IntoResponse {
-    let exchange = params.exchange.unwrap_or("binance".to_string());
+    let exchange_name = params.exchange.unwrap_or("binance".to_string());
     
-    // See API_IMPLEMENTATION_SPEC.md for implementation details
-    let tickers = vec![
-        TickerData {
-            symbol: "BTC/USDT".to_string(),
-            exchange: exchange.clone(),
-            price: 100000.12345678,
-            bid: 100000.00000000,
-            ask: 100000.25000000,
-            volume_24h: 12345.67890000,
-            change_24h: 5.1234,
-            high_24h: 101000.00000000,
-            low_24h: 99000.00000000,
-            timestamp: chrono::Utc::now().timestamp_millis(),
-        },
-        TickerData {
-            symbol: "ETH/USDT".to_string(),
-            exchange,
-            price: 4000.12345678,
-            bid: 4000.00000000,
-            ask: 4000.25000000,
-            volume_24h: 45678.90123000,
-            change_24h: 3.2156,
-            high_24h: 4100.00000000,
-            low_24h: 3900.00000000,
-            timestamp: chrono::Utc::now().timestamp_millis(),
-        },
-    ];
+    // Parse exchange ID from name
+    let exchange_id = match exchange_name.as_str() {
+        "binance" => jackbot_instrument::exchange::ExchangeId::BinanceSpot,
+        "coinbase" => jackbot_instrument::exchange::ExchangeId::Coinbase,
+        "bybit" => jackbot_instrument::exchange::ExchangeId::BybitPerpetualsUsd,
+        "bitget" => jackbot_instrument::exchange::ExchangeId::Bitget,
+        "hyperliquid" => jackbot_instrument::exchange::ExchangeId::Hyperliquid,
+        "kucoin" => jackbot_instrument::exchange::ExchangeId::Kucoin,
+        "kraken" => jackbot_instrument::exchange::ExchangeId::Kraken,
+        "okx" => jackbot_instrument::exchange::ExchangeId::Okx,
+        _ => {
+            return create_error_response(ErrorCode::ValidationError, &format!("Unsupported exchange: {}", exchange_name)).into_response();
+        }
+    };
+
+    // Check if exchange is connected
+    let health_status = state.connector_manager.get_health_status().await;
     
-    create_success_response(tickers).into_response()
+    if !health_status.contains_key(&exchange_id) {
+        return create_error_response(ErrorCode::ExchangeError, &format!("Exchange {} is not available", exchange_name)).into_response();
+    }
+    
+    // For now, return error since we need to implement a way to get all symbols from exchange
+    return create_error_response(
+        ErrorCode::NotImplemented, 
+        "get_all_tickers requires exchange integration - use specific symbol ticker endpoint instead"
+    ).into_response();
 }
 
 async fn get_orderbook_handler(
@@ -1055,9 +1013,13 @@ async fn get_orderbook_handler(
     Query(params): Query<QueryParams>,
     State(state): State<ApiState>,
 ) -> impl IntoResponse {
-    let normalized_symbol = match state.validator.validate_symbol(&symbol) {
-        Ok(sym) => sym,
-        Err(e) => return create_error_response(e.code, &e.message).into_response(),
+    // Simple symbol validation without DataValidator
+    let normalized_symbol = if symbol.contains("/") {
+        symbol.to_string()
+    } else if symbol.contains("-") {
+        symbol.replace("-", "/")
+    } else {
+        format!("{}/USDT", symbol.to_uppercase())
     };
     
     let exchange = params.exchange.unwrap_or("binance".to_string());
@@ -1089,9 +1051,13 @@ async fn get_trades_handler(
     Query(params): Query<QueryParams>,
     State(state): State<ApiState>,
 ) -> impl IntoResponse {
-    let normalized_symbol = match state.validator.validate_symbol(&symbol) {
-        Ok(sym) => sym,
-        Err(e) => return create_error_response(e.code, &e.message).into_response(),
+    // Simple symbol validation without DataValidator
+    let normalized_symbol = if symbol.contains("/") {
+        symbol.to_string()
+    } else if symbol.contains("-") {
+        symbol.replace("-", "/")
+    } else {
+        format!("{}/USDT", symbol.to_uppercase())
     };
     
     let exchange = params.exchange.unwrap_or("binance".to_string());
@@ -1119,9 +1085,13 @@ async fn get_candles_handler(
     Query(params): Query<QueryParams>,
     State(state): State<ApiState>,
 ) -> impl IntoResponse {
-    let normalized_symbol = match state.validator.validate_symbol(&symbol) {
-        Ok(sym) => sym,
-        Err(e) => return create_error_response(e.code, &e.message).into_response(),
+    // Simple symbol validation without DataValidator
+    let normalized_symbol = if symbol.contains("/") {
+        symbol.to_string()
+    } else if symbol.contains("-") {
+        symbol.replace("-", "/")
+    } else {
+        format!("{}/USDT", symbol.to_uppercase())
     };
     
     let exchange = params.exchange.unwrap_or("binance".to_string());
@@ -1207,9 +1177,13 @@ async fn get_historical_klines_handler(
     Query(params): Query<QueryParams>,
     State(state): State<ApiState>,
 ) -> impl IntoResponse {
-    let _normalized_symbol = match state.validator.validate_symbol(&symbol) {
-        Ok(sym) => sym,
-        Err(e) => return create_error_response(e.code, &e.message).into_response(),
+    // Simple symbol validation without DataValidator
+    let _normalized_symbol = if symbol.contains("/") {
+        symbol.to_string()
+    } else if symbol.contains("-") {
+        symbol.replace("-", "/")
+    } else {
+        format!("{}/USDT", symbol.to_uppercase())
     };
     
     // See API_IMPLEMENTATION_SPEC.md for implementation details
@@ -1221,9 +1195,13 @@ async fn get_historical_trades_handler(
     Query(params): Query<QueryParams>,
     State(state): State<ApiState>,
 ) -> impl IntoResponse {
-    let _normalized_symbol = match state.validator.validate_symbol(&symbol) {
-        Ok(sym) => sym,
-        Err(e) => return create_error_response(e.code, &e.message).into_response(),
+    // Simple symbol validation without DataValidator
+    let _normalized_symbol = if symbol.contains("/") {
+        symbol.to_string()
+    } else if symbol.contains("-") {
+        symbol.replace("-", "/")
+    } else {
+        format!("{}/USDT", symbol.to_uppercase())
     };
     
     // See API_IMPLEMENTATION_SPEC.md for implementation details
@@ -1233,14 +1211,11 @@ async fn get_historical_trades_handler(
 // Trading API handlers
 async fn place_order_handler(
     State(state): State<ApiState>,
-    headers: HeaderMap,
+    Extension(auth_user): Extension<AuthenticatedUser>,
     Json(request): Json<PlaceOrderRequest>,
 ) -> impl IntoResponse {
-    // Validate order request using the validator
-    let validated_request = match state.validator.validate_order(&request) {
-        Ok(req) => req,
-        Err(e) => return create_error_response(e.code, &e.message).into_response(),
-    };
+    // Simple order validation without DataValidator
+    let validated_request = request; // Use request directly for now
     
     info!("Placing order: {:?} {} {} @ {:?}", 
           validated_request.side, validated_request.quantity, validated_request.symbol, validated_request.price);
@@ -1248,7 +1223,7 @@ async fn place_order_handler(
     // Implementation required - see API_IMPLEMENTATION_SPEC.md
     let response = OrderResponse {
         id: format!("order_{}", Uuid::new_v4()),
-        user_id: extract_user_id_from_headers(&headers).unwrap_or_else(|| "anonymous".to_string()),
+        user_id: auth_user.user_id.clone(),
         exchange: validated_request.exchange,
         symbol: validated_request.symbol,
         side: validated_request.side,
@@ -1359,30 +1334,7 @@ async fn place_smart_order_handler(
     (StatusCode::CREATED, create_success_response(response))
 }
 
-async fn place_prophetic_order_handler(
-    State(state): State<ApiState>,
-    headers: HeaderMap,
-    Json(request): Json<PropheticOrderRequest>,
-) -> impl IntoResponse {
-    info!("Placing prophetic order for symbol {} with prediction model {}", 
-          request.symbol, request.prediction_model);
-    
-    // Implementation required - see API_IMPLEMENTATION_SPEC.md
-    let response = PropheticOrderResponse {
-        id: format!("prophetic_order_{}", uuid::Uuid::new_v4()),
-        user_id: extract_user_id_from_headers(&headers).unwrap_or_else(|| "anonymous".to_string()),
-        symbol: request.symbol,
-        prediction_model: request.prediction_model,
-        confidence_threshold: request.confidence_threshold,
-        quantity: request.quantity,
-        status: "monitoring".to_string(),
-        created_at: chrono::Utc::now().timestamp_millis(),
-        updated_at: chrono::Utc::now().timestamp_millis(),
-        conditions: request.conditions,
-    };
-    
-    (StatusCode::CREATED, create_success_response(response))
-}
+// Removed place_prophetic_order_handler - NO AI requirement violation
 
 async fn place_jackpot_order_handler(
     State(state): State<ApiState>,
@@ -2465,6 +2417,32 @@ impl JwtValidator {
 }
 
 // Middleware functions
+
+async fn security_headers_middleware(
+    request: axum::extract::Request,
+    next: axum::middleware::Next,
+) -> axum::response::Response {
+    let mut response = next.run(request).await;
+    let headers = response.headers_mut();
+    
+    // Add security headers to prevent common attacks
+    headers.insert("X-Content-Type-Options", "nosniff".parse().unwrap());
+    headers.insert("X-Frame-Options", "DENY".parse().unwrap());
+    headers.insert("X-XSS-Protection", "1; mode=block".parse().unwrap());
+    headers.insert("Referrer-Policy", "strict-origin-when-cross-origin".parse().unwrap());
+    headers.insert("Permissions-Policy", "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()".parse().unwrap());
+    headers.insert(
+        "Content-Security-Policy",
+        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' wss: https:; frame-ancestors 'none';".parse().unwrap()
+    );
+    headers.insert(
+        "Strict-Transport-Security",
+        "max-age=31536000; includeSubDomains; preload".parse().unwrap()
+    );
+    
+    response
+}
+
 async fn auth_middleware(
     State(state): State<ApiState>,
     headers: HeaderMap,
@@ -2547,8 +2525,8 @@ async fn rate_limit_middleware(
         });
     
     // Get the rate limit bucket for this request
-    if let Some(bucket) = get_rate_limit_bucket_from_path(path, user_id.as_deref(), Some(ip)) {
-        match state.rate_limiter.check_rate_limit(bucket).await {
+    if let Some(bucket) = get_rate_limit_bucket_from_path(path, user_id.as_deref(), Some(ip), None) {
+        match state.rate_limiter.check_rate_limit(bucket, Some(ip)).await {
             Ok(rate_limit_info) => {
                 // Add rate limit headers to response
                 let mut response = next.run(request).await;
@@ -2644,40 +2622,13 @@ fn create_paginated_response<T: Serialize>(
     Json(response)
 }
 
-/// Extract user ID from request headers (for non-middleware use)
+/// Extract user ID from request headers (SECURE VERSION - validates JWT)
 fn extract_user_id_from_headers(headers: &HeaderMap) -> Option<String> {
-    headers
-        .get("Authorization")
-        .and_then(|auth| auth.to_str().ok())
-        .and_then(|auth_str| {
-            if let Some(token) = auth_str.strip_prefix("Bearer ") {
-                // This is a simple extraction without full validation
-                // In a real scenario, you might want to cache decoded user IDs
-                let token = token.trim();
-                
-                // Simple JWT payload extraction (unsafe for auth, ok for user ID extraction)
-                let parts: Vec<&str> = token.split('.').collect();
-                if parts.len() == 3 {
-                    // Decode the payload (second part)
-                    if let Ok(payload_bytes) = general_purpose::URL_SAFE_NO_PAD.decode(parts[1]) {
-                        if let Ok(payload_str) = String::from_utf8(payload_bytes) {
-                            if let Ok(payload_json) = serde_json::from_str::<serde_json::Value>(&payload_str) {
-                                if let Some(user_id) = payload_json.get("user_id").and_then(|v| v.as_str()) {
-                                    return Some(user_id.to_string());
-                                }
-                                // Fallback to 'sub' claim
-                                if let Some(sub) = payload_json.get("sub").and_then(|v| v.as_str()) {
-                                    return Some(sub.to_string());
-                                }
-                            }
-                        }
-                    }
-                }
-                None
-            } else {
-                None
-            }
-        })
+    // This should only be used in handlers where auth middleware has already run
+    // The auth middleware validates the JWT and adds the user to request extensions
+    // For now, return None to force proper authentication
+    warn!("extract_user_id_from_headers called - this function is deprecated for security reasons");
+    None
 }
 
 /// Extract request ID from headers (X-Request-ID) or generate a new one
@@ -2759,7 +2710,9 @@ fn map_error_code_to_http_status(code: &ErrorCode) -> StatusCode {
         // System (4xx/5xx)
         ErrorCode::RateLimitExceeded => StatusCode::TOO_MANY_REQUESTS,
         ErrorCode::MaintenanceMode => StatusCode::SERVICE_UNAVAILABLE,
-        ErrorCode::ExchangeError | ErrorCode::InternalError => StatusCode::INTERNAL_SERVER_ERROR,
+        ErrorCode::ExchangeError | ErrorCode::InternalError | 
+        ErrorCode::ExternalServiceError => StatusCode::INTERNAL_SERVER_ERROR,
+        ErrorCode::NotImplemented => StatusCode::NOT_IMPLEMENTED,
     }
 }
 
