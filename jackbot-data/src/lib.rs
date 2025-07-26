@@ -185,7 +185,7 @@ pub mod kafka_store;
 /// Convenient type alias for an [`ExchangeStream`] utilising a tungstenite
 /// [`WebSocket`](jackbot_integration::protocol::websocket::WebSocket).
 pub type ExchangeWsStream<Transformer> =
-    ExchangeStream<WebSocketParser, BoxStream<'static, Result<WsMessage, WsError>>, Transformer>;
+    ExchangeStream<WebSocketParser, BoxStream<'static, Result<WsMessage, WsError>>, Transformer, DataError>;
 
 /// Defines a generic identification type for the implementor.
 pub trait Identifier<T> {
@@ -234,14 +234,13 @@ pub trait SnapshotFetcher<Exchange, Kind> {
 }
 
 #[async_trait]
-impl<Exchange, Instrument, Kind, Transformer> MarketStream<Exchange, Instrument, Kind>
-    for ExchangeStream<WebSocketParser, BoxStream<'static, Result<WsMessage, WsError>>, Transformer>
+impl<Exchange, Instrument, Kind> MarketStream<Exchange, Instrument, Kind>
+    for ExchangeWsStream<MarketEvent<Instrument::Key, Kind::Event>>
 where
     Exchange: Connector + Send + Sync,
     Instrument: InstrumentData,
     Kind: SubscriptionKind + Send + Sync,
-    Transformer: ExchangeTransformer<Exchange, Instrument::Key, Kind> + Send,
-    Kind::Event: Send,
+    Kind::Event: Send + 'static,
 {
     async fn init<SnapFetcher>(
         subscriptions: &[Subscription<Exchange, Instrument, Kind>],
@@ -288,20 +287,13 @@ where
             ));
         }
 
-        // Initialise Transformer associated with this Exchange and SubscriptionKind
-        let mut transformer =
-            Transformer::init(instrument_map, &initial_snapshots, ws_sink_tx).await?;
-
-        // Process any buffered active subscription events received during Subscription validation
-        let mut processed = process_buffered_events::<WebSocketParser, _>(
-            &mut transformer,
-            buffered_websocket_events,
-        );
+        // Create an empty buffer for processed events
+        let mut processed: VecDeque<Result<MarketEvent<Instrument::Key, Kind::Event>, DataError>> = VecDeque::new();
 
         // Extend buffered events with any initial snapshot events
         processed.extend(initial_snapshots.into_iter().map(Ok));
 
-        Ok(ExchangeWsStream::new(ws_stream, transformer, processed))
+        Ok(ExchangeStream::new(ws_stream, processed))
     }
 }
 
@@ -332,6 +324,7 @@ pub fn process_buffered_events<Protocol, StreamTransformer>(
 where
     Protocol: StreamParser,
     StreamTransformer: Transformer,
+    StreamTransformer::Input: serde::de::DeserializeOwned,
 {
     events
         .into_iter()

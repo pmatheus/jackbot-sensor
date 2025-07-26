@@ -28,12 +28,11 @@ pub enum KucoinSubscription {
 }
 
 impl Validator for KucoinSubscription {
-    fn validate(self) -> Result<Self, SocketError>
-    where
-        Self: Sized,
-    {
-        match self {
-            Self::Ack { .. } => Ok(self),
+    type Item = KucoinSubscription;
+
+    fn validate(&self, item: &Self::Item) -> Result<(), SocketError> {
+        match item {
+            Self::Ack { .. } => Ok(()),
             Self::Error { code, .. } => Err(SocketError::Subscribe(format!(
                 "received failure subscription response code: {code}",
             ))),

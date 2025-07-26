@@ -12,9 +12,8 @@ use crate::{
 use futures::Stream;
 use itertools::Itertools;
 use jackbot_instrument::{
-    Keyed,
     exchange::ExchangeId,
-    index::{IndexedInstruments, error::IndexError},
+    index::{IndexedInstruments, Keyed, error::IndexError},
     instrument::{InstrumentIndex, market_data::MarketDataInstrument},
 };
 use tracing::warn;
@@ -35,7 +34,7 @@ use tracing::warn;
 /// See [`index_market_data_subscription_batches`] for how unindexed `Subscriptions` can be
 /// indexed using an [`IndexedInstruments`] collection.
 pub async fn init_indexed_multi_exchange_market_stream(
-    instruments: &IndexedInstruments,
+    instruments: &IndexedInstruments<Keyed<InstrumentIndex, MarketDataInstrument>>,
     sub_kinds: &[SubKind],
 ) -> Result<impl Stream<Item = MarketStreamEvent<InstrumentIndex, DataKind>> + use<>, DataError> {
     // Generate indexed market data Subscriptions
@@ -62,13 +61,20 @@ pub async fn init_indexed_multi_exchange_market_stream(
 /// * `instruments` - Collection of `IndexedInstruments` to generate `Subscriptions` for
 /// * `sub_kinds` - Slice of `SubKinds` to generate for each instrument
 pub fn generate_indexed_market_data_subscription_batches(
-    instruments: &IndexedInstruments,
+    instruments: &IndexedInstruments<Keyed<InstrumentIndex, MarketDataInstrument>>,
     sub_kinds: &[SubKind],
 ) -> Vec<Vec<Subscription<ExchangeId, MarketInstrumentData<InstrumentIndex>, SubKind>>> {
     // Generate Iterator<Item = Keyed<ExchangeId, MarketInstrumentData<InstrumentIndex>>>
     let instruments = instruments.instruments().iter().map(|keyed| {
-        let exchange = keyed.value.exchange.value;
-        let instrument = MarketInstrumentData::from(keyed);
+        let exchange = keyed.key.exchange;
+        let instrument = MarketInstrumentData {
+            key: keyed.key.clone(),
+            name_exchange: jackbot_instrument::instrument::name::InstrumentNameExchange::new(
+                exchange,
+                keyed.value.name_exchange.clone()
+            ),
+            kind: keyed.value.kind,
+        };
         Keyed::new(exchange, instrument)
     });
 
@@ -110,7 +116,7 @@ pub fn generate_indexed_market_data_subscription_batches(
 /// * `instruments` - Collection of `IndexedInstruments` used for indexing
 /// * `batches` - Iterator of `Subscription` batches to be indexed
 pub fn index_market_data_subscription_batches<SubBatchIter, SubIter, Sub>(
-    instruments: &IndexedInstruments,
+    instruments: &IndexedInstruments<Keyed<InstrumentIndex, MarketDataInstrument>>,
     batches: SubBatchIter,
 ) -> Result<
     Vec<Vec<Subscription<ExchangeId, Keyed<InstrumentIndex, MarketDataInstrument>>>>,
@@ -128,28 +134,34 @@ where
             .map(|sub| {
                 let sub = sub.into();
 
-                let base_index = instruments.find_asset_index(sub.exchange, &sub.instrument.base)?;
-                let quote_index = instruments.find_asset_index(sub.exchange, &sub.instrument.quote)?;
+                // TODO: Implement asset index lookup if needed
+                // let base_index = instruments.find_asset_index(sub.exchange, &sub.instrument.instrument.base)?;
+                // let quote_index = instruments.find_asset_index(sub.exchange, &sub.instrument.instrument.quote)?;
 
-                let find_instrument = |exchange, kind, base, quote| {
+                let find_instrument = |exchange: &ExchangeId, kind: &jackbot_instrument::instrument::market_data::kind::MarketDataInstrumentKind, base: &str, quote: &str| {
                     instruments
                         .instruments()
                         .iter()
                         .find_map(|indexed| {
                             (
-                                indexed.value.exchange.value == exchange
-                                    && indexed.value.kind.eq_market_data_instrument_kind(kind)
-                                    && indexed.value.underlying.base == base
-                                    && indexed.value.underlying.quote == quote
-                            ).then_some(indexed.key)
+                                indexed.key.exchange == *exchange
+                                    && indexed.value.instrument.kind == *kind
+                                    && indexed.value.instrument.base.0 == *base
+                                    && indexed.value.instrument.quote.0 == *quote
+                            ).then_some(indexed.key.clone())
                         })
-                        .ok_or(IndexError::InstrumentIndex(format!(
+                        .ok_or_else(|| IndexError::new(format!(
                             "Instrument: ({}, {}, {}, {}) must be present in indexed instruments: {:?}",
                             exchange, kind, base, quote, instruments.instruments()
                         )))
                 };
 
-                let instrument_index = find_instrument(sub.exchange, &sub.instrument.kind, base_index, quote_index)?;
+                let instrument_index = find_instrument(
+                    &sub.exchange, 
+                    &sub.instrument.instrument.kind, 
+                    &sub.instrument.instrument.base.0, 
+                    &sub.instrument.instrument.quote.0
+                )?;
 
                 Ok(Subscription {
                     exchange: sub.exchange,

@@ -8,13 +8,14 @@ use self::{
 };
 use crate::{
     ExchangeWsStream, NoInitialSnapshots,
+    event::MarketEvent,
     exchange::{
         Connector, DEFAULT_HEARTBEAT_INTERVAL, DEFAULT_PING_INTERVAL, ExchangeSub, PingInterval,
         StreamSelector,
     },
     instrument::InstrumentData,
     subscriber::{WebSocketSubscriber, validator::WebSocketSubValidator},
-    subscription::trade::PublicTrades,
+    subscription::trade::{PublicTrades, PublicTrade},
     transformer::stateless::StatelessTransformer,
 };
 use jackbot_instrument::exchange::ExchangeId;
@@ -93,5 +94,5 @@ where
 {
     type SnapFetcher = NoInitialSnapshots;
     type Stream =
-        ExchangeWsStream<StatelessTransformer<Self, Instrument::Key, PublicTrades, KucoinTrade>>;
+        ExchangeWsStream<MarketEvent<Instrument::Key, PublicTrade>>;
 }

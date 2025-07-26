@@ -25,6 +25,16 @@ pub struct StatelessTransformer<Exchange, InstrumentKey, Kind, Input> {
     phantom: PhantomData<(Exchange, Kind, Input)>,
 }
 
+impl<Exchange, InstrumentKey, Kind, Input> StatelessTransformer<Exchange, InstrumentKey, Kind, Input> {
+    /// Create a new StatelessTransformer with the given instrument map
+    pub fn new(instrument_map: Map<InstrumentKey>) -> Self {
+        Self {
+            instrument_map,
+            phantom: PhantomData,
+        }
+    }
+}
+
 #[async_trait]
 impl<Exchange, InstrumentKey, Kind, Input> ExchangeTransformer<Exchange, InstrumentKey, Kind>
     for StatelessTransformer<Exchange, InstrumentKey, Kind, Input>
@@ -47,6 +57,7 @@ where
     }
 }
 
+#[async_trait]
 impl<Exchange, InstrumentKey, Kind, Input> Transformer
     for StatelessTransformer<Exchange, InstrumentKey, Kind, Input>
 where
@@ -60,6 +71,21 @@ where
     type Input = Input;
     type Output = MarketEvent<InstrumentKey, Kind::Event>;
     type OutputIter = Vec<Result<Self::Output, Self::Error>>;
+
+    async fn init<T>(
+        instrument_map: T,
+        _initial_snapshots: &[Self::Output], 
+        _sink_tx: tokio::sync::mpsc::UnboundedSender<jackbot_integration::protocol::websocket::Message>
+    ) -> Result<Self, jackbot_integration::error::SocketError>
+    where
+        Self: Sized,
+        T: Send,
+    {
+        Ok(Self {
+            instrument_map: Map(Default::default()), // TODO: Properly convert T to Map
+            phantom: PhantomData,
+        })
+    }
 
     fn transform(&mut self, input: Self::Input) -> Self::OutputIter {
         // Determine if the message has an identifiable SubscriptionId

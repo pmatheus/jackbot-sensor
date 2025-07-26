@@ -14,6 +14,7 @@ use tokio::time::interval;
 use tracing::{debug, error, info, warn};
 
 use crate::api::{BalanceData, KlineData, OrderBookData, TickerData, TradeData};
+use crate::binance_websocket::BinanceWebSocketClient;
 use crate::connector::{
     Balance, Connection, Exchange, MarketData, MarketDataStream, Order, OrderId, OrderResult,
     OrderSide, OrderStatus, OrderType, TimeInForce,
@@ -41,6 +42,7 @@ pub struct BinanceConnector {
     market_data_subscriptions: Arc<Mutex<Vec<String>>>,
     base_url: Option<String>,
     rest_client: Arc<Mutex<Option<BinanceRestClient>>>,
+    websocket_client: Arc<Mutex<Option<BinanceWebSocketClient>>>,
 }
 
 // Import REST client
@@ -64,6 +66,7 @@ impl BinanceConnector {
             market_data_subscriptions: Arc::new(Mutex::new(Vec::new())),
             base_url: None,
             rest_client: Arc::new(Mutex::new(None)),
+            websocket_client: Arc::new(Mutex::new(None)),
         })
     }
 
@@ -85,6 +88,7 @@ impl BinanceConnector {
             market_data_subscriptions: Arc::new(Mutex::new(Vec::new())),
             base_url: Some(base_url),
             rest_client: Arc::new(Mutex::new(None)),
+            websocket_client: Arc::new(Mutex::new(None)),
         })
     }
 
@@ -165,31 +169,45 @@ impl BinanceConnector {
 
     /// Process market data from Binance WebSocket
     async fn process_market_data(&self) -> Result<()> {
-        // This would be implemented to process actual WebSocket data
-        // For now, simulate with periodic updates
-        let mut interval = interval(Duration::from_millis(100));
-        
-        loop {
-            interval.tick().await;
+        // Use the real WebSocket client if available
+        let ws_client_guard = self.websocket_client.lock().await;
+        if let Some(ws_client) = ws_client_guard.as_ref() {
+            // Real WebSocket data is handled by BinanceWebSocketClient
+            // which publishes directly to the streaming manager
+            info!("Using real Binance WebSocket connection for market data");
+            drop(ws_client_guard);
             
-            let subscriptions = self.market_data_subscriptions.lock().await;
-            for symbol in subscriptions.iter() {
-                // Simulate ticker data
-                let ticker = TickerData {
-                    symbol: symbol.clone(),
-                    exchange: "binance".to_string(),
-                    price: 50000.0 + (rand::random::<f64>() * 1000.0),
-                    bid: 49900.0,
-                    ask: 50100.0,
-                    volume_24h: 10000.0,
-                    change_24h: 2.5,
-                    high_24h: 51000.0,
-                    low_24h: 49000.0,
-                    timestamp: chrono::Utc::now().timestamp_millis(),
-                };
+            // Just wait, as the WebSocket client handles data publishing
+            loop {
+                tokio::time::sleep(Duration::from_secs(60)).await;
+            }
+        } else {
+            // Fallback to simulation if WebSocket client not initialized
+            warn!("WebSocket client not initialized, falling back to simulation");
+            let mut interval = interval(Duration::from_millis(100));
+            
+            loop {
+                interval.tick().await;
                 
-                if let Err(e) = self.streaming_manager.publish_ticker(ticker).await {
-                    warn!("Failed to publish ticker data: {}", e);
+                let subscriptions = self.market_data_subscriptions.lock().await;
+                for symbol in subscriptions.iter() {
+                    // Simulate ticker data
+                    let ticker = TickerData {
+                        symbol: symbol.clone(),
+                        exchange: "binance".to_string(),
+                        price: 50000.0 + (rand::random::<f64>() * 1000.0),
+                        bid: 49900.0,
+                        ask: 50100.0,
+                        volume_24h: 10000.0,
+                        change_24h: 2.5,
+                        high_24h: 51000.0,
+                        low_24h: 49000.0,
+                        timestamp: chrono::Utc::now().timestamp_millis(),
+                    };
+                    
+                    if let Err(e) = self.streaming_manager.publish_ticker(ticker).await {
+                        warn!("Failed to publish ticker data: {}", e);
+                    }
                 }
             }
         }
@@ -299,6 +317,17 @@ impl Exchange for BinanceConnector {
         let mut client_guard = self.client.lock().await;
         *client_guard = Some(client);
         
+        // Initialize real WebSocket client for market data
+        let ws_client = BinanceWebSocketClient::new(
+            self.streaming_manager.clone(),
+            None, // No direct Kafka producer
+            self.sandbox,
+        )?;
+        
+        let mut ws_guard = self.websocket_client.lock().await;
+        *ws_guard = Some(ws_client);
+        drop(ws_guard);
+        
         // Start market data processing
         let self_clone = Arc::new(self.clone());
         tokio::spawn(async move {
@@ -307,7 +336,7 @@ impl Exchange for BinanceConnector {
             }
         });
         
-        info!("Successfully connected to Binance");
+        info!("Successfully connected to Binance with real WebSocket support");
         Ok(Arc::new(()) as Connection)
     }
     
@@ -317,6 +346,20 @@ impl Exchange for BinanceConnector {
         // Store subscriptions
         let mut subs = self.market_data_subscriptions.lock().await;
         subs.extend(symbols.clone());
+        drop(subs);
+        
+        // Subscribe via real WebSocket client if available
+        let ws_client_guard = self.websocket_client.lock().await;
+        if let Some(ws_client) = ws_client_guard.as_ref() {
+            info!("Subscribing to real Binance WebSocket streams");
+            for symbol in &symbols {
+                // Subscribe to multiple data streams for each symbol
+                ws_client.subscribe_ticker(symbol).await?;
+                ws_client.subscribe_orderbook(symbol).await?;
+                ws_client.subscribe_trades(symbol).await?;
+            }
+        }
+        drop(ws_client_guard);
         
         // Create stream from streaming manager
         let mut receiver = self.streaming_manager.subscribe_all().await?;
@@ -442,6 +485,7 @@ impl Clone for BinanceConnector {
             market_data_subscriptions: Arc::clone(&self.market_data_subscriptions),
             base_url: self.base_url.clone(),
             rest_client: Arc::clone(&self.rest_client),
+            websocket_client: Arc::clone(&self.websocket_client),
         }
     }
 }

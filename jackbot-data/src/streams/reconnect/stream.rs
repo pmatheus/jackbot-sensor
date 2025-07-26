@@ -4,11 +4,11 @@ use derive_more::Constructor;
 use futures::Stream;
 use futures_util::StreamExt;
 use jackbot_integration::{
-    channel::Tx,
     metric::{Field, Metric, Tag},
 };
 use serde::{Deserialize, Serialize};
-use std::{convert, fmt::Debug, future, future::Future};
+use std::{collections::HashMap, convert, fmt::Debug, future, future::Future};
+use tokio::sync::mpsc;
 use tracing::{error, info, warn};
 
 /// Utilities for handling a continually reconnecting [`Stream`] initialised via the
@@ -36,14 +36,16 @@ where
                 move |state, (attempt, result)| match result {
                     Ok(stream) => {
                         info!(attempt, ?stream_key, "successfully initialised Stream");
+                        let mut fields = HashMap::new();
+                        fields.insert("attempt".to_string(), Field::from(attempt as u64));
                         let metric = Metric {
-                            name: "ws_reconnect_success",
-                            time: Utc::now().timestamp_millis() as u64,
+                            name: "ws_reconnect_success".to_string(),
+                            timestamp: Utc::now().timestamp_millis(),
+                            fields,
                             tags: vec![
                                 Tag::new("exchange", stream_key.exchange.as_str()),
                                 Tag::new("stream", stream_key.stream),
                             ],
-                            fields: vec![Field::new("attempt", attempt as u64)],
                         };
                         info!(?metric, "WebSocket reconnected successfully");
                         state.reset_backoff();
@@ -57,16 +59,16 @@ where
                             "failed to re-initialise Stream"
                         );
                         let sleep_duration = state.generate_sleep_duration();
+                        let mut fields = HashMap::new();
+                        fields.insert("attempt".to_string(), Field::from(attempt as u64));
+                        fields.insert("backoff_ms".to_string(), Field::from(sleep_duration.as_millis() as u64));
                         let metric = Metric {
-                            name: "ws_reconnect_backoff",
-                            time: Utc::now().timestamp_millis() as u64,
+                            name: "ws_reconnect_backoff".to_string(),
+                            timestamp: Utc::now().timestamp_millis(),
+                            fields,
                             tags: vec![
                                 Tag::new("exchange", stream_key.exchange.as_str()),
                                 Tag::new("stream", stream_key.stream),
-                            ],
-                            fields: vec![
-                                Field::new("attempt", attempt as u64),
-                                Field::new("backoff_ms", sleep_duration.as_millis() as u64),
                             ],
                         };
                         warn!(?metric, "waiting before reconnect attempt");
@@ -157,13 +159,17 @@ where
     }
 
     /// Future for forwarding items in [`Self`] to the provided channel [`Tx`].
-    fn forward_to<Transmitter>(self, tx: Transmitter) -> impl Future<Output = ()> + Send
+    fn forward_to<T>(self, tx: mpsc::UnboundedSender<T>) -> impl Future<Output = ()> + Send
     where
         Self: Stream + Sized + Send,
-        Self::Item: Into<Transmitter::Item>,
-        Transmitter: Tx + Send + 'static,
+        Self::Item: Into<T>,
+        T: Send + 'static,
     {
-        tokio_stream::StreamExt::map_while(self, move |event| tx.send(event.into()).ok()).collect()
+        async move {
+            tokio_stream::StreamExt::map_while(self, move |event| {
+                tx.send(event.into()).ok().map(|_| ())
+            }).collect::<()>().await
+        }
     }
 }
 
@@ -239,8 +245,8 @@ impl ReconnectionState {
     fn generate_sleep_duration(&self) -> std::time::Duration {
         let jitter = if self.policy.jitter_ms > 0 {
             use rand::Rng;
-            let mut rng = rand::rng();
-            rng.random_range(0..=self.policy.jitter_ms)
+            let mut rng = rand::thread_rng();
+            rng.gen_range(0..=self.policy.jitter_ms)
         } else {
             0
         };

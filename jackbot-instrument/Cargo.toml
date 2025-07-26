@@ -1,0 +1,22 @@
+[package]
+name = "jackbot-instrument"
+version = "0.1.0"
+edition = "2024"
+authors = ["Jack <mail@jackbot.app>"]
+license = "MIT"
+description = "Instrument and exchange definitions for Jackbot trading system"
+
+[lints]
+workspace = true
+
+[dependencies]
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Data structures
+rust_decimal = { workspace = true }
+smol_str = { workspace = true }
+
+# Utilities
+derive_more = { workspace = true }

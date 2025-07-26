@@ -1,7 +1,8 @@
 use super::Kraken;
 use crate::{Identifier, instrument::MarketInstrumentData, subscription::Subscription};
 use jackbot_instrument::{
-    Keyed, asset::name::AssetNameInternal, instrument::market_data::MarketDataInstrument,
+    asset::name::AssetNameInternal, instrument::market_data::MarketDataInstrument,
+    index::Keyed,
 };
 use serde::{Deserialize, Serialize};
 use smol_str::{SmolStr, StrExt, format_smolstr};
@@ -15,7 +16,10 @@ pub struct KrakenMarket(pub SmolStr);
 
 impl<Kind> Identifier<KrakenMarket> for Subscription<Kraken, MarketDataInstrument, Kind> {
     fn id(&self) -> KrakenMarket {
-        kraken_market(&self.instrument.base, &self.instrument.quote)
+        kraken_market(
+            &AssetNameInternal(self.instrument.instrument.base.0.to_string()),
+            &AssetNameInternal(self.instrument.instrument.quote.0.to_string())
+        )
     }
 }
 
@@ -23,7 +27,10 @@ impl<InstrumentKey, Kind> Identifier<KrakenMarket>
     for Subscription<Kraken, Keyed<InstrumentKey, MarketDataInstrument>, Kind>
 {
     fn id(&self) -> KrakenMarket {
-        kraken_market(&self.instrument.value.base, &self.instrument.value.quote)
+        kraken_market(
+            &AssetNameInternal(self.instrument.value.instrument.base.0.to_string()),
+            &AssetNameInternal(self.instrument.value.instrument.quote.0.to_string())
+        )
     }
 }
 
@@ -31,7 +38,7 @@ impl<InstrumentKey, Kind> Identifier<KrakenMarket>
     for Subscription<Kraken, MarketInstrumentData<InstrumentKey>, Kind>
 {
     fn id(&self) -> KrakenMarket {
-        KrakenMarket(self.instrument.name_exchange.name().clone())
+        KrakenMarket(self.instrument.name_exchange.name().clone().into())
     }
 }
 

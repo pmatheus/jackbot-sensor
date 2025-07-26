@@ -38,8 +38,8 @@ impl GateioRateLimit {
         jitter: Duration,
     ) -> Self {
         Self {
-            rest: RateLimiter::new_with_jitter(rest_capacity, rest_interval, jitter),
-            ws: RateLimiter::new_with_jitter(ws_capacity, ws_interval, jitter),
+            rest: RateLimiter::new(),
+            ws: RateLimiter::new(),
         }
     }
 
@@ -55,11 +55,11 @@ impl GateioRateLimit {
 
     /// Report a REST rate limit violation.
     pub async fn report_rest_violation(&self) {
-        self.rest.report_violation().await;
+        self.rest.report_violation(Priority::High).await;
     }
 
     /// Report a WebSocket rate limit violation.
     pub async fn report_ws_violation(&self) {
-        self.ws.report_violation().await;
+        self.ws.report_violation(Priority::High).await;
     }
 }

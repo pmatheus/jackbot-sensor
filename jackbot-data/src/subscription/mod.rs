@@ -2,7 +2,7 @@ use crate::{exchange::Connector, instrument::InstrumentData};
 use derive_more::Display;
 use fnv::FnvHashMap;
 use jackbot_instrument::{
-    Keyed,
+    index::Keyed,
     asset::name::AssetNameInternal,
     exchange::ExchangeId,
     instrument::market_data::{MarketDataInstrument, kind::MarketDataInstrumentKind},
@@ -101,7 +101,11 @@ where
             Kind,
         ),
     ) -> Self {
-        Self::new(exchange, (base, quote, instrument_kind), kind)
+        let base_str: AssetNameInternal = base.into();
+        let quote_str: AssetNameInternal = quote.into();
+        let symbol = format!("{}{}", base_str.0, quote_str.0);
+        let instrument = MarketDataInstrument::new(&base_str.0, &quote_str.0, instrument_kind, symbol);
+        Self::new(exchange, instrument, kind)
     }
 }
 
@@ -127,7 +131,11 @@ where
             Kind,
         ),
     ) -> Self {
-        let instrument = Keyed::new(instrument_id, (base, quote, instrument_kind).into());
+        let base_str: AssetNameInternal = base.into();
+        let quote_str: AssetNameInternal = quote.into();
+        let symbol = format!("{}{}", base_str.0, quote_str.0);
+        let market_data_instrument = MarketDataInstrument::new(&base_str.0, &quote_str.0, instrument_kind, symbol);
+        let instrument = Keyed::new(instrument_id, market_data_instrument);
 
         Self::new(exchange, instrument, kind)
     }
@@ -162,17 +170,16 @@ where
     Exchange: Connector,
     Instrument: InstrumentData,
 {
-    fn validate(self) -> Result<Self, SocketError>
-    where
-        Self: Sized,
-    {
+    type Item = Self;
+    
+    fn validate(&self, item: &Self::Item) -> Result<(), SocketError> {
         // Validate the Exchange supports the Subscription InstrumentKind
-        if exchange_supports_instrument_kind(Exchange::ID, self.instrument.kind()) {
-            Ok(self)
+        if exchange_supports_instrument_kind(Exchange::ID, item.instrument.kind()) {
+            Ok(())
         } else {
             Err(SocketError::Unsupported {
                 entity: Exchange::ID.to_string(),
-                item: self.instrument.kind().to_string(),
+                item: item.instrument.kind().to_string(),
             })
         }
     }
@@ -212,21 +219,20 @@ impl<Instrument> Validator for Subscription<ExchangeId, Instrument, SubKind>
 where
     Instrument: InstrumentData,
 {
-    fn validate(self) -> Result<Self, SocketError>
-    where
-        Self: Sized,
-    {
+    type Item = Self;
+    
+    fn validate(&self, item: &Self::Item) -> Result<(), SocketError> {
         // Validate the Exchange supports the Subscription InstrumentKind
         if exchange_supports_instrument_kind_sub_kind(
-            &self.exchange,
-            self.instrument.kind(),
-            self.kind,
+            &item.exchange,
+            item.instrument.kind(),
+            item.kind,
         ) {
-            Ok(self)
+            Ok(())
         } else {
             Err(SocketError::Unsupported {
-                entity: self.exchange.to_string(),
-                item: format!("({}, {})", self.instrument.kind(), self.kind),
+                entity: item.exchange.to_string(),
+                item: format!("({}, {})", item.instrument.kind(), item.kind),
             })
         }
     }
@@ -307,7 +313,7 @@ impl<T> Map<T> {
     {
         self.0
             .get(id)
-            .ok_or_else(|| SocketError::Unidentifiable(SubscriptionId(id.as_ref().to_smolstr())))
+            .ok_or_else(|| SocketError::ProtocolError(format!("Subscription not found: {}", id.as_ref())))
     }
 
     /// Find the mutable reference to `T` associated with the provided [`SubscriptionId`].
@@ -318,6 +324,6 @@ impl<T> Map<T> {
     {
         self.0
             .get_mut(id)
-            .ok_or_else(|| SocketError::Unidentifiable(SubscriptionId(id.as_ref().to_smolstr())))
+            .ok_or_else(|| SocketError::ProtocolError(format!("Subscription not found: {}", id.as_ref())))
     }
 }

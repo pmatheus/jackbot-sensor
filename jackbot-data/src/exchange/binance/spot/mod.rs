@@ -1,6 +1,7 @@
 use super::{Binance, ExchangeServer};
 use crate::{
     ExchangeWsStream,
+    event::MarketEvent,
     exchange::{
         StreamSelector,
         binance::spot::l2::{
@@ -8,7 +9,7 @@ use crate::{
         },
     },
     instrument::InstrumentData,
-    subscription::book::OrderBooksL2,
+    subscription::book::{OrderBooksL2, OrderBookEvent},
 };
 use jackbot_instrument::exchange::ExchangeId;
 use std::fmt::{Display, Formatter};
@@ -45,7 +46,7 @@ where
     Instrument: InstrumentData,
 {
     type SnapFetcher = BinanceSpotOrderBooksL2SnapshotFetcher;
-    type Stream = ExchangeWsStream<BinanceSpotOrderBooksL2Transformer<Instrument::Key>>;
+    type Stream = ExchangeWsStream<MarketEvent<Instrument::Key, OrderBookEvent>>;
 }
 
 impl Display for BinanceSpot {

@@ -1,0 +1,41 @@
+[package]
+name = "jackbot-integration"
+version = "0.1.0"
+edition = "2024"
+authors = ["Jack <mail@jackbot.app>"]
+license = "MIT"
+description = "Integration components for Jackbot - WebSocket protocols, circuit breakers, and connectivity utilities"
+
+[lints]
+workspace = true
+
+[dependencies]
+# Async runtime
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+futures = { workspace = true }
+async-trait = { workspace = true }
+pin-project = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# WebSocket
+tokio-tungstenite = { workspace = true }
+url = { workspace = true }
+
+# HTTP client
+reqwest = { workspace = true }
+
+# Circuit breaker and resilience
+parking_lot = { workspace = true }
+chrono = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+
+# Data structures (unused dependencies removed)

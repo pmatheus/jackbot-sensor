@@ -1,0 +1,59 @@
+[tool.tarpaulin.sensor]
+# Sensor-specific tarpaulin configuration
+exclude-files = [
+    "*/tests/*",
+    "*/target/*",
+    "*/build.rs",
+    "*/proto/*",
+    "infrastructure/*",
+    "scripts/*",
+    "examples/*",
+    "*/node_modules/*",
+    "benches/*"
+]
+
+# Output formats
+out = ["Html", "Xml", "Json"]
+output-dir = "coverage"
+
+# Coverage thresholds - enforce 100%
+fail-under = 100
+line = 100
+branch = 100
+
+# Test execution
+timeout = 120
+verbose = true
+all-features = true
+workspace = true
+
+# Skip binary crates that are integration points
+skip-clean = false
+force-clean = true
+
+# Include all workspace members
+run-types = ["Tests", "Doctests"]
+
+# Ignore generated code
+ignore-panics = true
+ignore-tests = true
+
+# Trading sensor specific excludes
+exclude = [
+    # Infrastructure as code
+    "infrastructure/*",
+    # Generated proto files  
+    "*/proto.rs",
+    # Build scripts
+    "build.rs",
+    # Example code
+    "examples/*",
+    # Benchmark code
+    "benches/*",
+    # Scripts and utilities
+    "scripts/*",
+    # Performance test binaries
+    "*/bin/*",
+    # Deployment scripts
+    "deployment/*"
+]

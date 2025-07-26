@@ -1,6 +1,6 @@
 use futures::{SinkExt, StreamExt};
 use jackbot_integration::{
-    circuit_breaker::CircuitBreaker,
+    circuit_breaker::{CircuitBreaker, CircuitBreakerConfig},
     error::SocketError,
     protocol::websocket::{WebSocket, connect},
 };
@@ -95,7 +95,11 @@ pub async fn user_stream(
 ) -> Result<UnboundedReceiverStream<BinanceUserEvent>, SocketError> {
     let (tx, rx) = mpsc::unbounded_channel();
     tokio::spawn(async move {
-        let mut breaker = CircuitBreaker::new(5, Duration::from_secs(5));
+        let mut breaker = CircuitBreaker::new(CircuitBreakerConfig {
+            failure_threshold: 5,
+            recovery_timeout: Duration::from_secs(5),
+            half_open_max_calls: 3,
+        });
         loop {
             if breaker.is_open() {
                 if let Some(wait) = breaker.remaining() {

@@ -8,7 +8,7 @@ use jackbot_integration::{
     metric::{Field, Metric, Tag},
     protocol::websocket::{WebSocket, WsMessage, connect, with_heartbeat},
 };
-use rand::{Rng, rng};
+use rand::{Rng, thread_rng};
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::UnboundedReceiverStream;
 use tokio_tungstenite::tungstenite::Message;
@@ -60,23 +60,18 @@ pub async fn user_stream(
         loop {
             match connect(url.clone()).await {
                 Ok(ws) => {
-                    let metric = Metric {
-                        name: "ws_user_connect_success",
-                        time: Utc::now().timestamp_millis() as u64,
-                        tags: vec![Tag::new("exchange", ExchangeId::BitgetSpot.as_str())],
-                        fields: vec![],
-                    };
+                    let metric = Metric::new("ws_user_connect_success")
+                        .tag("exchange", ExchangeId::BitgetSpot.as_str())
+                        .timestamp(Utc::now().timestamp_millis());
                     info!(?metric, "connected to Bitget user WebSocket");
                     backoff = BACKOFF_INITIAL;
                     if run_connection(ws, &tx, &auth_payload).await.is_err() {
-                        let jitter = rng().random_range(0..=JITTER);
+                        let jitter = thread_rng().gen_range(0..=JITTER);
                         let delay = std::time::Duration::from_millis(backoff + jitter);
-                        let metric = Metric {
-                            name: "ws_user_reconnect_backoff",
-                            time: Utc::now().timestamp_millis() as u64,
-                            tags: vec![Tag::new("exchange", ExchangeId::BitgetSpot.as_str())],
-                            fields: vec![Field::new("backoff_ms", delay.as_millis() as u64)],
-                        };
+                        let metric = Metric::new("ws_user_reconnect_backoff")
+                            .tag("exchange", ExchangeId::BitgetSpot.as_str())
+                            .field("backoff_ms", delay.as_millis() as u64)
+                            .timestamp(Utc::now().timestamp_millis());
                         warn!(?metric, "Bitget user WebSocket disconnected, reconnecting");
                         tokio::time::sleep(delay).await;
                         backoff = (backoff * BACKOFF_MULT).min(BACKOFF_MAX);
@@ -87,7 +82,7 @@ pub async fn user_stream(
                 }
                 Err(err) => {
                     error!(?err, "failed to connect to Bitget user WebSocket");
-                    let jitter = rand::rng().random_range(0..=JITTER);
+                    let jitter = thread_rng().gen_range(0..=JITTER);
                     let delay = std::time::Duration::from_millis(backoff + jitter);
                     tokio::time::sleep(delay).await;
                     backoff = (backoff * BACKOFF_MULT).min(BACKOFF_MAX);

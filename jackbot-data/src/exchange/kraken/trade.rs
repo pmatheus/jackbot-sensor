@@ -7,7 +7,7 @@ use crate::{
 use chrono::{DateTime, Utc};
 use jackbot_instrument::{Side, exchange::ExchangeId};
 use jackbot_integration::{
-    de::{datetime_utc_from_epoch_duration, extract_next},
+    de::datetime_utc_from_epoch_duration,
     subscription::SubscriptionId,
 };
 use serde::Serialize;
@@ -112,17 +112,17 @@ impl<'de> serde::de::Deserialize<'de> for KrakenTradesInner {
                 // <https://docs.kraken.com/websockets/#message-trade>
 
                 // Extract deprecated channelID & ignore
-                let _: serde::de::IgnoredAny = extract_next(&mut seq, "channelID")?;
+                let _: serde::de::IgnoredAny = seq.next_element()?.ok_or_else(|| serde::de::Error::custom("missing channelID"))?;
 
                 // Extract Vec<KrakenTrade>
-                let trades = extract_next(&mut seq, "Vec<KrakenTrade>")?;
+                let trades = seq.next_element()?.ok_or_else(|| serde::de::Error::custom("missing trades"))?;
 
                 // Extract channelName (eg/ "trade") & ignore
-                let _: serde::de::IgnoredAny = extract_next(&mut seq, "channelName")?;
+                let _: serde::de::IgnoredAny = seq.next_element()?.ok_or_else(|| serde::de::Error::custom("missing channelName"))?;
 
                 // Extract pair (eg/ "XBT/USD") & map to SubscriptionId (ie/ "trade|{pair}")
-                let subscription_id = extract_next::<SeqAccessor, String>(&mut seq, "pair")
-                    .map(|pair| SubscriptionId::from(format!("trade|{pair}")))?;
+                let pair: String = seq.next_element()?.ok_or_else(|| serde::de::Error::custom("missing pair"))?;
+                let subscription_id = SubscriptionId::from(format!("trade|{pair}"));
 
                 // Ignore any additional elements or SerDe will fail
                 //  '--> Exchange may add fields without warning
@@ -166,25 +166,29 @@ impl<'de> serde::de::Deserialize<'de> for KrakenTrade {
                 // <https://docs.kraken.com/websockets/#message-trade>
 
                 // Extract String price & parse to f64
-                let price = extract_next::<SeqAccessor, String>(&mut seq, "price")?
+                let price: f64 = seq.next_element::<String>()?
+                    .ok_or_else(|| serde::de::Error::custom("missing price"))?
                     .parse()
                     .map_err(serde::de::Error::custom)?;
 
                 // Extract String amount & parse to f64
-                let amount = extract_next::<SeqAccessor, String>(&mut seq, "quantity")?
+                let amount: f64 = seq.next_element::<String>()?
+                    .ok_or_else(|| serde::de::Error::custom("missing quantity"))?
                     .parse()
                     .map_err(serde::de::Error::custom)?;
 
                 // Extract String price, parse to f64, map to DateTime<Utc>
-                let time = extract_next::<SeqAccessor, String>(&mut seq, "time")?
-                    .parse()
+                let time_str: String = seq.next_element()?
+                    .ok_or_else(|| serde::de::Error::custom("missing time"))?;
+                let time = time_str.parse::<f64>()
                     .map(|time| {
                         datetime_utc_from_epoch_duration(std::time::Duration::from_secs_f64(time))
                     })
                     .map_err(serde::de::Error::custom)?;
 
                 // Extract Side
-                let side: Side = extract_next(&mut seq, "side")?;
+                let side: Side = seq.next_element()?
+                    .ok_or_else(|| serde::de::Error::custom("missing side"))?;
 
                 // Ignore any additional elements or SerDe will fail
                 //  '--> Exchange may add fields without warning

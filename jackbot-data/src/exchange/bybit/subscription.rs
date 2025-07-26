@@ -48,14 +48,13 @@ impl Default for BybitReturnMessage {
 }
 
 impl Validator for BybitResponse {
-    fn validate(self) -> Result<Self, SocketError>
-    where
-        Self: Sized,
-    {
-        match self.ret_msg {
+    type Item = BybitResponse;
+
+    fn validate(&self, item: &Self::Item) -> Result<(), SocketError> {
+        match item.ret_msg {
             BybitReturnMessage::None | BybitReturnMessage::Subscribe => {
-                if self.success {
-                    Ok(self)
+                if item.success {
+                    Ok(())
                 } else {
                     Err(SocketError::Subscribe(
                         "received failure subscription response".to_owned(),

@@ -5,7 +5,7 @@ use chrono::{
     format::{DelayedFormat, StrftimeItems},
 };
 use jackbot_instrument::{
-    Keyed,
+    index::Keyed,
     instrument::{
         kind::option::OptionKind,
         market_data::{MarketDataInstrument, kind::MarketDataInstrumentKind::*},
@@ -39,7 +39,7 @@ impl<InstrumentKey, Kind> Identifier<OkxMarket>
     for Subscription<Okx, MarketInstrumentData<InstrumentKey>, Kind>
 {
     fn id(&self) -> OkxMarket {
-        OkxMarket(self.instrument.name_exchange.name().clone())
+        OkxMarket(self.instrument.name_exchange.name().clone().into())
     }
 }
 
@@ -50,23 +50,15 @@ impl AsRef<str> for OkxMarket {
 }
 
 fn okx_market(instrument: &MarketDataInstrument) -> OkxMarket {
-    let MarketDataInstrument { base, quote, kind } = instrument;
+    let base = &instrument.instrument.base.0;
+    let quote = &instrument.instrument.quote.0;
+    let kind = &instrument.instrument.kind;
 
     OkxMarket(match kind {
         Spot => format_smolstr!("{base}-{quote}").to_uppercase_smolstr(),
-        Future(contract) => format_smolstr!("{base}-{quote}-{}", format_expiry(contract.expiry))
-            .to_uppercase_smolstr(),
+        Future => format_smolstr!("{base}-{quote}-FUTURES").to_uppercase_smolstr(),
         Perpetual => format_smolstr!("{base}-{quote}-SWAP").to_uppercase_smolstr(),
-        Option(contract) => format_smolstr!(
-            "{base}-{quote}-{}-{}-{}",
-            format_expiry(contract.expiry),
-            contract.strike,
-            match contract.kind {
-                OptionKind::Call => "C",
-                OptionKind::Put => "P",
-            },
-        )
-        .to_uppercase_smolstr(),
+        Option => format_smolstr!("{base}-{quote}-OPTION").to_uppercase_smolstr(),
     })
 }
 

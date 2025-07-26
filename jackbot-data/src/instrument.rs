@@ -1,5 +1,5 @@
 use jackbot_instrument::{
-    Keyed,
+    index::Keyed,
     instrument::{
         Instrument,
         market_data::{MarketDataInstrument, kind::MarketDataInstrumentKind},
@@ -18,14 +18,14 @@ pub trait InstrumentData
 where
     Self: Clone + Debug + Send + Sync,
 {
-    type Key: Debug + Clone + Eq + Send + Sync;
+    type Key: Debug + Clone + Eq + Send + Sync + 'static;
     fn key(&self) -> &Self::Key;
     fn kind(&self) -> &MarketDataInstrumentKind;
 }
 
 impl<InstrumentKey> InstrumentData for Keyed<InstrumentKey, MarketDataInstrument>
 where
-    InstrumentKey: Debug + Clone + Eq + Send + Sync,
+    InstrumentKey: Debug + Clone + Eq + Send + Sync + 'static,
 {
     type Key = InstrumentKey;
 
@@ -34,7 +34,7 @@ where
     }
 
     fn kind(&self) -> &MarketDataInstrumentKind {
-        &self.value.kind
+        &self.value.instrument.kind
     }
 }
 
@@ -46,7 +46,7 @@ impl InstrumentData for MarketDataInstrument {
     }
 
     fn kind(&self) -> &MarketDataInstrumentKind {
-        &self.kind
+        &self.instrument.kind
     }
 }
 
@@ -59,7 +59,7 @@ pub struct MarketInstrumentData<InstrumentKey> {
 
 impl<InstrumentKey> InstrumentData for MarketInstrumentData<InstrumentKey>
 where
-    InstrumentKey: Debug + Clone + Eq + Send + Sync,
+    InstrumentKey: Debug + Clone + Eq + Send + Sync + 'static,
 {
     type Key = InstrumentKey;
 
@@ -87,17 +87,18 @@ where
     }
 }
 
-impl<ExchangeKey, AssetKey, InstrumentKey>
-    From<&Keyed<InstrumentKey, Instrument<ExchangeKey, AssetKey>>>
-    for MarketInstrumentData<InstrumentKey>
-where
-    InstrumentKey: Clone,
-{
-    fn from(value: &Keyed<InstrumentKey, Instrument<ExchangeKey, AssetKey>>) -> Self {
-        Self {
-            key: value.key.clone(),
-            name_exchange: value.value.name_exchange.clone(),
-            kind: MarketDataInstrumentKind::from(&value.value.kind),
-        }
-    }
-}
+// This conversion seems to be incorrect - commenting out for now
+// impl<InstrumentKey>
+//     From<&Keyed<InstrumentKey, Instrument>>
+//     for MarketInstrumentData<InstrumentKey>
+// where
+//     InstrumentKey: Clone,
+// {
+//     fn from(value: &Keyed<InstrumentKey, Instrument>) -> Self {
+//         Self {
+//             key: value.key.clone(),
+//             name_exchange: value.value.name_exchange.clone(),
+//             kind: MarketDataInstrumentKind::from(value.value.kind),
+//         }
+//     }
+// }

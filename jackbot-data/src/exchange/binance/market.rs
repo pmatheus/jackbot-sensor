@@ -2,7 +2,8 @@
 use super::Binance;
 use crate::{Identifier, instrument::MarketInstrumentData, subscription::Subscription};
 use jackbot_instrument::{
-    Keyed, asset::name::AssetNameInternal, instrument::market_data::MarketDataInstrument,
+    asset::name::AssetNameInternal, instrument::market_data::MarketDataInstrument,
+    index::Keyed,
 };
 use serde::{Deserialize, Serialize};
 use smol_str::{SmolStr, StrExt, format_smolstr};
@@ -19,7 +20,10 @@ impl<Server, Kind> Identifier<BinanceMarket>
     for Subscription<Binance<Server>, MarketDataInstrument, Kind>
 {
     fn id(&self) -> BinanceMarket {
-        binance_market(&self.instrument.base, &self.instrument.quote)
+        binance_market(
+            &AssetNameInternal(self.instrument.instrument.base.0.to_string()),
+            &AssetNameInternal(self.instrument.instrument.quote.0.to_string())
+        )
     }
 }
 
@@ -28,8 +32,8 @@ impl<Server, InstrumentKey, Kind> Identifier<BinanceMarket>
 {
     fn id(&self) -> BinanceMarket {
         binance_market(
-            &self.instrument.as_ref().base,
-            &self.instrument.as_ref().quote,
+            &AssetNameInternal(self.instrument.as_ref().instrument.base.0.to_string()),
+            &AssetNameInternal(self.instrument.as_ref().instrument.quote.0.to_string()),
         )
     }
 }
@@ -38,7 +42,7 @@ impl<Server, InstrumentKey, Kind> Identifier<BinanceMarket>
     for Subscription<Binance<Server>, MarketInstrumentData<InstrumentKey>, Kind>
 {
     fn id(&self) -> BinanceMarket {
-        BinanceMarket(self.instrument.name_exchange.name().clone())
+        BinanceMarket(self.instrument.name_exchange.name().clone().into())
     }
 }
 

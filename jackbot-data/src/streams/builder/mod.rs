@@ -11,7 +11,7 @@ use crate::{
     subscription::{Subscription, SubscriptionKind},
 };
 use jackbot_instrument::exchange::ExchangeId;
-use jackbot_integration::{Validator, channel::Channel};
+use jackbot_integration::{Validator, channel::UnboundedChannel};
 use std::{
     collections::HashMap,
     fmt::{Debug, Display},
@@ -40,7 +40,7 @@ pub struct StreamBuilder<InstrumentKey, Kind>
 where
     Kind: SubscriptionKind,
 {
-    pub channels: HashMap<ExchangeId, Channel<MarketStreamResult<InstrumentKey, Kind::Event>>>,
+    pub channels: HashMap<ExchangeId, UnboundedChannel<MarketStreamResult<InstrumentKey, Kind::Event>>>,
     pub futures: Vec<SubscribeFuture>,
 }
 
@@ -91,15 +91,19 @@ where
 
         // Acquire channel Sender to send Market<Kind::Event> from consumer loop to user
         // '--> Add ExchangeChannel Entry if this Exchange <--> SubscriptionKind combination is new
-        let exchange_tx = self.channels.entry(Exchange::ID).or_default().tx.clone();
+        let exchange_tx = self.channels.entry(Exchange::ID).or_default().sender();
 
         // Add Future that once awaited will yield the Result<(), SocketError> of subscribing
         self.futures.push(Box::pin(async move {
             // Validate Subscriptions
-            let mut subscriptions = subscriptions
+            let mut subscriptions: Vec<_> = subscriptions
                 .into_iter()
-                .map(Subscription::validate)
-                .collect::<Result<Vec<_>, _>>()?;
+                .collect();
+            
+            // Validate each subscription
+            for sub in &subscriptions {
+                sub.validate(sub)?;
+            }
 
             // Remove duplicate Subscriptions
             subscriptions.sort();
@@ -134,7 +138,7 @@ where
             streams: self
                 .channels
                 .into_iter()
-                .map(|(exchange, channel)| (exchange, channel.rx))
+                .map(|(exchange, channel)| (exchange, channel.split().1))
                 .collect(),
         })
     }

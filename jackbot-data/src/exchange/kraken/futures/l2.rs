@@ -258,7 +258,10 @@ impl SnapshotFetcher<Kraken, OrderBooksL2> for KrakenFuturesOrderBooksL2Snapshot
                             "Missing first event".to_string(),
                         ))
                     })
-                    .map_err(|e| SocketError::Exchange(format!("DataError: {}", e)))
+                    .map_err(|e| match e {
+                        DataError::Socket(msg) => SocketError::ProtocolError(msg),
+                        other => SocketError::ProtocolError(other.to_string()),
+                    })
             }
         });
 
@@ -286,6 +289,7 @@ where
     }
 }
 
+#[async_trait]
 impl<InstrumentKey> Transformer for KrakenFuturesOrderBooksL2Transformer<InstrumentKey>
 where
     InstrumentKey: Clone,
@@ -309,6 +313,20 @@ where
 
         // Transform using the From implementation
         MarketIter::from((ExchangeId::Kraken, instrument_key, input)).0
+    }
+
+    async fn init<T>(
+        _instrument_map: T,
+        _initial_snapshots: &[Self::Output], 
+        _sink_tx: tokio::sync::mpsc::UnboundedSender<jackbot_integration::protocol::websocket::Message>
+    ) -> Result<Self, SocketError>
+    where
+        Self: Sized,
+        T: Send,
+    {
+        // This init method is required by the Transformer trait, but we use the ExchangeTransformer init
+        // So this should never be called
+        Err(SocketError::ProtocolError("Should use ExchangeTransformer::init".into()))
     }
 }
 

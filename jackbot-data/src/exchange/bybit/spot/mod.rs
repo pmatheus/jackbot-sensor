@@ -1,8 +1,9 @@
 use super::{Bybit, ExchangeServer};
 use crate::ExchangeWsStream;
+use crate::event::MarketEvent;
 use crate::exchange::StreamSelector;
 use crate::instrument::InstrumentData;
-use crate::subscription::book::OrderBooksL2;
+use crate::subscription::book::{OrderBooksL2, OrderBookEvent};
 use jackbot_instrument::exchange::ExchangeId;
 use std::fmt::Display;
 
@@ -38,7 +39,7 @@ where
     Instrument: InstrumentData,
 {
     type SnapFetcher = l2::BybitSpotOrderBooksL2SnapshotFetcher;
-    type Stream = ExchangeWsStream<l2::BybitSpotOrderBooksL2Transformer<Instrument::Key>>;
+    type Stream = ExchangeWsStream<MarketEvent<Instrument::Key, OrderBookEvent>>;
 }
 
 impl Display for BybitSpot {

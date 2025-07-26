@@ -4,20 +4,20 @@ use self::{
 };
 use crate::{
     ExchangeWsStream, NoInitialSnapshots,
+    event::MarketEvent,
     exchange::{
         Connector, DEFAULT_HEARTBEAT_INTERVAL, DEFAULT_PING_INTERVAL, ExchangeSub, PingInterval,
         StreamSelector,
     },
     instrument::InstrumentData,
     subscriber::{WebSocketSubscriber, validator::WebSocketSubValidator},
-    subscription::{book::OrderBooksL2, trade::PublicTrades},
-    transformer::stateless::StatelessTransformer,
+    subscription::{book::{OrderBooksL2, OrderBookEvent}, trade::{PublicTrades, PublicTrade}},
 };
 
 use jackbot_instrument::exchange::ExchangeId;
 use jackbot_integration::{error::SocketError, protocol::websocket::WsMessage};
 use jackbot_macro::{DeExchange, SerExchange};
-
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::time::Duration;
 use url::Url;
@@ -59,7 +59,7 @@ pub const BASE_URL_KRAKEN: &str = "wss://ws.kraken.com/";
 /// [`Kraken`] execution.
 ///
 /// See docs: <https://docs.kraken.com/websockets/#overview>
-#[derive(Clone, Default, Debug, DeExchange, SerExchange)]
+#[derive(Clone, Default, Debug, Serialize, Deserialize, DeExchange, SerExchange)]
 pub struct Kraken;
 
 impl Connector for Kraken {
@@ -110,7 +110,7 @@ where
 {
     type SnapFetcher = NoInitialSnapshots;
     type Stream =
-        ExchangeWsStream<StatelessTransformer<Self, Instrument::Key, PublicTrades, KrakenTrades>>;
+        ExchangeWsStream<MarketEvent<Instrument::Key, PublicTrade>>;
 }
 
 impl<Instrument> StreamSelector<Instrument, OrderBooksL2> for Kraken
@@ -118,9 +118,7 @@ where
     Instrument: InstrumentData,
 {
     type SnapFetcher = NoInitialSnapshots;
-    type Stream = ExchangeWsStream<
-        StatelessTransformer<Self, Instrument::Key, OrderBooksL2, KrakenOrderBookL2>,
-    >;
+    type Stream = ExchangeWsStream<MarketEvent<Instrument::Key, OrderBookEvent>>;
 }
 
 // Add pub use for futures components

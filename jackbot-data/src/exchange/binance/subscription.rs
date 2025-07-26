@@ -28,12 +28,11 @@ pub struct BinanceSubResponse {
 }
 
 impl Validator for BinanceSubResponse {
-    fn validate(self) -> Result<Self, SocketError>
-    where
-        Self: Sized,
-    {
-        if self.result.is_none() {
-            Ok(self)
+    type Item = BinanceSubResponse;
+
+    fn validate(&self, item: &Self::Item) -> Result<(), SocketError> {
+        if item.result.is_none() {
+            Ok(())
         } else {
             Err(SocketError::Subscribe(
                 "received failure subscription response".to_owned(),

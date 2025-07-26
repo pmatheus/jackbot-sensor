@@ -35,8 +35,8 @@ impl BitgetRateLimit {
         jitter: Duration,
     ) -> Self {
         Self {
-            rest: RateLimiter::new_with_jitter(rest_capacity, rest_interval, jitter),
-            ws: RateLimiter::new_with_jitter(ws_capacity, ws_interval, jitter),
+            rest: RateLimiter::new(),
+            ws: RateLimiter::new(),
         }
     }
 
@@ -49,11 +49,11 @@ impl BitgetRateLimit {
     }
 
     pub async fn report_rest_violation(&self) {
-        self.rest.report_violation().await;
+        self.rest.report_violation(Priority::High).await;
     }
 
     pub async fn report_ws_violation(&self) {
-        self.ws.report_violation().await;
+        self.ws.report_violation(Priority::High).await;
     }
 }
 
@@ -66,19 +66,19 @@ mod tests {
     #[tokio::test]
     async fn test_rest_limit_exhaustion() {
         let rl = BitgetRateLimit::with_params(1, Duration::from_millis(40), 1, Duration::from_millis(40), Duration::from_millis(0));
-        rl.acquire_rest(Priority::Normal).await;
+        rl.acquire_rest(Priority::Medium).await;
         let start = Instant::now();
-        rl.acquire_rest(Priority::Normal).await;
+        rl.acquire_rest(Priority::Medium).await;
         assert!(start.elapsed() >= Duration::from_millis(40));
     }
 
     #[tokio::test]
     async fn test_ws_backoff_jitter() {
         let rl = BitgetRateLimit::with_params(1, Duration::from_millis(20), 1, Duration::from_millis(20), Duration::from_millis(20));
-        rl.acquire_ws(Priority::Normal).await;
+        rl.acquire_ws(Priority::Medium).await;
         rl.report_ws_violation().await;
         let start = Instant::now();
-        rl.acquire_ws(Priority::Normal).await;
+        rl.acquire_ws(Priority::Medium).await;
         let elapsed = start.elapsed();
         assert!(elapsed >= Duration::from_millis(40));
         assert!(elapsed <= Duration::from_millis(60));

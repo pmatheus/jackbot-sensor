@@ -15,7 +15,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// Level 2 refers to an [`OrderBook`] with orders at each price level aggregated.
 #[derive(
-    Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default, DeSubKind, SerSubKind,
+    Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default, Serialize, Deserialize, DeSubKind, SerSubKind,
 )]
 pub struct OrderBooksL2;
 
@@ -38,7 +38,7 @@ impl std::fmt::Display for OrderBooksL2 {
 /// Level 3 refers to the non-aggregated [`OrderBook`]. This is a direct replication of the exchange
 /// [`OrderBook`].
 #[derive(
-    Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default, DeSubKind, SerSubKind,
+    Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default, Serialize, Deserialize, DeSubKind, SerSubKind,
 )]
 pub struct OrderBooksL3;
 

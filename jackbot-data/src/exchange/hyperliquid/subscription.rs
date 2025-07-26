@@ -10,9 +10,11 @@ pub struct HyperliquidSubResponse {
 }
 
 impl Validator for HyperliquidSubResponse {
-    fn validate(self) -> Result<Self, SocketError> {
-        if self.success {
-            Ok(self)
+    type Item = HyperliquidSubResponse;
+
+    fn validate(&self, item: &Self::Item) -> Result<(), SocketError> {
+        if item.success {
+            Ok(())
         } else {
             Err(SocketError::Subscribe(
                 "received failure subscription response".to_owned(),

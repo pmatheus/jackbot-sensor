@@ -1,0 +1,20 @@
+[package]
+name = "jackbot-ta"
+version = "0.1.0"
+edition = "2024"
+authors = ["Jack <mail@jackbot.app>"]
+license = "MIT"
+description = "Technical analysis indicators for Jackbot trading systems"
+keywords = ["trading", "technical-analysis", "indicators", "crypto", "stocks"]
+categories = ["algorithms", "mathematics"]
+
+[lints]
+workspace = true
+
+[dependencies]
+# Data structures
+rust_decimal = { workspace = true }
+serde = { workspace = true }
+
+# Mathematical computations
+num-traits = { workspace = true }

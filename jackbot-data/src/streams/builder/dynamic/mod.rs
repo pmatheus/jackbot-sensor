@@ -27,7 +27,7 @@ use itertools::Itertools;
 use jackbot_instrument::exchange::ExchangeId;
 use jackbot_integration::{
     Validator,
-    channel::{UnboundedRx, UnboundedTx, mpsc_unbounded},
+    channel::{UnboundedRx, UnboundedTx, mpsc_unbounded, UnboundedReceiverExt},
     error::SocketError,
 };
 use std::{
@@ -426,11 +426,15 @@ where
     Instrument: InstrumentData + Ord,
 {
     // Validate Subscriptions
-    let mut batch = batch
+    let mut batch: Vec<_> = batch
         .into_iter()
         .map(Sub::into)
-        .map(Validator::validate)
-        .collect::<Result<Vec<_>, SocketError>>()?;
+        .collect();
+    
+    // Validate each subscription
+    for sub in &batch {
+        sub.validate(sub)?;
+    }
 
     // Remove duplicate Subscriptions
     batch.sort();

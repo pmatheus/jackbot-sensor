@@ -5,10 +5,11 @@ use self::{
 };
 use crate::{
     ExchangeWsStream, NoInitialSnapshots,
+    event::MarketEvent,
     exchange::{Connector, ExchangeServer, ExchangeSub, PingInterval, StreamSelector},
     instrument::InstrumentData,
     subscriber::{WebSocketSubscriber, validator::WebSocketSubValidator},
-    subscription::{Map, trade::PublicTrades},
+    subscription::{Map, trade::{PublicTrades, PublicTrade}},
     transformer::stateless::StatelessTransformer,
 };
 use jackbot_instrument::exchange::ExchangeId;
@@ -121,7 +122,7 @@ where
 {
     type SnapFetcher = NoInitialSnapshots;
     type Stream =
-        ExchangeWsStream<StatelessTransformer<Self, Instrument::Key, PublicTrades, BinanceTrade>>;
+        ExchangeWsStream<MarketEvent<Instrument::Key, PublicTrade>>;
 }
 
 impl<'de, Server> serde::Deserialize<'de> for Binance<Server>

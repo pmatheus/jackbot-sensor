@@ -2,6 +2,7 @@ use self::liquidation::BinanceLiquidation;
 use super::{Binance, ExchangeServer};
 use crate::{
     ExchangeWsStream, NoInitialSnapshots,
+    event::MarketEvent,
     exchange::{
         StreamSelector,
         binance::futures::l2::{
@@ -9,7 +10,7 @@ use crate::{
         },
     },
     instrument::InstrumentData,
-    subscription::{book::OrderBooksL2, liquidation::Liquidations},
+    subscription::{book::{OrderBooksL2, OrderBookEvent}, liquidation::{Liquidations, Liquidation}},
     transformer::stateless::StatelessTransformer,
 };
 use jackbot_instrument::exchange::ExchangeId;
@@ -50,7 +51,7 @@ where
     Instrument: InstrumentData,
 {
     type SnapFetcher = BinanceFuturesUsdOrderBooksL2SnapshotFetcher;
-    type Stream = ExchangeWsStream<BinanceFuturesUsdOrderBooksL2Transformer<Instrument::Key>>;
+    type Stream = ExchangeWsStream<MarketEvent<Instrument::Key, OrderBookEvent>>;
 }
 
 impl<Instrument> StreamSelector<Instrument, Liquidations> for BinanceFuturesUsd
@@ -59,7 +60,7 @@ where
 {
     type SnapFetcher = NoInitialSnapshots;
     type Stream = ExchangeWsStream<
-        StatelessTransformer<Self, Instrument::Key, Liquidations, BinanceLiquidation>,
+        MarketEvent<Instrument::Key, Liquidation>,
     >;
 }
 

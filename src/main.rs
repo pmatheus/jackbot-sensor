@@ -87,9 +87,7 @@ enum Commands {
 #[tokio::main]
 async fn main() -> Result<()> {
     // Initialize rustls crypto provider
-    // rustls::crypto::aws_lc_rs::default_provider() // Temporarily commented out
-        .install_default()
-        .expect("Failed to install rustls crypto provider");
+    // Note: rustls crypto provider is automatically initialized by tokio-tungstenite
     
     let cli = Cli::parse();
 

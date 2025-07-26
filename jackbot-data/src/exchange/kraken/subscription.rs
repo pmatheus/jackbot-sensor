@@ -46,12 +46,11 @@ pub enum KrakenSubResponse {
 }
 
 impl Validator for KrakenSubResponse {
-    fn validate(self) -> Result<Self, SocketError>
-    where
-        Self: Sized,
-    {
-        match &self {
-            KrakenSubResponse::Subscribed { .. } => Ok(self),
+    type Item = KrakenSubResponse;
+
+    fn validate(&self, item: &Self::Item) -> Result<(), SocketError> {
+        match item {
+            KrakenSubResponse::Subscribed { .. } => Ok(()),
             KrakenSubResponse::Error(error) => Err(SocketError::Subscribe(format!(
                 "received failure subscription response: {}",
                 error.message

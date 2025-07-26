@@ -12,6 +12,7 @@ use url::Url;
 
 use crate::api::{TickerData, OrderBookData, TradeData, KlineData, PositionData, BalanceData, OrderResponse};
 use crate::production_config::ProductionConfig;
+use crate::kafka_producer::{KafkaProducer, ProducerConfig};
 
 /// Enum representing different types of streaming events
 #[derive(Debug, Clone)]
@@ -84,6 +85,7 @@ pub struct BackpressureMetrics {
     pub successful_sends: std::sync::atomic::AtomicU64,
 }
 
+#[derive(Clone)]
 pub struct StreamingManager {
     subscriptions: Arc<RwLock<HashMap<String, Vec<Subscription>>>>,
     connections: Arc<RwLock<HashMap<String, mpsc::Sender<String>>>>, // BOUNDED CHANNEL
@@ -101,10 +103,16 @@ pub struct StreamingManager {
     // Backpressure management
     backpressure_semaphore: Arc<Semaphore>,
     backpressure_metrics: Arc<BackpressureMetrics>,
+    // Kafka producer for backend streaming
+    kafka_producer: Option<Arc<KafkaProducer>>,
 }
 
 impl StreamingManager {
     pub fn new() -> Self {
+        Self::new_with_kafka(None)
+    }
+
+    pub fn new_with_kafka(kafka_producer: Option<Arc<KafkaProducer>>) -> Self {
         let (ticker_sender, _) = broadcast::channel(BROADCAST_CHANNEL_CAPACITY);
         let (orderbook_sender, _) = broadcast::channel(BROADCAST_CHANNEL_CAPACITY);
         let (trade_sender, _) = broadcast::channel(BROADCAST_CHANNEL_CAPACITY);
@@ -128,6 +136,7 @@ impl StreamingManager {
             latency_tracker: Arc::new(RwLock::new(LatencyTracker::new())),
             backpressure_semaphore: Arc::new(Semaphore::new(BOUNDED_CHANNEL_CAPACITY)),
             backpressure_metrics: Arc::new(BackpressureMetrics::default()),
+            kafka_producer,
         }
     }
     
@@ -284,8 +293,18 @@ impl StreamingManager {
             sequence: None,
         };
         
+        // Send to WebSocket subscribers
         self.send_to_subscribers(&channel, &message).await;
-        let _ = self.ticker_sender.send(ticker);
+        let _ = self.ticker_sender.send(ticker.clone());
+        
+        // Send to Kafka if producer is available
+        if let Some(ref kafka_producer) = self.kafka_producer {
+            if let Err(e) = kafka_producer.publish_ticker(&ticker).await {
+                error!("Failed to publish ticker to Kafka: {}", e);
+            } else {
+                debug!("Published ticker to Kafka: {}:{}", ticker.exchange, ticker.symbol);
+            }
+        }
         
         Ok(())
     }
@@ -302,8 +321,18 @@ impl StreamingManager {
             sequence: orderbook.sequence_id,
         };
         
+        // Send to WebSocket subscribers
         self.send_to_subscribers(&channel, &message).await;
-        let _ = self.orderbook_sender.send(orderbook);
+        let _ = self.orderbook_sender.send(orderbook.clone());
+        
+        // Send to Kafka if producer is available
+        if let Some(ref kafka_producer) = self.kafka_producer {
+            if let Err(e) = kafka_producer.publish_orderbook(&orderbook).await {
+                error!("Failed to publish orderbook to Kafka: {}", e);
+            } else {
+                debug!("Published orderbook to Kafka: {}:{}", orderbook.exchange, orderbook.symbol);
+            }
+        }
         
         Ok(())
     }
@@ -319,8 +348,18 @@ impl StreamingManager {
             sequence: None,
         };
         
+        // Send to WebSocket subscribers
         self.send_to_subscribers(&channel, &message).await;
-        let _ = self.trade_sender.send(trade);
+        let _ = self.trade_sender.send(trade.clone());
+        
+        // Send to Kafka if producer is available
+        if let Some(ref kafka_producer) = self.kafka_producer {
+            if let Err(e) = kafka_producer.publish_trade(&trade).await {
+                error!("Failed to publish trade to Kafka: {}", e);
+            } else {
+                debug!("Published trade to Kafka: {}:{}", trade.exchange, trade.symbol);
+            }
+        }
         
         Ok(())
     }
@@ -336,8 +375,18 @@ impl StreamingManager {
             sequence: None,
         };
         
+        // Send to WebSocket subscribers
         self.send_to_subscribers(&channel, &message).await;
-        let _ = self.kline_sender.send(kline);
+        let _ = self.kline_sender.send(kline.clone());
+        
+        // Send to Kafka if producer is available
+        if let Some(ref kafka_producer) = self.kafka_producer {
+            if let Err(e) = kafka_producer.publish_kline(&kline).await {
+                error!("Failed to publish kline to Kafka: {}", e);
+            } else {
+                debug!("Published kline to Kafka: {}:{}:{}", kline.exchange, kline.symbol, kline.interval);
+            }
+        }
         
         Ok(())
     }
@@ -457,18 +506,14 @@ impl StreamingManager {
         let symbol = parts[1];
         let exchange = parts[2];
         
-        // TODO: Fix Arc<Self> requirement for streaming methods
+        // Create Arc<Self> for streaming methods
+        let self_arc = Arc::new(self.clone());
+        
         match exchange {
-            // "binance" => self.start_binance_stream(stream_type, symbol).await,
-            // "coinbase" => self.start_coinbase_stream(stream_type, symbol).await,
-            // "bybit" => self.start_bybit_stream(stream_type, symbol).await,
-            // "bitget" => self.start_bitget_stream(stream_type, symbol).await,
-            // "hyperliquid" => self.start_hyperliquid_stream(stream_type, symbol).await,
-            // "kucoin" => self.start_kucoin_stream(stream_type, symbol).await,
-            // "kraken" => self.start_kraken_stream(stream_type, symbol).await,
-            // "okx" => self.start_okx_stream(stream_type, symbol).await,
+            // Note: Real exchange streaming is handled by dedicated WebSocket clients
+            // See binance_websocket.rs for Binance implementation
             _ => {
-                warn!("Real-time streaming temporarily disabled for: {}", exchange);
+                warn!("Real-time streaming for {} handled by dedicated WebSocket client", exchange);
                 Ok(())
             }
         }

@@ -1,8 +1,12 @@
 use self::liquidation::BybitLiquidation;
 use super::{Bybit, ExchangeServer};
 use crate::{
-    ExchangeWsStream, NoInitialSnapshots, exchange::StreamSelector, instrument::InstrumentData,
-    subscription::liquidation::Liquidations, transformer::stateless::StatelessTransformer,
+    ExchangeWsStream, NoInitialSnapshots, 
+    event::MarketEvent,
+    exchange::StreamSelector, 
+    instrument::InstrumentData,
+    subscription::liquidation::{Liquidations, Liquidation}, 
+    transformer::stateless::StatelessTransformer,
 };
 use jackbot_instrument::exchange::ExchangeId;
 use std::fmt::Display;
@@ -44,7 +48,7 @@ where
 {
     type SnapFetcher = NoInitialSnapshots;
     type Stream = ExchangeWsStream<
-        StatelessTransformer<Self, Instrument::Key, Liquidations, BybitLiquidation>,
+        MarketEvent<Instrument::Key, Liquidation>,
     >;
 }
 

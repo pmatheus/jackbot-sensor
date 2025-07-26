@@ -38,8 +38,8 @@ impl CryptocomRateLimit {
         jitter: Duration,
     ) -> Self {
         Self {
-            rest: RateLimiter::new_with_jitter(rest_capacity, rest_interval, jitter),
-            ws: RateLimiter::new_with_jitter(ws_capacity, ws_interval, jitter),
+            rest: RateLimiter::new(),
+            ws: RateLimiter::new(),
         }
     }
 
@@ -55,12 +55,12 @@ impl CryptocomRateLimit {
 
     /// Report a REST rate limit violation.
     pub async fn report_rest_violation(&self) {
-        self.rest.report_violation().await;
+        self.rest.report_violation(Priority::High).await;
     }
 
     /// Report a WebSocket rate limit violation.
     pub async fn report_ws_violation(&self) {
-        self.ws.report_violation().await;
+        self.ws.report_violation(Priority::High).await;
     }
 }
 
@@ -80,10 +80,10 @@ mod tests {
             Duration::from_millis(10),
             Duration::from_millis(0),
         );
-        rl.acquire_rest(Priority::Normal).await;
+        rl.acquire_rest(Priority::Medium).await;
         let start = Instant::now();
         tokio::time::advance(Duration::from_millis(10)).await;
-        rl.acquire_rest(Priority::Normal).await;
+        rl.acquire_rest(Priority::Medium).await;
         assert!(start.elapsed() >= Duration::from_millis(10));
         assert!(start.elapsed() <= Duration::from_millis(50)); // Add upper bound
     }
@@ -98,11 +98,11 @@ mod tests {
             Duration::from_millis(5),
             Duration::from_millis(5),
         );
-        rl.acquire_ws(Priority::Normal).await;
+        rl.acquire_ws(Priority::Medium).await;
         rl.report_ws_violation().await;
         let start = Instant::now();
         tokio::time::advance(Duration::from_millis(15)).await;
-        rl.acquire_ws(Priority::Normal).await;
+        rl.acquire_ws(Priority::Medium).await;
         let elapsed = start.elapsed();
         assert!(elapsed >= Duration::from_millis(10)); // reduced from 40
         assert!(elapsed <= Duration::from_millis(20)); // reduced from 60

@@ -53,12 +53,11 @@ pub enum OkxSubResponse {
 }
 
 impl Validator for OkxSubResponse {
-    fn validate(self) -> Result<Self, SocketError>
-    where
-        Self: Sized,
-    {
-        match self {
-            Self::Subscribed => Ok(self),
+    type Item = OkxSubResponse;
+
+    fn validate(&self, item: &Self::Item) -> Result<(), SocketError> {
+        match item {
+            Self::Subscribed => Ok(()),
             Self::Error { code, message } => Err(SocketError::Subscribe(format!(
                 "received failure subscription response code: {code} with message: {message}",
             ))),

@@ -3,7 +3,8 @@ use crate::{
     subscription::Subscription,
 };
 use jackbot_instrument::{
-    Keyed, asset::name::AssetNameInternal, instrument::market_data::MarketDataInstrument,
+    asset::name::AssetNameInternal, instrument::market_data::MarketDataInstrument,
+    index::Keyed,
 };
 use serde::{Deserialize, Serialize};
 use smol_str::{SmolStr, StrExt, format_smolstr};
@@ -19,7 +20,10 @@ impl<Server, Kind> Identifier<BybitMarket>
     for Subscription<Bybit<Server>, MarketDataInstrument, Kind>
 {
     fn id(&self) -> BybitMarket {
-        bybit_market(&self.instrument.base, &self.instrument.quote)
+        bybit_market(
+            &AssetNameInternal(self.instrument.instrument.base.0.to_string()),
+            &AssetNameInternal(self.instrument.instrument.quote.0.to_string())
+        )
     }
 }
 
@@ -27,7 +31,10 @@ impl<Server, InstrumentKey, Kind> Identifier<BybitMarket>
     for Subscription<Bybit<Server>, Keyed<InstrumentKey, MarketDataInstrument>, Kind>
 {
     fn id(&self) -> BybitMarket {
-        bybit_market(&self.instrument.value.base, &self.instrument.value.quote)
+        bybit_market(
+            &AssetNameInternal(self.instrument.value.instrument.base.0.to_string()),
+            &AssetNameInternal(self.instrument.value.instrument.quote.0.to_string())
+        )
     }
 }
 
@@ -35,7 +42,7 @@ impl<Server, InstrumentKey, Kind> Identifier<BybitMarket>
     for Subscription<Bybit<Server>, MarketInstrumentData<InstrumentKey>, Kind>
 {
     fn id(&self) -> BybitMarket {
-        BybitMarket(self.instrument.name_exchange.name().clone())
+        BybitMarket(self.instrument.name_exchange.name().clone().into())
     }
 }
 

@@ -130,6 +130,7 @@ where
     }
 }
 
+#[async_trait]
 impl<InstrumentKey> Transformer for BinanceFuturesUsdOrderBooksL2Transformer<InstrumentKey>
 where
     InstrumentKey: Clone,
@@ -165,6 +166,20 @@ where
             valid_update,
         ))
         .0
+    }
+
+    async fn init<T>(
+        __instrument_map: T,
+        __initial_snapshots: &[Self::Output], 
+        __sink_tx: tokio::sync::mpsc::UnboundedSender<jackbot_integration::protocol::websocket::Message>
+    ) -> Result<Self, SocketError>
+    where
+        Self: Sized,
+        T: Send,
+    {
+        // This init method is required by the Transformer trait, but we use the ExchangeTransformer init
+        // So this should never be called
+        Err(SocketError::ProtocolError("Should use ExchangeTransformer::init".into()))
     }
 }
 

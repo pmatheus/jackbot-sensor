@@ -3,7 +3,7 @@ use crate::subscription::SubscriptionKind;
 use fnv::FnvHashMap;
 use futures::Stream;
 use jackbot_instrument::exchange::ExchangeId;
-use jackbot_integration::channel::UnboundedRx;
+use jackbot_integration::channel::{UnboundedRx, UnboundedReceiverExt};
 
 /// Defines the [`StreamBuilder`] and [`MultiStreamBuilder`] APIs for ergonomically initialising
 /// [`MarketStream`](super::MarketStream) [`Streams`].

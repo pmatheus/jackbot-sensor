@@ -28,6 +28,10 @@ pub mod network_resilience;
 pub mod streaming_real;
 pub mod order_book_aggregator_ultra;
 pub mod market_arbitrage;
+pub mod binance_websocket;
+pub mod coinbase_websocket;
+pub mod coinbase_websocket_auth;
+pub mod coinbase_websocket_optimized;
 pub mod strategy_execution;
 pub mod connection_pool;
 pub mod zero_copy_parser;
@@ -35,6 +39,9 @@ pub mod latency_monitor;
 pub mod performance_test_integration;
 pub mod security_validation_test;
 pub mod kafka_subscriber;
+pub mod kafka_producer;
+pub mod proto_serializer;
+pub mod tests;
 // pub mod defi; // Temporarily disabled due to missing dependencies
 
 // Minimal placeholder for library functionality

@@ -14,7 +14,6 @@ use url::Url;
 
 use crate::api::{OrderBookData, TickerData, TradeData};
 use crate::exchange_websocket_config::ExchangeWebSocketConfig;
-use crate::websocket_connection_pool::WebSocketConnectionPool;
 use crate::streaming::StreamingManager;
 
 /// Extension trait to add real exchange streaming to StreamingManager

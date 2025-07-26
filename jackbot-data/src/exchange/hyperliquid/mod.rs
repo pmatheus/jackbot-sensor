@@ -13,8 +13,8 @@ use crate::{
     },
     instrument::InstrumentData,
     subscriber::{WebSocketSubscriber, validator::WebSocketSubValidator},
-    subscription::trade::PublicTrades,
-    transformer::stateless::StatelessTransformer,
+    subscription::trade::{PublicTrades, PublicTrade},
+    event::MarketEvent,
 };
 use jackbot_instrument::exchange::ExchangeId;
 use jackbot_integration::{error::SocketError, protocol::websocket::WsMessage};
@@ -100,9 +100,7 @@ where
     Instrument: InstrumentData,
 {
     type SnapFetcher = NoInitialSnapshots;
-    type Stream = ExchangeWsStream<
-        StatelessTransformer<Self, Instrument::Key, PublicTrades, HyperliquidTrades>,
-    >;
+    type Stream = ExchangeWsStream<MarketEvent<Instrument::Key, PublicTrade>>;
 }
 
 // Hyperliquid features implementation - see HYPERLIQUID_FEATURES_SPEC.md for complete feature set

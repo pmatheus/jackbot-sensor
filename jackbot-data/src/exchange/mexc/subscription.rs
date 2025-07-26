@@ -9,9 +9,11 @@ pub struct MexcSubResponse {
 }
 
 impl Validator for MexcSubResponse {
-    fn validate(self) -> Result<Self, SocketError> {
-        if self.success {
-            Ok(self)
+    type Item = MexcSubResponse;
+
+    fn validate(&self, item: &Self::Item) -> Result<(), SocketError> {
+        if item.success {
+            Ok(())
         } else {
             Err(SocketError::Subscribe(
                 "received failure subscription response".to_owned(),

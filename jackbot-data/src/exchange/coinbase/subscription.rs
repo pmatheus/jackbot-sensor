@@ -49,12 +49,11 @@ pub struct CoinbaseChannels {
 }
 
 impl Validator for CoinbaseSubResponse {
-    fn validate(self) -> Result<Self, SocketError>
-    where
-        Self: Sized,
-    {
-        match &self {
-            CoinbaseSubResponse::Subscribed { .. } => Ok(self),
+    type Item = CoinbaseSubResponse;
+
+    fn validate(&self, item: &Self::Item) -> Result<(), SocketError> {
+        match item {
+            CoinbaseSubResponse::Subscribed { .. } => Ok(()),
             CoinbaseSubResponse::Error { reason } => Err(SocketError::Subscribe(format!(
                 "received failure subscription response: {}",
                 reason

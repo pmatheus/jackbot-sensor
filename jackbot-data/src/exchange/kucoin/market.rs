@@ -3,7 +3,8 @@
 use super::Kucoin;
 use crate::{Identifier, instrument::MarketInstrumentData, subscription::Subscription};
 use jackbot_instrument::{
-    Keyed, asset::name::AssetNameInternal, instrument::market_data::MarketDataInstrument,
+    asset::name::AssetNameInternal, instrument::market_data::MarketDataInstrument,
+    index::Keyed,
 };
 use serde::{Deserialize, Serialize};
 use smol_str::{SmolStr, StrExt, format_smolstr};
@@ -27,7 +28,10 @@ impl From<String> for KucoinMarket {
 
 impl<Kind> Identifier<KucoinMarket> for Subscription<Kucoin, MarketDataInstrument, Kind> {
     fn id(&self) -> KucoinMarket {
-        kucoin_market(&self.instrument.base, &self.instrument.quote)
+        kucoin_market(
+            &AssetNameInternal(self.instrument.instrument.base.0.to_string()),
+            &AssetNameInternal(self.instrument.instrument.quote.0.to_string())
+        )
     }
 }
 
@@ -35,7 +39,10 @@ impl<InstrumentKey, Kind> Identifier<KucoinMarket>
     for Subscription<Kucoin, Keyed<InstrumentKey, MarketDataInstrument>, Kind>
 {
     fn id(&self) -> KucoinMarket {
-        kucoin_market(&self.instrument.value.base, &self.instrument.value.quote)
+        kucoin_market(
+            &AssetNameInternal(self.instrument.value.instrument.base.0.to_string()),
+            &AssetNameInternal(self.instrument.value.instrument.quote.0.to_string())
+        )
     }
 }
 
@@ -43,7 +50,7 @@ impl<InstrumentKey, Kind> Identifier<KucoinMarket>
     for Subscription<Kucoin, MarketInstrumentData<InstrumentKey>, Kind>
 {
     fn id(&self) -> KucoinMarket {
-        KucoinMarket(self.instrument.name_exchange.name().clone())
+        KucoinMarket(self.instrument.name_exchange.name().clone().into())
     }
 }
 

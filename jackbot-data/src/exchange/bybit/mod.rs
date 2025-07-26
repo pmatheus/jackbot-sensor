@@ -1,6 +1,7 @@
 use crate::exchange::DEFAULT_HEARTBEAT_INTERVAL;
 use crate::{
     ExchangeWsStream, NoInitialSnapshots,
+    event::MarketEvent,
     exchange::{
         Connector, ExchangeServer, PingInterval, StreamSelector,
         bybit::{
@@ -11,7 +12,7 @@ use crate::{
     },
     instrument::InstrumentData,
     subscriber::{WebSocketSubscriber, validator::WebSocketSubValidator},
-    subscription::{Map, trade::PublicTrades},
+    subscription::{Map, trade::{PublicTrades, PublicTrade}},
     transformer::stateless::StatelessTransformer,
 };
 use jackbot_instrument::exchange::ExchangeId;
@@ -124,7 +125,7 @@ where
 {
     type SnapFetcher = NoInitialSnapshots;
     type Stream =
-        ExchangeWsStream<StatelessTransformer<Self, Instrument::Key, PublicTrades, BybitMessage>>;
+        ExchangeWsStream<MarketEvent<Instrument::Key, PublicTrade>>;
 }
 
 impl<'de, Server> serde::Deserialize<'de> for Bybit<Server>

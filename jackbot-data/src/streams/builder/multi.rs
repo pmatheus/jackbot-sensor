@@ -6,7 +6,7 @@ use crate::{
 };
 use futures_util::StreamExt;
 use jackbot_instrument::exchange::ExchangeId;
-use jackbot_integration::channel::Channel;
+use jackbot_integration::channel::{UnboundedChannel, UnboundedReceiverExt};
 use std::{collections::HashMap, fmt::Debug, future::Future, pin::Pin};
 
 /// Communicative type alias representing the [`Future`] result of a [`StreamBuilder::init`] call
@@ -17,7 +17,7 @@ pub type BuilderInitFuture = Pin<Box<dyn Future<Output = Result<(), DataError>>>
 /// multiple [`StreamBuilder<SubscriptionKind>`](StreamBuilder)s.
 #[derive(Default)]
 pub struct MultiStreamBuilder<Output> {
-    pub channels: HashMap<ExchangeId, Channel<Output>>,
+    pub channels: HashMap<ExchangeId, UnboundedChannel<Output>>,
     pub futures: Vec<BuilderInitFuture>,
 }
 
@@ -63,7 +63,7 @@ impl<Output> MultiStreamBuilder<Output> {
         // Iterate over each StreamBuilder exchange present
         for exchange in builder.channels.keys().cloned() {
             // Insert ExchangeChannel<Output> Entry to Self for each exchange
-            let exchange_tx = self.channels.entry(exchange).or_default().tx.clone();
+            let exchange_tx = self.channels.entry(exchange).or_default().sender();
 
             // Insert new exchange_tx<Output> into HashMap for each exchange
             exchange_txs.insert(exchange, exchange_tx);
@@ -110,7 +110,7 @@ impl<Output> MultiStreamBuilder<Output> {
             streams: self
                 .channels
                 .into_iter()
-                .map(|(exchange, channel)| (exchange, channel.rx))
+                .map(|(exchange, channel)| (exchange, channel.split().1))
                 .collect(),
         })
     }

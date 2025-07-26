@@ -199,7 +199,7 @@ impl SnapshotFetcher<Okx, OrderBooksL2> for OkxFuturesOrderBooksL2SnapshotFetche
                             let events = market_iter
                                 .0
                                 .into_iter()
-                                .map(|e| e.map_err(|e| SocketError::Exchange(format!("{:?}", e))))
+                                .map(|e| e.map_err(|e| SocketError::ProtocolError(format!("{:?}", e))))
                                 .collect::<Result<Vec<_>, _>>()?;
                             return Ok(events);
                         }
@@ -207,7 +207,7 @@ impl SnapshotFetcher<Okx, OrderBooksL2> for OkxFuturesOrderBooksL2SnapshotFetche
                 }
 
                 // If we reach here, we couldn't parse the response
-                Err(SocketError::Exchange(String::from(
+                Err(SocketError::ProtocolError(String::from(
                     "Failed to parse OKX orderbook response",
                 )))
             }
@@ -263,6 +263,7 @@ where
     }
 }
 
+#[async_trait]
 impl<InstrumentKey> Transformer for OkxFuturesOrderBooksL2Transformer<InstrumentKey>
 where
     InstrumentKey: Clone,
@@ -294,6 +295,20 @@ where
         }
 
         events
+    }
+
+    async fn init<T>(
+        _instrument_map: T,
+        _initial_snapshots: &[Self::Output], 
+        _sink_tx: tokio::sync::mpsc::UnboundedSender<jackbot_integration::protocol::websocket::Message>
+    ) -> Result<Self, SocketError>
+    where
+        Self: Sized,
+        T: Send,
+    {
+        // This init method is required by the Transformer trait, but we use the ExchangeTransformer init
+        // So this should never be called
+        Err(SocketError::ProtocolError("Should use ExchangeTransformer::init".into()))
     }
 }
 

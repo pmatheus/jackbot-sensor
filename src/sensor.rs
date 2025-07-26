@@ -19,6 +19,8 @@ use crate::streaming::StreamingManager;
 use crate::production_config::ProductionConfig;
 use crate::performance::cpu_affinity::{init_cpu_affinity, CpuAffinityConfig};
 use crate::exchange_protection::init_exchange_protection;
+use crate::binance_websocket::BinanceWebSocketClient;
+use crate::kafka_producer::{KafkaProducer, ProducerConfig};
 
 /// Instance information for the sensor
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -93,9 +95,25 @@ impl SensorManager {
         let kafka_store = Arc::new(KafkaClientStore::new());
         info!("✅ Connected to Kafka (mock mode)");
         
-        // Initialize production streaming manager with bounded channels
-        let streaming_manager = Arc::new(StreamingManager::new());
-        info!("🌊 PRODUCTION streaming manager initialized with backpressure protection");
+        // Create Kafka producer for real streaming
+        let kafka_producer = match KafkaProducer::new(ProducerConfig {
+            brokers: production_config.endpoints.kafka_brokers.join(","),
+            ..Default::default()
+        }).await {
+            Ok(producer) => {
+                info!("✅ Kafka producer connected to: {}", production_config.endpoints.kafka_brokers.join(","));
+                Some(Arc::new(producer))
+            }
+            Err(e) => {
+                warn!("⚠️ Failed to create Kafka producer: {}", e);
+                warn!("⚠️ Continuing without Kafka - market data will only be logged");
+                None
+            }
+        };
+        
+        // Initialize production streaming manager with bounded channels and Kafka producer
+        let streaming_manager = Arc::new(StreamingManager::new_with_kafka(kafka_producer));
+        info!("🌊 PRODUCTION streaming manager initialized with backpressure protection and Kafka integration");
 
         Ok(Self {
             config,
@@ -131,9 +149,55 @@ impl SensorManager {
     }
 
     async fn start_binance_streams(&self) -> Result<()> {
-        info!("🔌 Starting Binance Futures streams...");
+        info!("🔌 Starting Binance streams...");
+        
+        // Check if we're in testnet mode
+        let is_testnet = self.config.exchanges.get("binance")
+            .map(|ex| ex.testnet)
+            .unwrap_or(true);
+        
+        info!("🌐 Using Binance {} mode", if is_testnet { "TESTNET" } else { "PRODUCTION" });
+        
+        // Start our new WebSocket implementation if streaming manager is available
+        if let Some(streaming_manager) = &self.streaming_manager {
+            info!("🚀 Starting Binance WebSocket client for real-time market data");
+            
+            // Create Binance WebSocket client
+            let binance_client = BinanceWebSocketClient::new(
+                streaming_manager.clone(),
+                streaming_manager.kafka_producer.clone(),
+                is_testnet,
+            )?;
+            
+            // Get configured symbols
+            let symbols = vec!["BTC/USDT", "ETH/USDT", "BNB/USDT", "SOL/USDT", "XRP/USDT"];
+            
+            for symbol in &symbols {
+                info!("📊 Subscribing to {} streams", symbol);
+                
+                // Subscribe to order book
+                if let Err(e) = binance_client.subscribe_orderbook(symbol).await {
+                    error!("Failed to subscribe to {} orderbook: {}", symbol, e);
+                }
+                
+                // Subscribe to ticker
+                if let Err(e) = binance_client.subscribe_ticker(symbol).await {
+                    error!("Failed to subscribe to {} ticker: {}", symbol, e);
+                }
+                
+                // Subscribe to trades
+                if let Err(e) = binance_client.subscribe_trades(symbol).await {
+                    error!("Failed to subscribe to {} trades: {}", symbol, e);
+                }
+                
+                // Small delay between subscriptions
+                tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+            }
+            
+            info!("✅ Binance WebSocket streams started for {} symbols", symbols.len());
+        }
 
-        // Clone what we need before spawning tasks
+        // Clone what we need before spawning tasks for legacy implementation
         let kafka_store_trades = self.kafka_store.clone();
         let kafka_store_books = self.kafka_store.clone();
 

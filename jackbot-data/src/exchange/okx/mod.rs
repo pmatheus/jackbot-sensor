@@ -8,15 +8,17 @@ use self::{
 };
 use crate::{
     ExchangeWsStream, NoInitialSnapshots,
+    event::MarketEvent,
     exchange::{Connector, DEFAULT_HEARTBEAT_INTERVAL, ExchangeSub, PingInterval, StreamSelector},
     instrument::InstrumentData,
     subscriber::{WebSocketSubscriber, validator::WebSocketSubValidator},
-    subscription::{book::OrderBooksL2, trade::PublicTrades},
+    subscription::{book::{OrderBooksL2, OrderBookEvent}, trade::{PublicTrades, PublicTrade}},
     transformer::stateless::StatelessTransformer,
 };
 use jackbot_instrument::exchange::ExchangeId;
 use jackbot_integration::{error::SocketError, protocol::websocket::WsMessage};
 use jackbot_macro::{DeExchange, SerExchange};
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::time::Duration;
 use url::Url;
@@ -52,7 +54,7 @@ pub const PING_INTERVAL_OKX: Duration = Duration::from_secs(29);
 /// [`Okx`] execution.
 ///
 /// See docs: <https://www.okx.com/docs-v5/en/#websocket-api>
-#[derive(Clone, Default, Debug, PartialEq, Eq, PartialOrd, Ord, DeExchange, SerExchange)]
+#[derive(Clone, Default, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, DeExchange, SerExchange)]
 pub struct Okx;
 
 impl Connector for Okx {
@@ -95,7 +97,7 @@ where
 {
     type SnapFetcher = NoInitialSnapshots;
     type Stream =
-        ExchangeWsStream<StatelessTransformer<Self, Instrument::Key, PublicTrades, OkxTrades>>;
+        ExchangeWsStream<MarketEvent<Instrument::Key, PublicTrade>>;
 }
 
 /// Okx OrderBook L2 implementation
@@ -104,7 +106,7 @@ where
     Instrument: InstrumentData,
 {
     type SnapFetcher = OkxSpotOrderBooksL2SnapshotFetcher;
-    type Stream = ExchangeWsStream<OkxSpotOrderBooksL2Transformer<Instrument::Key>>;
+    type Stream = ExchangeWsStream<MarketEvent<Instrument::Key, OrderBookEvent>>;
 }
 
 pub mod futures;
